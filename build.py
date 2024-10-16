@@ -25,7 +25,7 @@ class BuildRunner(object):
 
     def __init__(self):   
         formatter_class = lambda prog: argparse.HelpFormatter(prog, max_help_position=100, width=200)
-        description = 'This tool can be used to build and deploy the Distortion project.'
+        description = 'This tool can be used to build and deploy the Chess project.'
         epilog = ''
         parser = argparse.ArgumentParser(description=description, formatter_class=formatter_class, epilog=epilog)
         parser.add_argument('-p', '--prepare', action='store_true', help='prepares the project for use with IDE')
@@ -89,7 +89,7 @@ class BuildRunner(object):
         if os.path.exists(projectfolderVS + "/CMakeCache.txt"):
             self._execute_command("cmake --build " + projectfolderVS + " --target clean", "Run CMake clean")
         
-        self._execute_command("cmake --build " + buildFolder + " --config " + BuildRunner.TARGET_CONFIG + " --clean-first ", "Build the Distortion")   
+        self._execute_command("cmake --build " + buildFolder + " --config " + BuildRunner.TARGET_CONFIG + " --clean-first ", "Build the Chess Game")   
 
 
         
