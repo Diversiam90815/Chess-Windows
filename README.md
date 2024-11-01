@@ -6,8 +6,8 @@ This is a chess game developed in C++ with the goal of creating a fully-featured
 
 - **Backend**: C++
 - **Frontend (Planned)**:
-  - **Windows**: WinUI 3
-  - **macOS**: SwiftUI
+  - **Windows**: WinUI 3 / C#
+  - **macOS**: SwiftUI / Swift
 
 ## Features (Planned)
 
@@ -16,7 +16,6 @@ This is a chess game developed in C++ with the goal of creating a fully-featured
 - **Chess Engine**: Implements standard chess rules and advanced move logic.
 - **Save and Load Games**: Ability to save game states and resume later.
 - **Undo/Redo Moves**: Navigate through move history.
-- **Customizable Themes**: Choose from various board and piece designs.
 
 ## Prerequisites
 
@@ -27,12 +26,12 @@ This is a chess game developed in C++ with the goal of creating a fully-featured
 ### For Windows Development
 
 - **Visual Studio 2022 or higher**: With C++ Desktop Development workload.
-- **WinUI 3**: [Windows App SDK](https://docs.microsoft.com/en-us/windows/apps/windows-app-sdk/)
+(- **WinUI 3**: [Windows App SDK](https://docs.microsoft.com/en-us/windows/apps/windows-app-sdk/) )
 
 ### For macOS Development
 
 - **Xcode 12 or higher**
-- **SwiftUI**
+( - **SwiftUI** )
 
 ## Getting Started
 
