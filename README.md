@@ -26,12 +26,12 @@ This is a chess game developed in C++ with the goal of creating a fully-featured
 ### For Windows Development
 
 - **Visual Studio 2022 or higher**: With C++ Desktop Development workload.
-(- **WinUI 3**: [Windows App SDK](https://docs.microsoft.com/en-us/windows/apps/windows-app-sdk/) )
+- **WinUI 3**: [Windows App SDK](https://docs.microsoft.com/en-us/windows/apps/windows-app-sdk/) 
 
 ### For macOS Development
 
 - **Xcode 12 or higher**
-( - **SwiftUI** )
+- **SwiftUI** 
 
 ## Getting Started
 
