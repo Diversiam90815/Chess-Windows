@@ -75,7 +75,7 @@ class BuildRunner(object):
 
 
     def _build_prepare(self):
-        projectfolderVS =  os.path.join(self.args.path_project)
+        projectfolderVS =  os.path.join(self.args.path_project, "Chess-Logic")
         autoCWD = AutoCWD(projectfolderVS)
 
         prepare_cmd = f'cmake -G {PLATFORM_GENERATOR} -B build'
