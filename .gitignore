@@ -1,2 +1,27 @@
-build/
+# User Specific files
+*.suo
+*.user
+
+
+# Build Results
+[Bb]uild/
+[Rr]elease/
+[Dd]ebug/
+[Oo]bj/
+[Bi]in/
+Generated Files/
+
+# Visual Studio Files
 .vs/
+ALL BUILD.*
+ZERO CHECK.*
+INSTALL.*
+CMakeCache.txt
+*autogen*
+*.cmake
+
+# Excluding Cmake files
+**/CMakeFiles/*
+*/CmakeCache.txt.prev
+
+

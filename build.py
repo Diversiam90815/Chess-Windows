@@ -7,6 +7,8 @@ from subprocess import Popen, PIPE
 
 PLATFORM_GENERATOR = '\"Visual Studio 17\"'
 
+MSBUILD_PATH = r"%ProgramFiles%\Microsoft Visual Studio\2022\Professional\MSBuild\Current\Bin\MSBuild.exe"
+BUILD_DIRECTORY = os.path.join(os.getcwd(), "Build")
 
 class AutoCWD(object):
     """Auto restore directory"""
@@ -73,7 +75,7 @@ class BuildRunner(object):
 
 
     def _build_prepare(self):
-        projectfolderVS =  os.path.join(self.args.path_project)
+        projectfolderVS =  os.path.join(self.args.path_project, "Chess-Logic")
         autoCWD = AutoCWD(projectfolderVS)
 
         prepare_cmd = f'cmake -G {PLATFORM_GENERATOR} -B build'
@@ -83,14 +85,16 @@ class BuildRunner(object):
 
         
     def _build_project(self):
-        projectfolderVS =  os.path.join(self.args.path_project)
+        projectfolderVS =  os.path.join(self.args.path_project, "Chess-Logic")
         buildFolder = os.path.join(projectfolderVS, "build")
 
         if os.path.exists(projectfolderVS + "/CMakeCache.txt"):
             self._execute_command("cmake --build " + projectfolderVS + " --target clean", "Run CMake clean")
         
-        self._execute_command("cmake --build " + buildFolder + " --config " + BuildRunner.TARGET_CONFIG + " --clean-first ", "Build the Chess Game")   
+        self._execute_command("cmake --build " + buildFolder + " --config " + BuildRunner.TARGET_CONFIG + " --clean-first ", "Build the Chess Logic Library")   
 
+        # # Build the WinUi3 project
+        # self._execute_command(f'"{MSBUILD_PATH}" /t:Restore,Build /p:RestorePackagesConfig=true /p:Configuration=Release /p:Platform=x64 /p:OutDir="{BUILD_DIRECTORY}"\\' , 'Run build command for Chess-UI') 
 
         
     def doit(self):
