@@ -7,6 +7,8 @@ from subprocess import Popen, PIPE
 
 PLATFORM_GENERATOR = '\"Visual Studio 17\"'
 
+MSBUILD_PATH = r"%ProgramFiles%\Microsoft Visual Studio\2022\Professional\MSBuild\Current\Bin\MSBuild.exe"
+BUILD_DIRECTORY = os.path.join(os.getcwd(), "Build")
 
 class AutoCWD(object):
     """Auto restore directory"""
@@ -91,6 +93,8 @@ class BuildRunner(object):
         
         self._execute_command("cmake --build " + buildFolder + " --config " + BuildRunner.TARGET_CONFIG + " --clean-first ", "Build the Chess Logic Library")   
 
+        # # Build the WinUi3 project
+        # self._execute_command(f'"{MSBUILD_PATH}" /t:Restore,Build /p:RestorePackagesConfig=true /p:Configuration=Release /p:Platform=x64 /p:OutDir="{BUILD_DIRECTORY}"\\' , 'Run build command for Chess-UI') 
 
         
     def doit(self):
