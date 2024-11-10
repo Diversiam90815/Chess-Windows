@@ -83,13 +83,13 @@ class BuildRunner(object):
 
         
     def _build_project(self):
-        projectfolderVS =  os.path.join(self.args.path_project)
+        projectfolderVS =  os.path.join(self.args.path_project, "Chess-Logic")
         buildFolder = os.path.join(projectfolderVS, "build")
 
         if os.path.exists(projectfolderVS + "/CMakeCache.txt"):
             self._execute_command("cmake --build " + projectfolderVS + " --target clean", "Run CMake clean")
         
-        self._execute_command("cmake --build " + buildFolder + " --config " + BuildRunner.TARGET_CONFIG + " --clean-first ", "Build the Chess Game")   
+        self._execute_command("cmake --build " + buildFolder + " --config " + BuildRunner.TARGET_CONFIG + " --clean-first ", "Build the Chess Logic Library")   
 
 
         
