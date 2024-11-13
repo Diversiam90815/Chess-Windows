@@ -7,12 +7,11 @@ This is a chess game developed in C++ with the goal of creating a fully-featured
 - **Backend**: C++
 - **Frontend (Planned)**:
   - **Windows**: WinUI 3 / C#
-  - **macOS**: SwiftUI / Swift
 
 ## Features (Planned)
 
 - **Multiplayer Mode**: Play against other players locally or online.
-- **Modern UI**: Intuitive and responsive user interface using WinUI 3 or SwiftUI.
+- **Modern UI**: Intuitive and responsive user interface using WinUI 3.
 - **Chess Engine**: Implements standard chess rules and advanced move logic.
 - **Save and Load Games**: Ability to save game states and resume later.
 - **Undo/Redo Moves**: Navigate through move history.
@@ -22,16 +21,9 @@ This is a chess game developed in C++ with the goal of creating a fully-featured
 - **C++ Compiler**: Compatible with C++20 or higher.
 - **CMake**: Version 3.15 or higher.
 - **Git**: For cloning the repository.
-
-### For Windows Development
-
+- **.NET8**: For Windows App SDK / WinUi3
 - **Visual Studio 2022 or higher**: With C++ Desktop Development workload.
-- **WinUI 3**: [Windows App SDK](https://docs.microsoft.com/en-us/windows/apps/windows-app-sdk/) 
 
-### For macOS Development
-
-- **Xcode 12 or higher**
-- **SwiftUI** 
 
 ## Getting Started
 
@@ -88,8 +80,6 @@ python build.py --prepare --build --debug
 After building, the executable will be located in the `build/<Configuration>` directory:
 
 - **Windows**: `build/Release/ChessGame.exe`
-- **macOS**: `build/Release/ChessGame`
-- **Linux**: `build/Release/ChessGame`
 
 Replace `<Configuration>` with `Release` or `Debug` depending on your build configuration.
 
@@ -159,16 +149,6 @@ Contributions are welcome! Please follow these steps:
 
 Please ensure your code follows the project's coding standards and includes appropriate documentation.
 
-## License
-
-This project is licensed under the [MIT License](LICENSE).
-
-## Contact
-
-For questions or feedback:
-
-- **GitHub**: [Diversiam90815](https://github.com/Diversiam90815)
-- **Website**: [www.diversiam.com](https://www.diversiam.com)
 
 ---
 
