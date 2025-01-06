@@ -10,11 +10,10 @@ This is a chess game developed in C++ with the goal of creating a fully-featured
 
 ## Features (Planned)
 
-- **Multiplayer Mode**: Play against other players locally or online.
 - **Modern UI**: Intuitive and responsive user interface using WinUI 3.
 - **Chess Engine**: Implements standard chess rules and advanced move logic.
-- **Save and Load Games**: Ability to save game states and resume later.
 - **Undo/Redo Moves**: Navigate through move history.
+- **Multiplayer Mode**: Play against other players locally or online.
 
 ## Prerequisites
 
