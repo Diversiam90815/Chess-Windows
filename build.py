@@ -1,8 +1,11 @@
 import argparse
 import os
 import sys
+import shutil
+import xml.etree.ElementTree as ET
+import re
 
-from subprocess import Popen, PIPE
+from subprocess import Popen, PIPE, check_output
 
 
 PLATFORM_GENERATOR = '\"Visual Studio 17\"'
@@ -33,6 +36,7 @@ class BuildRunner(object):
         parser.add_argument('-p', '--prepare', action='store_true', help='prepares the project for use with IDE')
         parser.add_argument('-d', '--debug', action='store_true', help='prepare or build debug version')
         parser.add_argument('-b', '--build', action='store_true', help='build the project')
+        parser.add_argument('-v', '--version', action='store_true', help='display Python and CMake versions')
 
         self.args = parser.parse_args()
        
@@ -74,6 +78,108 @@ class BuildRunner(object):
         return result
 
 
+    def _print_versions(self):
+        """ Print Python, CMake & Projects versions """
+        self._updateVersion()
+        print(f"Project's version: {self.version}")
+        print(f"Python version: {sys.version}")
+        try:
+            cmake_version = self._execute_command("cmake --version", "Get CMake version")
+            print(f"CMake version: {cmake_version.splitlines()[0]}")  # print only the first line of output
+        except Exception as e:
+            print(f"Error retrieving CMake version: {e}")
+
+    
+    def __get_number_of_commits(self):
+        autoCWD = AutoCWD(self.args.path_project)
+        sys.stdout.flush()
+        commit_hashes = check_output("git rev-list HEAD", shell=True).rstrip()
+        commit_number = commit_hashes.count(b'\n') + 1
+        del autoCWD
+        return commit_number
+    
+
+    def _getBuildNumber(self):
+        BuildNumber = self.__get_number_of_commits()
+        return BuildNumber
+    
+
+    def _updateSplitterVersionInCMAKE(self, version):
+        pattern = r'set\(CHESS_VERSION\s*(\d+\.\d+)(\.\d+)?\.(\d+)'
+        cmakeFile = os.path.join(self.args.path_project, 'Chess-Logic', 'CMakeLists.txt')
+        tempFile = cmakeFile + '.tmp'
+        
+        with open(cmakeFile, 'r') as fileIn, open(tempFile, 'w') as fileOut:
+            for line in fileIn:
+                match = re.search(pattern, line)
+                if match:
+                    fileOut.write(f'set(CHESS_VERSION {version})\n')
+                else:
+                    fileOut.write(line)
+        
+        shutil.move(tempFile, cmakeFile)
+        fileIn.close()
+        fileOut.close()
+
+
+    def _updateVersionInExe(self,version):
+        build_props_file = os.path.join(os.getcwd(), "Chess-UI", "Directory.Build.Props")
+        
+        tree = ET.parse(build_props_file)
+        root = tree.getroot()
+
+        version_element = root.find('.//Version')
+
+        if version_element is not None:
+            # Update the Version text
+            version_element.text = version
+            print(f'Updated Version to {version} in Directory.Build.Props')
+        else:
+            print("Version element not found in Directory.Build.Props")
+            
+        tree.write(build_props_file, encoding='utf-8', xml_declaration=True)
+
+
+
+    def _updateVersion(self):
+        packageManifest = os.path.join(os.getcwd(), "Chess-UI", "Package.appxmanifest")
+        
+        ET.register_namespace("", "http://schemas.microsoft.com/appx/manifest/foundation/windows10")
+        ET.register_namespace("mp", "http://schemas.microsoft.com/appx/2014/phone/manifest")
+        ET.register_namespace("uap", "http://schemas.microsoft.com/appx/manifest/uap/windows10")
+        ET.register_namespace("rescap", "http://schemas.microsoft.com/appx/manifest/foundation/windows10/restrictedcapabilities")
+
+        tree = ET.parse(packageManifest)
+        root = tree.getroot()
+
+        identity_element = root.find('.//{http://schemas.microsoft.com/appx/manifest/foundation/windows10}Identity')
+        
+        if identity_element is not None:
+            # Update the Version
+            BuildNumber = self._getBuildNumber()
+            
+            current_version = identity_element.get('Version')
+            
+            if current_version:
+                version_parts = current_version.split('.')
+                version_parts[-1] = str(BuildNumber)
+                self.version = '.'.join(version_parts)
+
+                self._updateSplitterVersionInCMAKE(self.version)
+                self._updateVersionInExe(self.version)
+                identity_element.set('Version', self.version)
+                
+                # Write the changes back to the file
+                tree.write(packageManifest, encoding='utf-8', xml_declaration=True)
+                print(f'Version updated to {self.version}')
+            
+            else:
+                print("No version attribute found")
+        else:
+            print("Identity element not found")
+
+
+
     def _build_prepare(self):
         projectfolderVS =  os.path.join(self.args.path_project, "Chess-Logic")
         autoCWD = AutoCWD(projectfolderVS)
@@ -93,17 +199,18 @@ class BuildRunner(object):
         
         self._execute_command("cmake --build " + buildFolder + " --config " + BuildRunner.TARGET_CONFIG + " --clean-first ", "Build the Chess Logic Library")   
 
-        # # Build the WinUi3 project
-        # self._execute_command(f'"{MSBUILD_PATH}" /t:Restore,Build /p:RestorePackagesConfig=true /p:Configuration=Release /p:Platform=x64 /p:OutDir="{BUILD_DIRECTORY}"\\' , 'Run build command for Chess-UI') 
-
         
     def doit(self):
+        if self.args.version:
+            self._print_versions()
         if self.args.debug:
             BuildRunner.TARGET_CONFIG = 'Debug'
         if self.args.prepare:
             self._build_prepare()
+            self._updateVersion()
         if self.args.build:
             self._build_prepare()
+            self._updateVersion()
             self._build_project()
 
             
