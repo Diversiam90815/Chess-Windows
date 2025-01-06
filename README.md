@@ -5,7 +5,7 @@
 This is a chess game developed in C++ with the goal of creating a fully-featured chess application. The project is currently in development and aims to provide a seamless chess-playing experience with a modern user interface.
 
 - **Backend**: C++
-- **Frontend (In Development)**:
+- **Frontend**:
   - **Windows**: WinUI 3 / C#
 
 ## Features (Planned)
