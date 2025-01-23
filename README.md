@@ -16,6 +16,7 @@ This is a chess game developed in C++ and C# with the goal of creating a fully-f
 - **Git**: For cloning the repository.
 - **.NET8**: For Windows App SDK / WinUi3
 - **Visual Studio 2022 or higher**: With C++ Desktop Development workload.
+- **Python**: Version 3.x (for running `build.py`).
 
 
 ## Getting Started
