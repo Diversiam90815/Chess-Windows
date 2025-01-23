@@ -2,7 +2,7 @@
 
 ## Overview
 
-This is a chess game developed in C++ with the goal of creating a fully-featured chess application. The project is currently in development and aims to provide a seamless chess-playing experience with a modern user interface.
+This is a chess game developed in C++ and C# with the goal of creating a fully-featured chess application. The project is currently in development and aims to provide a seamless chess-playing experience with a modern user interface.
 
 - **Backend**: C++
 - **Frontend**:
@@ -25,13 +25,13 @@ This is a chess game developed in C++ with the goal of creating a fully-featured
 Clone the repository using the following command:
 
 ```bash
-git clone https://github.com/Diversiam90815/Chess-Game.git
+git clone git@github.com:Diversiam90815/Chess-Game.git
 ```
 
-Keep in mind that you also need to check out the submodules with this project. To do so, you can include --recurse-submodules within the clone command (with git version 2.13 or higher):
+Keep in mind that you also need to check out the submodules with this project. To do so, you can include `--recurse-submodules` within the clone command (with git version 2.13 or higher):
 
 ```bash
-git clone --recurse-submdules https://github.com/Diversiam90815/Chess-Game.git
+git clone --recurse-submdules git@github.com:Diversiam90815/Chess-Game.git
 ```
 
 or if you already cloned the repository call
@@ -96,21 +96,6 @@ The `build.py` script simplifies the build process:
   - `--build` or `-b`: Compiles the project.
   - `--debug` or `-d`: Sets the build configuration to Debug mode.
 
-**Examples**:
-
-- Prepare and build in **Release** mode:
-
-  ```bash
-  python build.py --prepare --build
-  ```
-
-- Prepare and build in **Debug** mode:
-
-  ```bash
-  python build.py --prepare --build --debug
-  ```
-
-This will compile the backend chess engine. Since the frontend is still under development, there is no executable UI application yet.
 
 ### Running Tests
 
