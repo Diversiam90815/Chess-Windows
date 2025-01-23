@@ -8,12 +8,6 @@ This is a chess game developed in C++ with the goal of creating a fully-featured
 - **Frontend**:
   - **Windows**: WinUI 3 / C#
 
-## Features (Planned)
-
-- **Modern UI**: Intuitive and responsive user interface using WinUI 3.
-- **Chess Engine**: Implements standard chess rules and advanced move logic.
-- **Undo/Redo Moves**: Navigate through move history.
-- **Multiplayer Mode**: Play against other players locally or online.
 
 ## Prerequisites
 
@@ -34,47 +28,57 @@ Clone the repository using the following command:
 git clone https://github.com/Diversiam90815/Chess-Game.git
 ```
 
-### Building the Project (Backend only as of now)
+Keep in mind that you also need to check out the submodules with this project. To do so, you can include --recurse-submodules within the clone command (with git version 2.13 or higher):
+
+```bash
+git clone --recurse-submdules https://github.com/Diversiam90815/Chess-Game.git
+```
+
+or if you already cloned the repository call
+
+```bash
+git submodule update --init --recursive
+```
+
+
+### Building the Project
 
 The Chess Game project uses a `build.py` script to automate the build process.
 
 #### Build Instructions
 
-##### 1. Prepare the Build Environment
+##### Prepare the Build Environment
 
 Navigate to the project directory and run:
 
 ```bash
-python build.py --prepare
+python build.py -p
 ```
 
 For a **Debug** build, include the `--debug` or `-d` option:
 
 ```bash
-python build.py --prepare --debug
+python build.py -pd
 ```
 
-##### 2. Build the Project
+##### Build the Project
 
-To compile the project, use:
+The build preperation is included within the build process of the application. So, to build the project, you can directly call
+
+Debug build:
 
 ```bash
-python build.py --build
+python build.py -bd
 ```
 
-Or combine preparation and building in one command:
+Release build:
 
 ```bash
-python build.py --prepare --build
+python build.py -b
 ```
 
-For a **Debug** build:
 
-```bash
-python build.py --prepare --build --debug
-```
-
-##### 3. Run the Application
+##### Run the Application
 
 After building, the executable will be located in the `build/<Configuration>` directory:
 
@@ -82,7 +86,6 @@ After building, the executable will be located in the `build/<Configuration>` di
 
 Replace `<Configuration>` with `Release` or `Debug` depending on your build configuration.
 
-**Note:** Since the GUI is still under development, running the application will currently not work.
 
 #### Build Script Details (`build.py`)
 
