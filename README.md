@@ -101,12 +101,12 @@ The `build.py` script simplifies the build process:
 
 *(To be implemented)*
 
+
 ## Future Plans
 
-- **WinUI 3 Integration**: Develop a Windows application with a modern UI.
 - **SwiftUI Integration**: Develop a macOS application with native SwiftUI.
-- **Cross-Platform GUI**: Consider using a cross-platform GUI framework for simultaneous Windows and macOS development.
 - **Online Multiplayer**: Implement network capabilities for online play.
+
 
 ## Contributing
 
