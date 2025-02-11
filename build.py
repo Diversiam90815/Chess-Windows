@@ -104,7 +104,7 @@ class BuildRunner(object):
         # Now, run b2.exe to build the desired Boost libraries.
         build_command = "b2.exe --build-dir=build --stagedir=stage --with-system"
         autoCWD = AutoCWD(boost_dir)
-        self._execute_command(build_command, "Building Boost.System library")
+        self._execute_command(build_command, "Building Boost libraries")
         del autoCWD
 
 
@@ -214,10 +214,11 @@ class BuildRunner(object):
         projectfolderVS =  os.path.join(self.args.path_project, "Chess-Logic")
         autoCWD = AutoCWD(projectfolderVS)
 
+        self._installBoostLibraries()
+
         prepare_cmd = f'cmake -G {PLATFORM_GENERATOR} -B build'
         self._execute_command(prepare_cmd, "Select build generator")
         
-        self._installBoostLibraries()
         
         del autoCWD
 
