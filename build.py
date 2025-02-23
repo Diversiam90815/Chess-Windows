@@ -38,6 +38,7 @@ class BuildRunner(object):
         self.args.path_project  = os.path.dirname(os.path.realpath(__file__))
         self.msbuild_path = os.path.join(self._get_vs_path(), "MSBuild", "Current", "Bin", "MSBuild.exe")
 
+
     @staticmethod
     def __log_description(description):
         print('{}{:80s}'.format('\t', description), end = '')
@@ -252,7 +253,7 @@ class BuildRunner(object):
         if os.path.exists(projectfolderVS + "/CMakeCache.txt"):
             self._execute_command("cmake --build " + projectfolderVS + " --target clean", "Run CMake clean")
         
-        self._execute_command("cmake --build " + buildFolder + " --config " + BuildRunner.TARGET_CONFIG + " --clean-first ", "Build the Chess Logic Library")   
+        self._execute_command("cmake --build " + buildFolder + " --config " + BuildRunner.TARGET_CONFIG + " --clean-first ", f"Build the Chess Logic Library v{self.version}")   
 
         
     def doit(self):
