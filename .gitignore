@@ -8,7 +8,8 @@
 [Rr]elease/
 [Dd]ebug/
 [Oo]bj/
-[Bi]in/
+[Bb]in/
+[Ii]nstaller/
 Generated Files/
 
 # Visual Studio Files
@@ -19,6 +20,7 @@ INSTALL.*
 CMakeCache.txt
 *autogen*
 *.cmake
+*pfx
 
 # Excluding Cmake files
 **/CMakeFiles/*
