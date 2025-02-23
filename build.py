@@ -8,9 +8,6 @@ import re
 from subprocess import Popen, PIPE, check_output
 
 
-PLATFORM_GENERATOR = '\"Visual Studio 17\"'
-
-MSBUILD_PATH = r"%ProgramFiles%\Microsoft Visual Studio\2022\Professional\MSBuild\Current\Bin\MSBuild.exe"
 BUILD_DIRECTORY = os.path.join(os.getcwd(), "Build")
 
 class AutoCWD(object):
@@ -29,22 +26,17 @@ class BuildRunner(object):
     TARGET_CONFIG = 'Release'
 
     def __init__(self):   
-        formatter_class = lambda prog: argparse.HelpFormatter(prog, max_help_position=100, width=200)
-        description = 'This tool can be used to build and deploy the Chess project.'
-        epilog = ''
-        parser = argparse.ArgumentParser(description=description, formatter_class=formatter_class, epilog=epilog)
+        parser = argparse.ArgumentParser(description='This tool can be used to build and deploy the Chess project.')
         parser.add_argument('-p', '--prepare', action='store_true', help='prepares the project for use with IDE')
         parser.add_argument('-d', '--debug', action='store_true', help='prepare or build debug version')
         parser.add_argument('-b', '--build', action='store_true', help='build the project')
         parser.add_argument('-v', '--version', action='store_true', help='display Python and CMake versions')
 
         self.args = parser.parse_args()
-       
         self.version = ""
-
-        path_project = os.path.dirname(os.path.realpath(__file__))
-        self.args.path_project = path_project
-
+        self.platform = self._find_latest_visual_studio_version()
+        self.args.path_project  = os.path.dirname(os.path.realpath(__file__))
+        self.msbuild_path = os.path.join(self._get_vs_path(), "MSBuild", "Current", "Bin", "MSBuild.exe")
 
     @staticmethod
     def __log_description(description):
@@ -110,7 +102,7 @@ class BuildRunner(object):
 
     def _print_versions(self):
         """ Print Python, CMake & Projects versions """
-        self._updateVersion()
+        self._update_app_version()
         print(f"Project's version: {self.version}")
         print(f"Python version: {sys.version}")
         try:
@@ -129,12 +121,12 @@ class BuildRunner(object):
         return commit_number
     
 
-    def _getBuildNumber(self):
+    def _get_build_number(self):
         BuildNumber = self.__get_number_of_commits()
         return BuildNumber
     
 
-    def _updateSplitterVersionInCMAKE(self, version):
+    def _update_app_version_in_cmake(self, version):
         pattern = r'set\(CHESS_VERSION\s*(\d+\.\d+)(\.\d+)?\.(\d+)'
         cmakeFile = os.path.join(self.args.path_project, 'Chess-Logic', 'CMakeLists.txt')
         tempFile = cmakeFile + '.tmp'
@@ -152,7 +144,7 @@ class BuildRunner(object):
         fileOut.close()
 
 
-    def _updateVersionInExe(self,version):
+    def _update_app_version_in_exe(self,version):
         build_props_file = os.path.join(os.getcwd(), "Chess-UI", "Directory.Build.Props")
         
         tree = ET.parse(build_props_file)
@@ -170,8 +162,7 @@ class BuildRunner(object):
         tree.write(build_props_file, encoding='utf-8', xml_declaration=True)
 
 
-
-    def _updateVersion(self):
+    def _update_app_version(self):
         packageManifest = os.path.join(os.getcwd(), "Chess-UI", "Package.appxmanifest")
         
         ET.register_namespace("", "http://schemas.microsoft.com/appx/manifest/foundation/windows10")
@@ -186,7 +177,7 @@ class BuildRunner(object):
         
         if identity_element is not None:
             # Update the Version
-            BuildNumber = self._getBuildNumber()
+            BuildNumber = self._get_build_number()
             
             current_version = identity_element.get('Version')
             
@@ -195,8 +186,8 @@ class BuildRunner(object):
                 version_parts[-1] = str(BuildNumber)
                 self.version = '.'.join(version_parts)
 
-                self._updateSplitterVersionInCMAKE(self.version)
-                self._updateVersionInExe(self.version)
+                self._update_app_version_in_cmake(self.version)
+                self._update_app_version_in_exe(self.version)
                 identity_element.set('Version', self.version)
                 
                 # Write the changes back to the file
@@ -209,6 +200,37 @@ class BuildRunner(object):
             print("Identity element not found")
 
 
+    def _find_latest_visual_studio_version(self):
+        vswhere = os.path.join(os.environ.get("ProgramFiles(x86)"), "Microsoft Visual Studio", "Installer", "vswhere.exe")
+
+        if not os.path.exists(vswhere):
+            print("vswhere.exe not found! Using Visual Studio 2022 as default")
+            return '\"Visual Studio 17\"'
+
+        result = check_output([vswhere, '-latest', '-property', 'installationVersion'], shell=True).decode().strip()
+        versionMatch = re.match(r'^(\d+)', result)
+
+        if versionMatch:
+            vsVersion = versionMatch.group(1)
+            return f'\"Visual Studio {vsVersion}\"'
+
+        else:
+            print("Could not determine latest Visual Studio version. Using Visual Studio 2022 as default")
+            return '\"Visual Studio 17\"'
+
+
+    def _get_vs_path(self):
+        vswhere = os.path.join(os.environ.get("ProgramFiles(x86)"), "Microsoft Visual Studio", "Installer", "vswhere.exe")
+        if not os.path.exists(vswhere):
+            raise FileNotFoundError("vswhere.exe not found. Please install Visual Studio or vswhere tool.")
+
+        installation_path = check_output([vswhere, "-latest", "-property", "installationPath"], shell=True).decode().strip()
+
+        if not installation_path:
+            raise RuntimeError("Could not find a Visual Studio installation.")
+
+        return installation_path
+
 
     def _build_prepare(self):
         projectfolderVS =  os.path.join(self.args.path_project, "Chess-Logic")
@@ -216,8 +238,8 @@ class BuildRunner(object):
 
         self._installBoostLibraries()
 
-        prepare_cmd = f'cmake -G {PLATFORM_GENERATOR} -B build'
-        self._execute_command(prepare_cmd, "Select build generator")
+        prepare_cmd = f'cmake -G {self.platform} -B build'
+        self._execute_command(prepare_cmd, f"Select build generator: {self.platform}")
         
         
         del autoCWD
@@ -240,10 +262,10 @@ class BuildRunner(object):
             BuildRunner.TARGET_CONFIG = 'Debug'
         if self.args.prepare:
             self._build_prepare()
-            self._updateVersion()
+            self._update_app_version()
         if self.args.build:
             self._build_prepare()
-            self._updateVersion()
+            self._update_app_version()
             self._build_project()
 
             
