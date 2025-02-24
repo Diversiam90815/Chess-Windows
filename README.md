@@ -100,7 +100,7 @@ The `build.py` script simplifies the build process:
 
 ### Known Issues
 
-- **Chesspieces misaligned may be misaligned** : Depending on the window scaling set in the Windows preferences, the Chesspieces may be misaligned. Fix for this is currently in progress. A known workaround is to set the window scaling to 100%.
+- **Chesspieces may be appear in a weird order** : Depending on the window scaling set in the Windows preferences, the Chesspieces may be misaligned. This causes the chess pieces to appear in a weird order. Fix for this is currently in progress. A known workaround is to set the window scaling to 100%.
 
 
 ## Future Plans
