@@ -98,14 +98,13 @@ The `build.py` script simplifies the build process:
   - `--debug` or `-d`: Sets the build configuration to Debug mode.
 
 
-### Running Tests
+### Known Issues
 
-*(To be implemented)*
+- **Chesspieces misaligned may be misaligned** : Depending on the window scaling set in the Windows preferences, the Chesspieces may be misaligned. Fix for this is currently in progress. A known workaround is to set the window scaling to 100%.
 
 
 ## Future Plans
 
-- **SwiftUI Integration**: Develop a macOS application with native SwiftUI.
 - **Online Multiplayer**: Implement network capabilities for online play.
 
 
