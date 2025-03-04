@@ -71,7 +71,7 @@ class BuildRunner(object):
         return result
 
 
-    def _installBoostLibraries(self):
+    def _install_boost_libraries(self):
         boost_dir = os.path.join(self.args.path_project, "Chess-Logic", "submodules", "boost")
         
         if not os.path.isdir(boost_dir):
@@ -94,10 +94,13 @@ class BuildRunner(object):
                 print("Error: b2.exe was not created after running bootstrap.bat. Aborting boost build.")
                 return
 
+        # Determin build variant based on flag:
+        variant = "debug" if self.args.debug else "release"
+
         # Now, run b2.exe to build the desired Boost libraries.
-        build_command = "b2.exe --build-dir=build --stagedir=stage --with-system"
+        build_command = f"b2.exe --build-dir=build --stagedir=stage --with-thread --with-system variant={variant}"
         autoCWD = AutoCWD(boost_dir)
-        self._execute_command(build_command, "Building Boost libraries")
+        self._execute_command(build_command, f"Building Boost libraries ({variant} variant)")
         del autoCWD
 
 
@@ -237,7 +240,7 @@ class BuildRunner(object):
         projectfolderVS =  os.path.join(self.args.path_project, "Chess-Logic")
         autoCWD = AutoCWD(projectfolderVS)
 
-        self._installBoostLibraries()
+        self._install_boost_libraries()
 
         prepare_cmd = f'cmake -G {self.platform} -B build'
         self._execute_command(prepare_cmd, f"Select build generator: {self.platform}")
