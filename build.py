@@ -245,7 +245,6 @@ class BuildRunner(object):
         prepare_cmd = f'cmake -G {self.platform} -B build'
         self._execute_command(prepare_cmd, f"Select build generator: {self.platform}")
         
-        
         del autoCWD
 
         
