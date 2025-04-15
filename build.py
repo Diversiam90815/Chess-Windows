@@ -98,7 +98,7 @@ class BuildRunner(object):
         variant = "debug" if self.args.debug else "release"
 
         # Now, run b2.exe to build the desired Boost libraries.
-        build_command = f"b2.exe --build-dir=build --stagedir=stage --with-thread --with-system variant={variant}"
+        build_command = f"b2.exe --build-dir=build --stagedir=stage --with-thread --with-atomic --with-system variant={variant}"
         autoCWD = AutoCWD(boost_dir)
         self._execute_command(build_command, f"Building Boost libraries ({variant} variant)")
         del autoCWD
