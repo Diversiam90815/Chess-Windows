@@ -240,7 +240,7 @@ class BuildRunner(object):
         projectfolderVS =  os.path.join(self.args.path_project, "Chess-Logic")
         autoCWD = AutoCWD(projectfolderVS)
 
-        self._install_boost_libraries()
+       # self._install_boost_libraries()
 
         prepare_cmd = f'cmake -G {self.platform} -B build'
         self._execute_command(prepare_cmd, f"Select build generator: {self.platform}")
