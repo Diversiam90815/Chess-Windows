@@ -71,39 +71,6 @@ class BuildRunner(object):
         return result
 
 
-    def _install_boost_libraries(self):
-        boost_dir = os.path.join(self.args.path_project, "Chess-Logic", "submodules", "boost")
-        
-        if not os.path.isdir(boost_dir):
-            print(f"Boost submodule directory not found: {boost_dir}")
-            return
-
-        b2_exe = os.path.join(boost_dir, "b2.exe")
-        bootstrap_bat = os.path.join(boost_dir, "bootstrap.bat")
-
-        if not os.path.exists(b2_exe):                  # If b2.exe does not exist, run bootstrap.bat.
-            if not os.path.exists(bootstrap_bat):
-                print(f"bootstrap.bat not found in {boost_dir}")
-                return
-
-            autoCWD = AutoCWD(boost_dir)                # Change directory to boost_dir and execute bootstrap.bat.
-            self._execute_command("bootstrap.bat", "Running bootstrap.bat...")
-            del autoCWD  # Restore original directory
-
-            if not os.path.exists(b2_exe):
-                print("Error: b2.exe was not created after running bootstrap.bat. Aborting boost build.")
-                return
-
-        # Determin build variant based on flag:
-        variant = "debug" if self.args.debug else "release"
-
-        # Now, run b2.exe to build the desired Boost libraries.
-        build_command = f"b2.exe --build-dir=build --stagedir=stage --with-thread --with-atomic --with-system variant={variant}"
-        autoCWD = AutoCWD(boost_dir)
-        self._execute_command(build_command, f"Building Boost libraries ({variant} variant)")
-        del autoCWD
-
-
     def _print_versions(self):
         """ Print Python, CMake & Projects versions """
         self._update_app_version()
@@ -239,8 +206,6 @@ class BuildRunner(object):
     def _build_prepare(self):
         projectfolderVS =  os.path.join(self.args.path_project, "Chess-Logic")
         autoCWD = AutoCWD(projectfolderVS)
-
-       # self._install_boost_libraries()
 
         prepare_cmd = f'cmake -G {self.platform} -B build'
         self._execute_command(prepare_cmd, f"Select build generator: {self.platform}")
