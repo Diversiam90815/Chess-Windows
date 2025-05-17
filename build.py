@@ -99,7 +99,7 @@ class BuildRunner(object):
 
     def _update_app_version_in_cmake(self, version):
         pattern = r'set\(CHESS_VERSION\s*(\d+\.\d+)(\.\d+)?\.(\d+)'
-        cmakeFile = os.path.join(self.args.path_project, 'Chess-Logic', 'CMakeLists.txt')
+        cmakeFile = os.path.join(self.args.path_project, 'Chess.Engine', 'Chess.Engine', 'CMakeLists.txt')
         tempFile = cmakeFile + '.tmp'
         
         with open(cmakeFile, 'r') as fileIn, open(tempFile, 'w') as fileOut:
@@ -116,7 +116,7 @@ class BuildRunner(object):
 
 
     def _update_app_version_in_exe(self,version):
-        build_props_file = os.path.join(os.getcwd(), "Chess-UI", "Directory.Build.Props")
+        build_props_file = os.path.join(os.getcwd(), 'Chess.UI', 'Chess.UI', "Directory.Build.Props")
         
         tree = ET.parse(build_props_file)
         root = tree.getroot()
@@ -134,7 +134,7 @@ class BuildRunner(object):
 
 
     def _update_app_version(self):
-        packageManifest = os.path.join(os.getcwd(), "Chess-UI", "Package.appxmanifest")
+        packageManifest = os.path.join(os.getcwd(), "Chess.UI", "Chess.UI", "Package.appxmanifest")
         
         ET.register_namespace("", "http://schemas.microsoft.com/appx/manifest/foundation/windows10")
         ET.register_namespace("mp", "http://schemas.microsoft.com/appx/2014/phone/manifest")
@@ -204,7 +204,7 @@ class BuildRunner(object):
 
 
     def _build_prepare(self):
-        projectfolderVS =  os.path.join(self.args.path_project, "Chess-Logic")
+        projectfolderVS =  os.path.join(self.args.path_project,  'Chess.Engine', 'Chess.Engine')
         autoCWD = AutoCWD(projectfolderVS)
 
         prepare_cmd = f'cmake -G {self.platform} -B build'
@@ -214,13 +214,13 @@ class BuildRunner(object):
 
         
     def _build_project(self):
-        projectfolderVS =  os.path.join(self.args.path_project, "Chess-Logic")
+        projectfolderVS =  os.path.join(self.args.path_project,  'Chess.Engine', 'Chess.Engine')
         buildFolder = os.path.join(projectfolderVS, "build")
 
         if os.path.exists(projectfolderVS + "/CMakeCache.txt"):
             self._execute_command("cmake --build " + projectfolderVS + " --target clean", "Run CMake clean")
         
-        self._execute_command("cmake --build " + buildFolder + " --config " + BuildRunner.TARGET_CONFIG + " --clean-first ", f"Build the Chess Logic Library v{self.version}")   
+        self._execute_command("cmake --build " + buildFolder + " --config " + BuildRunner.TARGET_CONFIG + " --clean-first ", f"Build the Chess Engine Library v{self.version}")   
 
         
     def doit(self):
