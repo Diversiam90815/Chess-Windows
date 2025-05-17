@@ -204,7 +204,7 @@ class BuildRunner(object):
 
 
     def _build_prepare(self):
-        projectfolderVS =  os.path.join(self.args.path_project,  'Chess.Engine', 'Chess.Engine')
+        projectfolderVS =  os.path.join(self.args.path_project, 'Chess.Engine')
         autoCWD = AutoCWD(projectfolderVS)
 
         prepare_cmd = f'cmake -G {self.platform} -B build'
@@ -214,7 +214,7 @@ class BuildRunner(object):
 
         
     def _build_project(self):
-        projectfolderVS =  os.path.join(self.args.path_project,  'Chess.Engine', 'Chess.Engine')
+        projectfolderVS =  os.path.join(self.args.path_project, 'Chess.Engine')
         buildFolder = os.path.join(projectfolderVS, "build")
 
         if os.path.exists(projectfolderVS + "/CMakeCache.txt"):
