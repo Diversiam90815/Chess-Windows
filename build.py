@@ -20,6 +20,16 @@ class AutoCWD(object):
     def __del__(self): 
         os.chdir(self.orgdir)
 
+    def __enter__(self):
+        self.orgdir = os.getcwd()
+        os.chdir(self.target)
+        return self
+
+    def __exit__(self, exc_type, exc_value, traceback):
+        os.chdir(self.orgdir)
+        # returning False lets any exception bubble up; True would swallow
+        return False
+
 
 class BuildRunner(object):
 
@@ -201,6 +211,15 @@ class BuildRunner(object):
             raise RuntimeError("Could not find a Visual Studio installation.")
 
         return installation_path
+    
+
+    def _run_engine_tests(self):
+        # Run C++ Engine Tests
+        engine_dir = os.path.join(self.args.path_project, "Chess.Engine")
+        build_dir = os.path.join(engine_dir, "build")
+        
+        os.chdir(engine_dir)
+        self._execute_command(f'cmake --build {build_dir} --config {self.TARGET_CONFIG} --target RUN_TESTS', 'Running C++ engine tests…' )
 
 
     def _build_prepare(self):
@@ -235,6 +254,7 @@ class BuildRunner(object):
             self._build_prepare()
             self._update_app_version()
             self._build_project()
+            self._run_engine_tests()
 
             
 if __name__ == '__main__':
