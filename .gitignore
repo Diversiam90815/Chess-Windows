@@ -10,6 +10,7 @@
 [Oo]bj/
 [Bb]in/
 [Ii]nstaller/
+[Ll]ibs/
 Generated Files/
 
 # Visual Studio Files
@@ -19,7 +20,6 @@ ZERO CHECK.*
 INSTALL.*
 CMakeCache.txt
 *autogen*
-*.cmake
 *pfx
 
 # Excluding Cmake files

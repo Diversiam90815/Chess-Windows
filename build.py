@@ -20,6 +20,16 @@ class AutoCWD(object):
     def __del__(self): 
         os.chdir(self.orgdir)
 
+    def __enter__(self):
+        self.orgdir = os.getcwd()
+        os.chdir(self.target)
+        return self
+
+    def __exit__(self, exc_type, exc_value, traceback):
+        os.chdir(self.orgdir)
+        # returning False lets any exception bubble up; True would swallow
+        return False
+
 
 class BuildRunner(object):
 
@@ -99,7 +109,7 @@ class BuildRunner(object):
 
     def _update_app_version_in_cmake(self, version):
         pattern = r'set\(CHESS_VERSION\s*(\d+\.\d+)(\.\d+)?\.(\d+)'
-        cmakeFile = os.path.join(self.args.path_project, 'Chess-Logic', 'CMakeLists.txt')
+        cmakeFile = os.path.join(self.args.path_project, 'Chess.Engine', 'Chess.Engine', 'CMakeLists.txt')
         tempFile = cmakeFile + '.tmp'
         
         with open(cmakeFile, 'r') as fileIn, open(tempFile, 'w') as fileOut:
@@ -116,7 +126,7 @@ class BuildRunner(object):
 
 
     def _update_app_version_in_exe(self,version):
-        build_props_file = os.path.join(os.getcwd(), "Chess-UI", "Directory.Build.Props")
+        build_props_file = os.path.join(os.getcwd(), 'Chess.UI', 'Chess.UI', "Directory.Build.Props")
         
         tree = ET.parse(build_props_file)
         root = tree.getroot()
@@ -134,7 +144,7 @@ class BuildRunner(object):
 
 
     def _update_app_version(self):
-        packageManifest = os.path.join(os.getcwd(), "Chess-UI", "Package.appxmanifest")
+        packageManifest = os.path.join(os.getcwd(), "Chess.UI", "Chess.UI", "Package.appxmanifest")
         
         ET.register_namespace("", "http://schemas.microsoft.com/appx/manifest/foundation/windows10")
         ET.register_namespace("mp", "http://schemas.microsoft.com/appx/2014/phone/manifest")
@@ -201,10 +211,19 @@ class BuildRunner(object):
             raise RuntimeError("Could not find a Visual Studio installation.")
 
         return installation_path
+    
+
+    def _run_engine_tests(self):
+        # Run C++ Engine Tests
+        engine_dir = os.path.join(self.args.path_project, "Chess.Engine")
+        build_dir = os.path.join(engine_dir, "build")
+        
+        os.chdir(engine_dir)
+        self._execute_command(f'cmake --build {build_dir} --config {self.TARGET_CONFIG} --target RUN_TESTS', 'Running C++ engine tests…' )
 
 
     def _build_prepare(self):
-        projectfolderVS =  os.path.join(self.args.path_project, "Chess-Logic")
+        projectfolderVS =  os.path.join(self.args.path_project, 'Chess.Engine')
         autoCWD = AutoCWD(projectfolderVS)
 
         prepare_cmd = f'cmake -G {self.platform} -B build'
@@ -214,13 +233,13 @@ class BuildRunner(object):
 
         
     def _build_project(self):
-        projectfolderVS =  os.path.join(self.args.path_project, "Chess-Logic")
+        projectfolderVS =  os.path.join(self.args.path_project, 'Chess.Engine')
         buildFolder = os.path.join(projectfolderVS, "build")
 
         if os.path.exists(projectfolderVS + "/CMakeCache.txt"):
             self._execute_command("cmake --build " + projectfolderVS + " --target clean", "Run CMake clean")
         
-        self._execute_command("cmake --build " + buildFolder + " --config " + BuildRunner.TARGET_CONFIG + " --clean-first ", f"Build the Chess Logic Library v{self.version}")   
+        self._execute_command("cmake --build " + buildFolder + " --config " + BuildRunner.TARGET_CONFIG + " --clean-first ", f"Build the Chess Engine Library v{self.version}")   
 
         
     def doit(self):
@@ -235,6 +254,7 @@ class BuildRunner(object):
             self._build_prepare()
             self._update_app_version()
             self._build_project()
+            self._run_engine_tests()
 
             
 if __name__ == '__main__':
