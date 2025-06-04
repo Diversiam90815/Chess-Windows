@@ -98,11 +98,6 @@ The `build.py` script simplifies the build process:
   - `--debug` or `-d`: Sets the build configuration to Debug mode.
 
 
-### Known Issues
-
-- **Chesspieces may be appear in a weird order** : Depending on the window scaling set in the Windows preferences, the Chesspieces may be misaligned. This causes the chess pieces to appear in a weird order. Fix for this is currently in progress. A known workaround is to set the window scaling to 100%.
-
-
 ## Future Plans
 
 - **Online Multiplayer**: Implement network capabilities for online play.
