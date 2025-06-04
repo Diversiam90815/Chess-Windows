@@ -79,15 +79,6 @@ python build.py -b
 ```
 
 
-##### Run the Application
-
-After building, the executable will be located in the `build/<Configuration>` directory:
-
-- **Windows**: `build/Release/ChessGame.exe`
-
-Replace `<Configuration>` with `Release` or `Debug` depending on your build configuration.
-
-
 #### Build Script Details (`build.py`)
 
 The `build.py` script simplifies the build process:
@@ -101,6 +92,8 @@ The `build.py` script simplifies the build process:
 ## Future Plans
 
 - **Online Multiplayer**: Implement network capabilities for online play.
+- **Sound Engine**: Implement a sound engine for sound effects and music.
+- **CPU opponnent**: Implement a chess algirithm to play against.
 
 
 ## Contributing
