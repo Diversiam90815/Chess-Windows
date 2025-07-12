@@ -136,7 +136,6 @@ class BuildRunner(object):
         if version_element is not None:
             # Update the Version text
             version_element.text = version
-            print(f'Updated Version to {version} in Directory.Build.Props')
         else:
             print("Version element not found in Directory.Build.Props")
             
