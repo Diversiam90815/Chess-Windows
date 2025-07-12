@@ -38,7 +38,7 @@ This is a chess game developed in C++ and C# with the goal of creating a fully-f
 
 ## Future Plans
 
-- **CPU opponnent** 
+- **CPU opponent** 
    - Implement a chess algorithm to play against.
    - Implement move evaluation module
 - **Sound Engine**
