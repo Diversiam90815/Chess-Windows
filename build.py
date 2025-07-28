@@ -109,7 +109,7 @@ class BuildRunner(object):
 
     def _update_app_version_in_cmake(self, version):
         pattern = r'set\(CHESS_VERSION\s*(\d+\.\d+)(\.\d+)?\.(\d+)'
-        cmakeFile = os.path.join(self.args.path_project, 'Chess.Engine', 'Chess.Engine', 'CMakeLists.txt')
+        cmakeFile = os.path.join(self.args.path_project, 'Chess.Engine', 'Chess.Engine.Core', 'CMakeLists.txt')
         tempFile = cmakeFile + '.tmp'
         
         with open(cmakeFile, 'r') as fileIn, open(tempFile, 'w') as fileOut:
