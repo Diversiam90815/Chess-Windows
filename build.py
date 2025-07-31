@@ -41,6 +41,7 @@ class BuildRunner(object):
         parser.add_argument('-d', '--debug', action='store_true', help='prepare or build debug version')
         parser.add_argument('-b', '--build', action='store_true', help='build the project')
         parser.add_argument('-v', '--version', action='store_true', help='display Python and CMake versions')
+        parser.add_argument('-t', '--test', action='store_true', help='run unit & performance tests')
 
         self.args = parser.parse_args()
         self.version = ""
@@ -249,11 +250,12 @@ class BuildRunner(object):
         if self.args.prepare:
             self._build_prepare()
             self._update_app_version()
+        if self.args.test:
+            self._run_engine_tests()
         if self.args.build:
             self._build_prepare()
             self._update_app_version()
             self._build_project()
-            self._run_engine_tests()
 
             
 if __name__ == '__main__':
