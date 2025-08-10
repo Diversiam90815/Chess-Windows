@@ -14,6 +14,13 @@ This is a chess game developed in C++ and C# with the goal of creating a fully-f
 -   **Enhanced Gameplay Experience**:
     -   **Captured Pieces Display**: The UI keeps a visual tally of all captured pieces for both players.
     -   **Game Controls**: Easily undo your last move or reset the board to start a new game.
+    -   **Immersive Audio**: A dynamic audio engine provides sound effects for moves and captures, along with ambient background tracks to enhance the atmosphere.
+
+-   **Intelligent CPU Opponent**:
+    -   **Play Against the AI**: Challenge yourself in a single-player mode against a computer-controlled opponent.
+    -   **Adjustable Difficulty**: Choose from multiple difficulty levels, from random moves to advanced strategies using Minimax with Alpha-Beta pruning.
+    -   **Flexible Setup**: Decide whether to play as White or Black when starting a game against the CPU.
+    -   **Performance Optimizations**: The engine uses techniques like transposition tables to ensure responsive and intelligent AI gameplay.
 
 -   **Advanced Multiplayer**:
     -   **LAN Gaming**: Host or join games on your local network.
@@ -21,8 +28,9 @@ This is a chess game developed in C++ and C# with the goal of creating a fully-f
     -   **Network Selection**: For users with multiple network connections, you can choose the specific network for multiplayer games, ensuring a stable connection.
 
 -   **Personalization**:
-    -   **Custom Themes**: Tailor the look of the game by choosing from different styles for the board and pieces.
+    -   **Custom Styles**: Tailor the look of the game by choosing from different styles for the board and pieces.
     -   **Player Naming**: Set your own name for multiplayer sessions.
+    -   **Audio Controls**: Independently adjust the volume for sound effects, atmosphere, and the master output.
 
 
 ## Technology Stack
@@ -38,12 +46,23 @@ This is a chess game developed in C++ and C# with the goal of creating a fully-f
 
 ## Future Plans
 
-- **CPU opponent** 
-   - Implement a chess algorithm to play against.
-   - Implement move evaluation module
-- **Sound Engine**
-   - Implement a sound engine for playback of sound effects
-   - Integrate dynamic a dynamic music score
+- **Onboarding** 
+   - Create onboarding process
+- **Create score**
+   - Enhance the sound engine for playback of dynamic score
+   - Compose dynamic score
+
+
+## Project Structure
+
+- **Chess.UI**:
+    - **Chess.UI**: The main WinUI 3 project containing the user interface, view models, and services for the application.
+    - **Chess.UI.Test**: Contains unit tests (xUnit, Moq) for the `Chess.UI` project to ensure the reliability of the frontend logic.
+- **Chess.Engine**:
+    - **Chess.Engine.API**: A C++ DLL project that exposes the core engine functionalities through a C-style API, allowing the C# frontend to communicate with the C++ backend via P/Invoke.
+    - **Chess.Engine.Core**: The core of the chess engine, written in C++. It includes all the game logic, such as the chessboard representation, move generation, validation, and the game state machine.
+    - **Chess.Engine.Performance**: A project dedicated to performance testing of the C++ engine, helping to benchmark and optimize critical components like the CPU player's move evaluation.
+    - **Chess.Engine.Tests**: Contains unit tests (GoogleTest) for the C++ engine, verifying the correctness and stability of the core game logic.
 
 
 ## Prerequisites
