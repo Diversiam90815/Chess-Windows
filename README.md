@@ -46,6 +46,8 @@ This is a chess game developed in C++ and C# with the goal of creating a fully-f
 
 ## Future Plans
 
+- **CPU Evaluation Algorithms** 
+   - Refine and improve positional and move evaluation algorithms for different CPU difficulties
 - **Onboarding** 
    - Create onboarding process
 - **Create score**
