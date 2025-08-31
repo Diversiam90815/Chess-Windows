@@ -16,6 +16,8 @@ Generated Files/
 __pycache__/
 .idea/
 
+# Performance analysis output directories
+performance_analysis_*
 
 # Visual Studio Files
 .vs/
