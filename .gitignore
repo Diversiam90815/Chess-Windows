@@ -13,6 +13,9 @@
 [Pp]ackage/
 [Ll]ibs/
 Generated Files/
+__pycache__/
+.idea/
+
 
 # Visual Studio Files
 .vs/
