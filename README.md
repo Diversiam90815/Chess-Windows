@@ -32,9 +32,6 @@ This is a chess game developed in C++ and C# with the goal of creating a fully-f
     -   **Player Naming**: Set your own name for multiplayer sessions.
     -   **Audio Controls**: Independently adjust the volume for sound effects, atmosphere, and the master output.
 
--   **Performance Analysis Tools**:
-    -   Comprehensive Python-based analysis pipeline that automatically collects performance test data, generates interactive visualizations, and provides detailed reports to track engine optimization progress.
-
 
 ## Technology Stack
 
@@ -45,7 +42,6 @@ This is a chess game developed in C++ and C# with the goal of creating a fully-f
    - **C++**: GoogleTest
    - **C#**: xUnit, Moq
 - **Communication**: The C# frontend communicates with the C++ backend via P/Invoke
-- **Performance Analysis**: Python with pandas, matplotlib, seaborn, and plotly for data analysis and visualization
 
 
 ## Future Plans
@@ -65,11 +61,12 @@ This is a chess game developed in C++ and C# with the goal of creating a fully-f
     - **Chess.UI**: The main WinUI 3 project containing the user interface, view models, and services for the application.
     - **Chess.UI.Test**: Contains unit tests (xUnit, Moq) for the `Chess.UI` project to ensure the reliability of the frontend logic.
 - **Chess.Engine**:
-    - **Chess.Engine.API**: A C++ DLL project that exposes the core engine functionalities through a C-style API, allowing the C# frontend to communicate with the C++ backend via P/Invoke.
-    - **Chess.Engine.Core**: The core of the chess engine, written in C++. It includes all the game logic, such as the chessboard representation, move generation, validation, and the game state machine.
-    - **Chess.Engine.Performance**: A project dedicated to performance testing of the C++ engine, helping to benchmark and optimize critical components like the CPU player's move evaluation.
-    - **Chess.Engine.Tests**: Contains unit tests (GoogleTest) for the C++ engine, verifying the correctness and stability of the core game logic.
-    - **scripts**: Contains Python scripts for the performance analysis pipeline for monitoring engine optimization progress.
+    - **cmake**: Containing several cmake modules used in this project.
+    - **src**:
+        - **Chess.Engine.API**: A C++ DLL project that exposes the core engine functionalities through a C-style API, allowing the C# frontend to communicate with the C++ backend via P/Invoke.
+        - **Chess.Engine.Core**: The core of the chess engine, written in C++. It includes all the game logic, such as the chessboard representation, move generation, validation, and the game state machine.
+    - **tests**:
+        - **Core.Tests**: Contains unit tests (GoogleTest) for the C++ core engine, verifying the correctness and stability of the game logic.
 
 
 ## Prerequisites
@@ -82,6 +79,48 @@ This is a chess game developed in C++ and C# with the goal of creating a fully-f
 - **Python**: Version 3.x (for running `build.py`).
 
 
+### Optional CMake Modules
+
+The following developer tools are integrated into the CMake build.  
+They are **enabled by default** if installed, but can be turned off via CMake options.
+
+- **Doxygen** (`ENABLE_DOXYGEN`):  
+  Generates HTML documentation from source code.  
+  - Install: [Doxygen](https://www.doxygen.nl/download.html) and optionally [Graphviz](https://graphviz.org/download/) for diagrams.
+  
+  - Turn off in top-level `CMakeLists.txt`:
+    ```cmake
+    set(ENABLE_DOXYGEN OFF)
+    ```
+
+- **CppCheck** (`ENABLE_CPPCHECK`):  
+  Runs [CppCheck](http://cppcheck.sourceforge.net/) for static analysis.  
+  - Install (Windows with winget):  
+    ```bash
+    winget install cppcheck
+    ```
+  - Disable in CMake:
+    ```cmake
+    set(ENABLE_CPPCHECK OFF)
+    ```
+
+- **Clang-Format** (`ENABLE_FORMAT`):  
+  Automatically formats C++ sources using `.clang-format`.  
+  - Install (Windows with winget):  
+    ```bash
+    winget install llvm
+    ```
+    (which includes `clang-format`)
+
+  - Disable in CMake:
+    ```cmake
+    set(ENABLE_FORMAT OFF)
+    ```
+
+Each module is guarded by its own CMake option, so builds will not fail if the tool is missing and the option is explicitly set to `OFF`.
+Under Build
+
+
 ## Getting Started
 
 ### Cloning the Repository
@@ -91,19 +130,6 @@ Clone the repository using the following command:
 ```bash
 git clone git@github.com:Diversiam90815/Chess.git
 ```
-
-Keep in mind that you also need to check out the submodules with this project. To do so, you can include `--recurse-submodules` within the clone command (with git version 2.13 or higher):
-
-```bash
-git clone --recurse-submdules git@github.com:Diversiam90815/Chess.git
-```
-
-or if you already cloned the repository call
-
-```bash
-git submodule update --init --recursive
-```
-
 
 ### Building the Project
 
@@ -159,63 +185,6 @@ The project includes a suite of tests for both the backend and the frontend UI t
 - **Backend (Chess.Engine.Tests)**: The C++ engine is tested using the **GoogleTest** framework. Tests cover core functionalities such as move generation, validation and execution.
 - **Frontend (Chess.UI.Tests)**: The C# UI and its view models are tested using **xUnit**, with **Moq** for creating mock objects.
 
-
-## Performance Analysis
-
-The Chess Engine includes comprehensive performance testing and analysis tools for monitoring and optimizing engine performance across different test scenarios.
-
-### Running Performance Analysis
-
-The performance analysis pipeline automatically collects JSON test data and generates detailed visualizations and reports. The scripts are located within the ***Chess.Engine/scripts/*** directory.
-
-#### Install Phython dependencies
-
-```bash
-pip install -r requirements.txt
-```
-
-#### Run complete analysis pipeline (collection + visualization)
-
-```bash
-python performance_pipeline.py          # Relative to the scripts directory
-```
-
-#### Specidy custom data directory
-
-```bash
-python performance_pipeline.py --data_dir ./my_performance_data
-```
-
-#### Save results to scpecific directory and disable HTML output
-
-```bash
-python performance_pipeline.py --output-dir ./my_analysis --no-html
-```
-
-#### Run only data collection
-
-```bash
-python performance_pipeline.py --collect-only
-```
-
-#### Run only analysis (requires existing data)
-
-```bash
-python performance_pipeline.py --analyze-only --output-dir ./existing_analysis
-```
-
-The pipeline searches for JSON performance files generated by the Chess Engine Performance Tests and creates a timestamped analysis directory containing:
--   **Interactive HTML dashboards showing performance trends and comparisons**
--   **Detailed text reports with insights and recommendations**
--   **CSV exports for further analysis**
--   **Static charts for move generation, evaluation and CPU Performance metrics**
-
-Results are automatically organized by app version and timeframe, making it easy to track performance improvements and identify optimization opportunities across different engine configurations.
-
-### Prerequisites for Performance Analysis
-
-- **Python 3.x**: For running analysis scripts
-- **Python Dependencies**: Install via 'pip install -r requirements.txt'
 
 ## License
 
