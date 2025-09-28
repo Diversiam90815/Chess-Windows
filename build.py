@@ -4,6 +4,9 @@ import sys
 import shutil
 import xml.etree.ElementTree as ET
 import re
+import webbrowser
+from pathlib import Path
+
 
 from subprocess import Popen, PIPE, check_output
 
@@ -189,6 +192,18 @@ class BuildRunner(object):
         autoCWD = AutoCWD(engine_dir)
 
         self._execute_command(f'cmake --build "{build_dir}" --config {self.TARGET_CONFIG} --target {target_name}', f"Generate Doxygen docs ({target_name})…")
+
+        doxy_dir = Path(build_dir) / "doxygen" / "html" / "index.html"
+        
+        if doxy_dir.exists():
+            try:
+                webbrowser.open(doxy_dir.as_uri())
+                print(f'Opened documentation in your default browser: {doxy_dir}')
+            except Exception as ex:
+                print(f'Built docs at {doxy_dir} failed to open: {ex}')
+
+        else:
+            print(f"Doxygen documentation not found at expected location {doxy_dir}!")
 
         del autoCWD
 
