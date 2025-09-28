@@ -42,7 +42,10 @@ This is a chess game developed in C++ and C# with the goal of creating a fully-f
    - **C++**: GoogleTest
    - **C#**: xUnit, Moq
 - **Communication**: The C# frontend communicates with the C++ backend via P/Invoke
-
+- **Developer Tooling** (optional, CMake-integrated):
+   - **Doxygen** with [doxygen-awesome-css](https://jothepro.github.io/doxygen-awesome-css/) for documentation
+   - **CppCheck** for static analysis
+   - **Clang-Format** for automatic source formatting
 
 ## Future Plans
 
@@ -82,7 +85,8 @@ This is a chess game developed in C++ and C# with the goal of creating a fully-f
 ### Optional CMake Modules
 
 The following developer tools are integrated into the CMake build.  
-They are **enabled by default** if installed, but can be turned off via CMake options.
+They are **optional**, controlled by CMake options, and can be enabled/disabled explicitly.  
+If enabled but the tool is missing, CMake will warn or fail depending on the module.
 
 - **Doxygen** (`ENABLE_DOXYGEN`):  
   Generates HTML documentation from source code.  
@@ -176,6 +180,8 @@ The `build.py` script simplifies the build process:
   - `--prepare` or `-p`: Generates build files using CMake.
   - `--build` or `-b`: Compiles the project.
   - `--debug` or `-d`: Sets the build configuration to Debug mode.
+  - `--test` or `-t`: Runs the C++ unit tests (via CTest).
+  - `--docs`: Generates Doxygen documentation (opens in your default browser).
 
 
 ## Testing
