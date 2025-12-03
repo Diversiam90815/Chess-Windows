@@ -18,6 +18,7 @@ def main():
     os.chdir(ROOT_DIR)
 
     build_dir = get_build_dir(str(args.architecture))
+    test_dir = build_dir / "tests"
     runner = BuildRunner(root_dir=ENGINE_DIR, build_dir=build_dir, project_name="Chess Game")
 
     runner.update_environment()
@@ -26,7 +27,7 @@ def main():
     print("==== Chess Game Configuration ====")
     print(f"Current Directory:          {ROOT_DIR}")
     print(f"Build Directory:            {build_dir}")
-    print(f"Test Build Directory:       {TEST_BUILD_DIR}")
+    print(f"Test Build Directory:       {test_dir}")
     print(f"Architecture:               {args.architecture}")
     print(f"Configuration:              {args.configuration}")
     print(f"Environment:                {runner.env}")
@@ -34,7 +35,7 @@ def main():
     print("=====================================")
 
     if(args.runtest):
-        runner.run_cpp_unit_tests(configuration=args.configuration, test_build_dir=TEST_BUILD_DIR, target="RUN_TESTS")
+        runner.run_cpp_unit_tests(configuration=args.configuration, test_build_dir=test_dir, target="RUN_TESTS")
         exit(0)
 
     runner.create_build_generator(
@@ -45,7 +46,7 @@ def main():
     )
 
     if not args.prepare:
-        runner.run_cpp_unit_tests(configuration=args.configuration, test_build_dir=TEST_BUILD_DIR, target="RUN_TESTS")
+        runner.run_cpp_unit_tests(configuration=args.configuration, test_build_dir=test_dir, target="RUN_TESTS")
 
 
 if __name__ == "__main__":
