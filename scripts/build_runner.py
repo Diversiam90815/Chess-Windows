@@ -37,10 +37,12 @@ class BuildRunner:
         prepare_cmd = [
             "cmake",
             "-G", str(platform),
-            "-A", str(architecture),
             "-S", str(self.root_dir),
             "-B", str(self.build_dir),
         ]  
+        if platform == Platform.VS2022:
+            prepare_cmd += ["-A", str(architecture)]
+
         BuildUtils.execute_command(
             prepare_cmd,
             f"CMake: Generate {platform} project",

@@ -18,7 +18,7 @@ def main():
     os.chdir(ROOT_DIR)
 
     build_dir = get_build_dir(str(args.architecture))
-    runner = BuildRunner(root_dir=ROOT_DIR, build_dir=build_dir, project_name="Chess Game")
+    runner = BuildRunner(root_dir=ENGINE_DIR, build_dir=build_dir, project_name="Chess Game")
 
     runner.update_environment()
     runner.update_app_version()

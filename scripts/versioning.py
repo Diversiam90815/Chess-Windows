@@ -3,8 +3,7 @@ from pathlib import Path
 from subprocess import check_output
 from typing import Optional
 import xml.etree.ElementTree as ET
-from paths import *
-
+from .paths import *
 
 class VersionManager:
 
