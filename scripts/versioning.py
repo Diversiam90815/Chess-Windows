@@ -18,7 +18,7 @@ class VersionManager:
 
 
     def get_current_version(self) -> Optional[str]:
-        pattern = re.compile(rf"set\({self.version_var}\s+(\d+\.\d+\.\d+)\)")
+        pattern = re.compile(rf"set\({re.escape(self.version_var)}\s+(\d+(?:\.\d+){{2,3}})\)")
 
         with self.cmake_file.open("r", encoding="utf-8") as f:
             for line in f:
@@ -29,7 +29,7 @@ class VersionManager:
 
 
     def _write_version(self, new_version: str) -> None:
-        pattern = re.compile(rf"set\({self.version_var}\s+(\d+\.\d+\.\d+)\)")
+        pattern = re.compile(rf"set\({re.escape(self.version_var)}\s+(\d+(?:\.\d+){{2,3}})\)")
         tmp_file = self.cmake_file.with_name(self.cmake_file.name + ".tmp")
 
         with self.cmake_file.open("r", encoding="utf-8") as fin, \
@@ -54,7 +54,7 @@ class VersionManager:
         new_version = ".".join(parts)
 
         self._write_version(new_version)
-        self.update_app_version_in_exe(new_version)
+        self.update_app_version_in_exe(new_version, build_props_file=DIRECTORY_BUILD_PROPS_FILE)
         self.update_app_version_in_manifest(new_version)
         return new_version
 
@@ -78,7 +78,7 @@ class VersionManager:
         ET.register_namespace("uap", "http://schemas.microsoft.com/appx/manifest/uap/windows10")
         ET.register_namespace("rescap", "http://schemas.microsoft.com/appx/manifest/foundation/windows10/restrictedcapabilities")
 
-        tree = ET.parse(DIRECTORY_BUILD_PROPS_FILE)
+        tree = ET.parse(PACKAGE_MANIFEST_FILE)
         root = tree.getroot()
 
         identity_element = root.find('.//{http://schemas.microsoft.com/appx/manifest/foundation/windows10}Identity')
