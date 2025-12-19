@@ -1,0 +1,20 @@
+<?xml version="1.0" encoding="utf-8" ?>
+<Application
+    x:Class="Chess.UI.App"
+    xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+    xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+    xmlns:local="using:Chess.UI"
+    xmlns:views="using:Chess.UI.UI">
+    <Application.Resources>
+        <ResourceDictionary>
+            <ResourceDictionary.MergedDictionaries>
+                <XamlControlsResources xmlns="using:Microsoft.UI.Xaml.Controls" />
+                <!--  Other merged dictionaries here  -->
+
+                <ResourceDictionary Source="ms-appx:///Views/Styles.xaml" />
+                <ResourceDictionary Source="ms-appx:///UI/ComboboxTemplates.xaml" />
+
+            </ResourceDictionary.MergedDictionaries>
+        </ResourceDictionary>
+    </Application.Resources>
+</Application>

@@ -7,7 +7,7 @@ BUILD_DIR                   = ENGINE_DIR / "build"
 CMAKE_INSTALL_DIR           = ENGINE_DIR / "install"
 TEST_BUILD_DIR              = BUILD_DIR / "tests"
 
-UI_DIR                      = ROOT_DIR / "Chess.UI" / "Chess.UI"
+UI_DIR                      = ROOT_DIR / "Chess.WinUI" / "Chess.WinUI"
 DIRECTORY_BUILD_PROPS_FILE  = UI_DIR / "Directory.Build.Props"
 PACKAGE_MANIFEST_FILE       = UI_DIR / "Package.appxmanifest"
 

@@ -1,0 +1,295 @@
+<?xml version="1.0" encoding="utf-8" ?>
+<Window
+    x:Class="Chess.UI.Views.ChessBoardWindow"
+    xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+    xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+    xmlns:converter="using:Chess.UI.UI"
+    xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+    xmlns:local="using:Chess.UI.Views"
+    xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+    xmlns:vm="using:Chess.UI.Board"
+    Title="Chess"
+    mc:Ignorable="d">
+
+    <StackPanel
+        x:Name="RootPanel"
+        HorizontalAlignment="Center"
+        VerticalAlignment="Center"
+        Orientation="Horizontal">
+
+        <Border Style="{StaticResource BackgroundBorder}">
+            <Grid
+                x:Name="BoardGrid"
+                Width="600"
+                Height="600"
+                Margin="30"
+                HorizontalAlignment="Left"
+                VerticalAlignment="Top"
+                XYFocusKeyboardNavigation="Enabled">
+                <Grid.Background>
+                    <ImageBrush ImageSource="{x:Bind _viewModel.BoardBackgroundImage, Mode=OneWay}" />
+                </Grid.Background>
+
+                <ItemsRepeater x:Name="ChessBoardRepeater" ItemsSource="{x:Bind _viewModel.Board, Mode=TwoWay}">
+                    <ItemsRepeater.Layout>
+                        <UniformGridLayout
+                            MaximumRowsOrColumns="8"
+                            MinItemHeight="75"
+                            MinItemWidth="75" />
+                    </ItemsRepeater.Layout>
+
+                    <ItemsRepeater.ItemTemplate>
+                        <DataTemplate x:DataType="vm:BoardSquare">
+                            <Grid
+                                Background="{x:Bind BackgroundBrush, Mode=OneWay}"
+                                DataContext="{x:Bind}"
+                                Tapped="ChessPiece_Clicked">
+                                <Image Source="{x:Bind PieceImage, Mode=OneWay}" Stretch="Uniform" />
+                            </Grid>
+                        </DataTemplate>
+                    </ItemsRepeater.ItemTemplate>
+
+                </ItemsRepeater>
+            </Grid>
+
+        </Border>
+
+        <Border Style="{ThemeResource BackgroundBorder}">
+
+            <Grid
+                x:Name="InfoGrid"
+                Margin="30"
+                VerticalAlignment="Top">
+
+                <StackPanel Orientation="Vertical">
+
+                    <StackPanel
+                        x:Name="CurrentPlayerSP"
+                        Height="Auto"
+                        Margin="16"
+                        Background="{ThemeResource CardBackgroundFillColorSecondaryBrush}"
+                        CornerRadius="8"
+                        Orientation="Horizontal"
+                        Visibility="{x:Bind converter:Converter.BoolToCollapsed(_viewModel.IsMultiplayerGame), Mode=OneWay}">
+                        <TextBlock
+                            Margin="8"
+                            HorizontalAlignment="Center"
+                            VerticalAlignment="Center"
+                            FontSize="24"
+                            Text="Current Player"
+                            TextAlignment="Center" />
+                        <Image Source="{x:Bind converter:Converter.PlayerToPawnImage(_viewModel.CurrentPlayer), Mode=OneWay}" Style="{StaticResource CurrentPlayerImageStyle}" />
+                    </StackPanel>
+
+
+                    <StackPanel
+                        x:Name="CurrentPlayerMP"
+                        Height="Auto"
+                        Margin="16"
+                        Background="{ThemeResource CardBackgroundFillColorSecondaryBrush}"
+                        CornerRadius="8"
+                        Orientation="Horizontal"
+                        Visibility="{x:Bind converter:Converter.BoolToVisibility(_viewModel.IsMultiplayerGame), Mode=OneWay}">
+                        <TextBlock
+                            Margin="8"
+                            HorizontalAlignment="Center"
+                            VerticalAlignment="Center"
+                            FontSize="24"
+                            Text="Local Player"
+                            TextAlignment="Center" />
+                        <Image Source="{x:Bind converter:Converter.PlayerToPawnImage(_viewModel.MultiplayerViewModel.LocalPlayer), Mode=OneWay}" Style="{StaticResource CurrentPlayerImageStyle}" />
+                        <Ellipse
+                            Width="10"
+                            Height="10"
+                            Margin="8,0,0,0"
+                            VerticalAlignment="Center"
+                            Fill="{x:Bind converter:Converter.BoolToColor(_viewModel.MultiplayerViewModel.IsLocalPlayersTurn), Mode=OneWay}" />
+                    </StackPanel>
+
+                    <Grid
+                        x:Name="Score"
+                        Width="160"
+                        Height="170"
+                        Margin="16"
+                        HorizontalAlignment="Center"
+                        Background="{ThemeResource CardBackgroundFillColorSecondaryBrush}"
+                        CornerRadius="8">
+                        <Grid.RowDefinitions>
+                            <RowDefinition x:Name="ScoreTitle" Height="Auto" />
+                            <RowDefinition x:Name="BlackWhiteTitle" Height="Auto" />
+                            <RowDefinition x:Name="Pieces" Height="Auto" />
+                        </Grid.RowDefinitions>
+                        <Grid.ColumnDefinitions>
+                            <ColumnDefinition x:Name="White" Width="80" />
+                            <ColumnDefinition x:Name="Black" Width="80" />
+                        </Grid.ColumnDefinitions>
+
+                        <TextBlock
+                            Grid.Row="0"
+                            Grid.ColumnSpan="2"
+                            HorizontalAlignment="Center"
+                            FontSize="24"
+                            Text="Score" />
+                        <TextBlock
+                            Grid.Row="1"
+                            Grid.Column="0"
+                            Margin="8,0,0,0"
+                            HorizontalAlignment="Left"
+                            FontSize="20"
+                            Text="White" />
+                        <TextBlock
+                            Grid.Row="1"
+                            Grid.Column="1"
+                            Margin="8,0,0,0"
+                            HorizontalAlignment="Left"
+                            FontSize="20"
+                            Text="Black" />
+
+                        <StackPanel
+                            Name="WhiteCapturedPieces"
+                            Grid.Row="2"
+                            Grid.Column="0"
+                            Orientation="Horizontal">
+                            <StackPanel
+                                Name="WCapturedPiecesImages"
+                                HorizontalAlignment="Left"
+                                Orientation="Vertical">
+                                <Image Source="{x:Bind _viewModel.ScoreViewModel.CapturedBlackPawnImage}" Style="{StaticResource CapturedPieceImageStyle}" />
+                                <Image Source="{x:Bind _viewModel.ScoreViewModel.CapturedBlackBishopImage}" Style="{StaticResource CapturedPieceImageStyle}" />
+                                <Image Source="{x:Bind _viewModel.ScoreViewModel.CapturedBlackKnightImage}" Style="{StaticResource CapturedPieceImageStyle}" />
+                                <Image Source="{x:Bind _viewModel.ScoreViewModel.CapturedBlackRookImage}" Style="{StaticResource CapturedPieceImageStyle}" />
+                                <Image Source="{x:Bind _viewModel.ScoreViewModel.CapturedBlackQueenImage}" Style="{StaticResource CapturedPieceImageStyle}" />
+                            </StackPanel>
+
+                            <StackPanel
+                                Name="WNumCapturedPiece"
+                                HorizontalAlignment="Center"
+                                Orientation="Vertical">
+                                <TextBlock Style="{StaticResource CapturedPieceNumberStyle}" Text="{x:Bind _viewModel.ScoreViewModel.WhiteCapturedPawn, Mode=OneWay}" />
+                                <TextBlock Style="{StaticResource CapturedPieceNumberStyle}" Text="{x:Bind _viewModel.ScoreViewModel.WhiteCapturedBishop, Mode=OneWay}" />
+                                <TextBlock Style="{StaticResource CapturedPieceNumberStyle}" Text="{x:Bind _viewModel.ScoreViewModel.WhiteCapturedKnight, Mode=OneWay}" />
+                                <TextBlock Style="{StaticResource CapturedPieceNumberStyle}" Text="{x:Bind _viewModel.ScoreViewModel.WhiteCapturedRook, Mode=OneWay}" />
+                                <TextBlock Style="{StaticResource CapturedPieceNumberStyle}" Text="{x:Bind _viewModel.ScoreViewModel.WhiteCapturedQueen, Mode=OneWay}" />
+                            </StackPanel>
+                        </StackPanel>
+
+                        <StackPanel
+                            Name="BlackCapturedPieces"
+                            Grid.Row="2"
+                            Grid.Column="1"
+                            Orientation="Horizontal">
+                            <StackPanel
+                                Name="BCapturedPiecesImages"
+                                HorizontalAlignment="Left"
+                                Orientation="Vertical">
+                                <Image Source="{x:Bind _viewModel.ScoreViewModel.CapturedWhitePawnImage}" Style="{StaticResource CapturedPieceImageStyle}" />
+                                <Image Source="{x:Bind _viewModel.ScoreViewModel.CapturedWhiteBishopImage}" Style="{StaticResource CapturedPieceImageStyle}" />
+                                <Image Source="{x:Bind _viewModel.ScoreViewModel.CapturedWhiteKnightImage}" Style="{StaticResource CapturedPieceImageStyle}" />
+                                <Image Source="{x:Bind _viewModel.ScoreViewModel.CapturedWhiteRookImage}" Style="{StaticResource CapturedPieceImageStyle}" />
+                                <Image Source="{x:Bind _viewModel.ScoreViewModel.CapturedWhiteQueenImage}" Style="{StaticResource CapturedPieceImageStyle}" />
+                            </StackPanel>
+
+                            <StackPanel
+                                Name="BNumCapturedPiece"
+                                HorizontalAlignment="Center"
+                                Orientation="Vertical">
+                                <TextBlock Style="{StaticResource CapturedPieceNumberStyle}" Text="{x:Bind _viewModel.ScoreViewModel.BlackCapturedPawn, Mode=OneWay}" />
+                                <TextBlock Style="{StaticResource CapturedPieceNumberStyle}" Text="{x:Bind _viewModel.ScoreViewModel.BlackCapturedBishop, Mode=OneWay}" />
+                                <TextBlock Style="{StaticResource CapturedPieceNumberStyle}" Text="{x:Bind _viewModel.ScoreViewModel.BlackCapturedKnight, Mode=OneWay}" />
+                                <TextBlock Style="{StaticResource CapturedPieceNumberStyle}" Text="{x:Bind _viewModel.ScoreViewModel.BlackCapturedRook, Mode=OneWay}" />
+                                <TextBlock Style="{StaticResource CapturedPieceNumberStyle}" Text="{x:Bind _viewModel.ScoreViewModel.BlackCapturedQueen, Mode=OneWay}" />
+                            </StackPanel>
+                        </StackPanel>
+                    </Grid>
+
+                    <Grid
+                        x:Name="MoveHistory"
+                        Width="220"
+                        Height="220"
+                        Margin="16"
+                        HorizontalAlignment="Center"
+                        VerticalAlignment="Center"
+                        Background="{ThemeResource CardBackgroundFillColorSecondaryBrush}"
+                        CornerRadius="8">
+                        <Grid.RowDefinitions>
+                            <RowDefinition x:Name="TitleRow" Height="40" />
+                            <RowDefinition x:Name="Moves" Height="165" />
+                        </Grid.RowDefinitions>
+
+                        <TextBlock
+                            Grid.Row="0"
+                            HorizontalAlignment="Center"
+                            VerticalAlignment="Center"
+                            FontSize="24"
+                            Text="Move History" />
+
+                        <!--  Moves with Wrapping Columns  -->
+                        <ScrollViewer
+                            Grid.Row="1"
+                            HorizontalScrollBarVisibility="Disabled"
+                            VerticalScrollBarVisibility="Auto">
+                            <ItemsControl
+                                x:Name="MovesColumns"
+                                HorizontalAlignment="Stretch"
+                                VerticalAlignment="Stretch"
+                                ItemsSource="{x:Bind _viewModel.MoveHistoryViewModel.MoveHistoryColumns, Mode=OneWay}">
+                                <ItemsControl.ItemsPanel>
+                                    <ItemsPanelTemplate>
+                                        <StackPanel Orientation="Horizontal" />
+                                    </ItemsPanelTemplate>
+                                </ItemsControl.ItemsPanel>
+                                <ItemsControl.ItemTemplate>
+                                    <DataTemplate>
+                                        <StackPanel Margin="14,0" Orientation="Vertical">
+                                            <!--  Each Column  -->
+                                            <ItemsControl ItemsSource="{Binding}">
+                                                <ItemsControl.ItemTemplate>
+                                                    <DataTemplate>
+                                                        <TextBlock
+                                                            Width="40"
+                                                            Margin="2"
+                                                            HorizontalAlignment="Left"
+                                                            FontSize="14"
+                                                            Text="{Binding}"
+                                                            TextAlignment="Center" />
+                                                    </DataTemplate>
+                                                </ItemsControl.ItemTemplate>
+                                            </ItemsControl>
+                                        </StackPanel>
+                                    </DataTemplate>
+                                </ItemsControl.ItemTemplate>
+                            </ItemsControl>
+                        </ScrollViewer>
+                    </Grid>
+
+                    <StackPanel
+                        x:Name="Buttons"
+                        Margin="0,16"
+                        HorizontalAlignment="Center"
+                        Orientation="Horizontal"
+                        Spacing="12">
+                        <Button
+                            x:Name="UndoMove"
+                            Click="UndoMove_Click"
+                            Content="Undo"
+                            Style="{StaticResource GameButtonStyle}"
+                            Visibility="{x:Bind converter:Converter.BoolToVisibility(_viewModel.IsKoopGame), Mode=OneWay}" />
+                        <Button
+                            x:Name="ResetGame"
+                            Click="ResetGame_Click"
+                            Content="Reset"
+                            Style="{StaticResource GameButtonStyle}"
+                            Visibility="{x:Bind converter:Converter.BoolToVisibility(_viewModel.IsKoopGame), Mode=OneWay}" />
+                        <Button
+                            x:Name="EndGame"
+                            Click="EndGame_Click"
+                            Content="End"
+                            Style="{StaticResource GameButtonStyle}" />
+                    </StackPanel>
+
+                </StackPanel>
+            </Grid>
+        </Border>
+
+    </StackPanel>
+</Window>
