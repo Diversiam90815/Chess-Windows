@@ -6,6 +6,19 @@ using static Chess.UI.Services.EngineAPI;
 
 namespace Chess.UI.MoveHistory
 {
+    public interface IMoveHistoryModel
+    {
+        // Properties
+        List<string> MoveHistory { get; }
+
+        // Methods
+        void RemoveLastMove();
+
+        // Events
+        event Action MoveHistoryUpdated;
+    }
+
+
     public class MoveHistoryModel : IMoveHistoryModel
     {
         public List<string> MoveHistory { get; } = new();

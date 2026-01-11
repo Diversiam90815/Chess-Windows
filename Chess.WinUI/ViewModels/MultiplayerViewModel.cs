@@ -320,7 +320,7 @@ namespace Chess.UI.ViewModels
         }
 
 
-        public void HandlePlayerChanged(EngineAPI.PlayerColor player)
+        public void HandlePlayerChanged(EngineAPI.Side player)
         {
             IsLocalPlayersTurn = player == LocalPlayer;
         }
@@ -386,7 +386,7 @@ namespace Chess.UI.ViewModels
         }
 
 
-        public void SelectPlayerColor(EngineAPI.PlayerColor color)
+        public void SelectPlayerColor(EngineAPI.Side color)
         {
             LocalPlayer = color;
             // Send color selection to backend
@@ -396,7 +396,7 @@ namespace Chess.UI.ViewModels
         }
 
 
-        public void SelectLocalPlayerFromRemote(EngineAPI.PlayerColor local)
+        public void SelectLocalPlayerFromRemote(EngineAPI.Side local)
         {
             LocalPlayer = local;
             _model.SetLocalPlayerColor(local);
@@ -506,7 +506,7 @@ namespace Chess.UI.ViewModels
 
             // Reset other properties to defaults
             Processing = false;
-            LocalPlayer = EngineAPI.PlayerColor.NoColor;
+            LocalPlayer = EngineAPI.Side.None;
             IsReady = false;
             RemotePlayerReady = false;
             ReadyButtonEnabled = false;
@@ -605,7 +605,7 @@ namespace Chess.UI.ViewModels
             SettingLocalPlayerView = Visibility.Visible;
 
             // Reset selection state
-            LocalPlayer = EngineAPI.PlayerColor.NoColor;
+            LocalPlayer = EngineAPI.Side.None;
             IsReady = false;
             RemotePlayerReady = false;
 

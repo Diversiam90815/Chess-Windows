@@ -12,13 +12,13 @@ namespace Chess.UI.Moves
 
         public event Action ChesspieceSelected;
         event Action PossibleMovesCalculated;
-        event Action<PlayerColor> PlayerChanged;
+        event Action<Side> PlayerChanged;
         event Action GameStateInitSucceeded;
-        event Action<EndGameState, PlayerColor> GameOverEvent;
+        event Action<EndGameState, Side> GameOverEvent;
         event Action NewBoardFromBackendEvent;
         event Action PawnPromotionEvent;
 
-        void SetPromotionPieceType(PieceTypeInstance pieceType);
+        void SetPromotionPieceType(PieceType pieceType);
     }
 
 
@@ -95,7 +95,7 @@ namespace Chess.UI.Moves
         public void HandleEndGameState(EndGameStateEvent endgame)
         {
             EndGameState state = endgame.State;
-            PlayerColor winner = endgame.winner;
+            Side winner = endgame.winner;
 
             GameOverEvent?.Invoke(state, winner);
         }
@@ -122,14 +122,14 @@ namespace Chess.UI.Moves
         }
 
 
-        public void SetPromotionPieceType(PieceTypeInstance pieceType)
+        public void SetPromotionPieceType(PieceType pieceType)
         {
             Logger.LogInfo("Promoting to " + pieceType.ToString());
             OnPawnPromotionChosen(pieceType);
         }
 
 
-        public void HandlePlayerChanged(PlayerColor player)
+        public void HandlePlayerChanged(Side player)
         {
             PlayerChanged?.Invoke(player);
         }
@@ -137,10 +137,10 @@ namespace Chess.UI.Moves
 
         public event Action ChesspieceSelected;
         public event Action PossibleMovesCalculated;
-        public event Action<PlayerColor> PlayerChanged;
+        public event Action<Side> PlayerChanged;
         public event Action RemotePlayersTurn;
         public event Action GameStateInitSucceeded;
-        public event Action<EndGameState, PlayerColor> GameOverEvent;
+        public event Action<EndGameState, Side> GameOverEvent;
         public event Action NewBoardFromBackendEvent;
         public event Action PawnPromotionEvent;
     }

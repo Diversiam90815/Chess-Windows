@@ -26,20 +26,20 @@ namespace Chess.UI.Models
 
         void AnswerConnectionInvitation(bool accept);
 
-        void SetLocalPlayerColor(EngineAPI.PlayerColor color);
+        void SetLocalPlayerColor(EngineAPI.Side color);
 
         void SetPlayerReady(bool ready);
 
-        void HandleLocalPlayerChosenByRemote(PlayerColor local);
+        void HandleLocalPlayerChosenByRemote(Side local);
 
 
         event Action<string> OnConnectionErrorOccured;
 
         event Action<ConnectionState, string> OnConnectionStatusChanged;
 
-        event Action<PlayerColor> OnPlayerChanged;
+        event Action<Side> OnPlayerChanged;
 
-        event Action<PlayerColor> OnMultiplayerPlayerSetFromRemote;
+        event Action<Side> OnMultiplayerPlayerSetFromRemote;
     }
 
 
@@ -69,7 +69,7 @@ namespace Chess.UI.Models
         }
 
 
-        public void HandlePlayerChanged(PlayerColor player)
+        public void HandlePlayerChanged(Side player)
         {
             OnPlayerChanged?.Invoke(player);
         }
@@ -113,7 +113,7 @@ namespace Chess.UI.Models
         }
 
 
-        public void SetLocalPlayerColor(EngineAPI.PlayerColor color)
+        public void SetLocalPlayerColor(EngineAPI.Side color)
         {
             EngineAPI.SetLocalPlayer((int)color);
         }
@@ -143,7 +143,7 @@ namespace Chess.UI.Models
         }
 
 
-        public void HandleLocalPlayerChosenByRemote(PlayerColor local)
+        public void HandleLocalPlayerChosenByRemote(Side local)
         {
             OnMultiplayerPlayerSetFromRemote?.Invoke(local);
         }
@@ -152,7 +152,7 @@ namespace Chess.UI.Models
 
         public event Action<string> OnConnectionErrorOccured;
         public event Action<ConnectionState, string> OnConnectionStatusChanged;
-        public event Action<PlayerColor> OnPlayerChanged;
-        public event Action<PlayerColor> OnMultiplayerPlayerSetFromRemote;
+        public event Action<Side> OnPlayerChanged;
+        public event Action<Side> OnMultiplayerPlayerSetFromRemote;
     }
 }

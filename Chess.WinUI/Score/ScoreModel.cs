@@ -18,7 +18,6 @@ namespace Chess.UI.Score
 
     public class ScoreModel : IScoreModel
     {
-
         public Dictionary<PieceType, int> CapturedPieces { get; } = new Dictionary<PieceType, int>
     {
         { PieceType.WPawn, 0 },

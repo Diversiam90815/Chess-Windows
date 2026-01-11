@@ -28,9 +28,9 @@ namespace Chess.UI.ViewModels
 
         public ObservableCollection<BoardSquare> Board { get; set; }
 
-        public event Func<EndGameState, PlayerColor, Task> ShowEndGameDialog;
+        public event Func<EndGameState, Side, Task> ShowEndGameDialog;
 
-        public event Func<Task<PieceTypeInstance?>> ShowPawnPromotionDialogRequested;
+        public event Func<Task<PieceType?>> ShowPawnPromotionDialogRequested;
 
         public ScoreViewModel ScoreViewModel { get; }
 

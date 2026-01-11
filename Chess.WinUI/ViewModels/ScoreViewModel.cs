@@ -28,60 +28,42 @@ namespace Chess.UI.ViewModels
             Init();
 
             _scoreModel.PlayerCapturedPiece += OnPlayerCapturedPiece;
-            _scoreModel.PlayerScoreUpdated += OnPlayerScoreUpdated;
         }
 
 
         private void Init()
         {
-            CapturedWhitePawnImage = _images.GetCapturedPieceImage(PlayerColor.White, PieceTypeInstance.Pawn);
-            CapturedWhiteBishopImage = _images.GetCapturedPieceImage(PlayerColor.White, PieceTypeInstance.Bishop);
-            CapturedWhiteRookImage = _images.GetCapturedPieceImage(PlayerColor.White, PieceTypeInstance.Rook);
-            CapturedWhiteQueenImage = _images.GetCapturedPieceImage(PlayerColor.White, PieceTypeInstance.Queen);
-            CapturedWhiteKnightImage = _images.GetCapturedPieceImage(PlayerColor.White, PieceTypeInstance.Knight);
-            CapturedBlackPawnImage = _images.GetCapturedPieceImage(PlayerColor.Black, PieceTypeInstance.Pawn);
-            CapturedBlackBishopImage = _images.GetCapturedPieceImage(PlayerColor.Black, PieceTypeInstance.Bishop);
-            CapturedBlackRookImage = _images.GetCapturedPieceImage(PlayerColor.Black, PieceTypeInstance.Rook);
-            CapturedBlackQueenImage = _images.GetCapturedPieceImage(PlayerColor.Black, PieceTypeInstance.Queen);
-            CapturedBlackKnightImage = _images.GetCapturedPieceImage(PlayerColor.Black, PieceTypeInstance.Knight);
+            CapturedWhitePawnImage = _images.GetCapturedPieceImage(PieceType.WPawn);
+            CapturedWhiteBishopImage = _images.GetCapturedPieceImage(PieceType.WBishop);
+            CapturedWhiteRookImage = _images.GetCapturedPieceImage(PieceType.WRook);
+            CapturedWhiteQueenImage = _images.GetCapturedPieceImage(PieceType.WQueen);
+            CapturedWhiteKnightImage = _images.GetCapturedPieceImage(PieceType.WKnight);
+            CapturedBlackPawnImage = _images.GetCapturedPieceImage(PieceType.BPawn);
+            CapturedBlackBishopImage = _images.GetCapturedPieceImage(PieceType.BBishop);
+            CapturedBlackRookImage = _images.GetCapturedPieceImage(PieceType.BRook);
+            CapturedBlackQueenImage = _images.GetCapturedPieceImage(PieceType.BQueen);
+            CapturedBlackKnightImage = _images.GetCapturedPieceImage(PieceType.BKnight);
         }
 
-
-        public void OnPlayerScoreUpdated(Services.EngineAPI.Score score)
-        {
-            int value = score.score;
-            PlayerColor player = score.player;
-
-            if (player == PlayerColor.White)
-            {
-                WhiteScoreValue = value;
-            }
-            else if (player == PlayerColor.Black)
-            {
-                BlackScoreValue = value;
-            }
-        }
 
 
         public void OnPlayerCapturedPiece(PlayerCapturedPiece piece)
         {
-            PlayerColor player = piece.playerColor;
-            PieceTypeInstance type = piece.pieceType;
+            Side player = piece.playerColor;
+            PieceType type = piece.pieceType;
             bool captured = piece.captured;
-            AlterCapturedPieces(player, type, captured);
+            AlterCapturedPieces(type, captured);
         }
 
 
         public void ReinitScoreValues()
         {
-            BlackScoreValue = 0;
             BlackCapturedBishop = 0;
             BlackCapturedKnight = 0;
             BlackCapturedQueen = 0;
             BlackCapturedRook = 0;
             BlackCapturedPawn = 0;
 
-            WhiteScoreValue = 0;
             WhiteCapturedBishop = 0;
             WhiteCapturedKnight = 0;
             WhiteCapturedQueen = 0;
@@ -90,44 +72,19 @@ namespace Chess.UI.ViewModels
         }
 
 
-        private void AlterCapturedPieces(PlayerColor player, PieceTypeInstance pieceType, bool captured)
+        private void AlterCapturedPieces(PieceType piece, bool captured)
         {
-            switch (player)
+            if (_scoreModel.CapturedPieces.TryGetValue(piece, out int value))
             {
-                case PlayerColor.White:
-                    {
-                        if (_scoreModel.WhiteCapturedPieces.TryGetValue(pieceType, out int value))
-                        {
-                            if (captured)
-                            {
-                                _scoreModel.WhiteCapturedPieces[pieceType] = ++value;
-                            }
-                            else
-                            {
-                                _scoreModel.WhiteCapturedPieces[pieceType] = --value;
-                            }
-                            OnPropertyChanged($"WhiteCaptured{pieceType}");
-                        }
-                        break;
-                    }
-
-                case PlayerColor.Black:
-                    {
-                        if (_scoreModel.BlackCapturedPieces.TryGetValue(pieceType, out int value))
-                        {
-                            if (captured)
-                            {
-                                _scoreModel.BlackCapturedPieces[pieceType] = ++value;
-                            }
-                            else
-                            {
-                                _scoreModel.BlackCapturedPieces[pieceType] = --value;
-                            }
-                            OnPropertyChanged($"BlackCaptured{pieceType}");
-                        }
-                        break;
-                    }
-                default: break;
+                if (captured)
+                {
+                    _scoreModel.CapturedPieces[piece] = ++value;
+                }
+                else
+                {
+                    _scoreModel.CapturedPieces[piece] = --value;
+                }
+                OnPropertyChanged($"Captured{piece}");
             }
         }
 
@@ -284,12 +241,12 @@ namespace Chess.UI.ViewModels
 
         public int BlackCapturedPawn
         {
-            get => _scoreModel.BlackCapturedPieces[PieceTypeInstance.Pawn];
+            get => _scoreModel.CapturedPieces[PieceType.BPawn];
             set
             {
-                if (_scoreModel.BlackCapturedPieces[PieceTypeInstance.Pawn] != value)
+                if (_scoreModel.CapturedPieces[PieceType.BPawn] != value)
                 {
-                    _scoreModel.BlackCapturedPieces[PieceTypeInstance.Pawn] = value;
+                    _scoreModel.CapturedPieces[PieceType.BPawn] = value;
                     OnPropertyChanged();
                 }
             }
@@ -297,12 +254,12 @@ namespace Chess.UI.ViewModels
 
         public int BlackCapturedBishop
         {
-            get => _scoreModel.BlackCapturedPieces[PieceTypeInstance.Bishop];
+            get => _scoreModel.CapturedPieces[PieceType.BBishop];
             set
             {
-                if (_scoreModel.BlackCapturedPieces[PieceTypeInstance.Bishop] != value)
+                if (_scoreModel.CapturedPieces[PieceType.BBishop] != value)
                 {
-                    _scoreModel.BlackCapturedPieces[PieceTypeInstance.Bishop] = value;
+                    _scoreModel.CapturedPieces[PieceType.BBishop] = value;
                     OnPropertyChanged();
                 }
             }
@@ -310,12 +267,12 @@ namespace Chess.UI.ViewModels
 
         public int BlackCapturedKnight
         {
-            get => _scoreModel.BlackCapturedPieces[PieceTypeInstance.Knight];
+            get => _scoreModel.CapturedPieces[PieceType.BKnight];
             set
             {
-                if (_scoreModel.BlackCapturedPieces[PieceTypeInstance.Knight] != value)
+                if (_scoreModel.CapturedPieces[PieceType.BKnight] != value)
                 {
-                    _scoreModel.BlackCapturedPieces[PieceTypeInstance.Knight] = value;
+                    _scoreModel.CapturedPieces[PieceType.BKnight] = value;
                     OnPropertyChanged();
                 }
             }
@@ -323,12 +280,12 @@ namespace Chess.UI.ViewModels
 
         public int BlackCapturedQueen
         {
-            get => _scoreModel.BlackCapturedPieces[PieceTypeInstance.Queen];
+            get => _scoreModel.CapturedPieces[PieceType.BQueen];
             set
             {
-                if (_scoreModel.BlackCapturedPieces[PieceTypeInstance.Queen] != value)
+                if (_scoreModel.CapturedPieces[PieceType.BQueen] != value)
                 {
-                    _scoreModel.BlackCapturedPieces[PieceTypeInstance.Queen] = value;
+                    _scoreModel.CapturedPieces[PieceType.BQueen] = value;
                     OnPropertyChanged();
                 }
             }
@@ -336,12 +293,12 @@ namespace Chess.UI.ViewModels
 
         public int BlackCapturedRook
         {
-            get => _scoreModel.BlackCapturedPieces[PieceTypeInstance.Rook];
+            get => _scoreModel.CapturedPieces[PieceType.BRook];
             set
             {
-                if (_scoreModel.BlackCapturedPieces[PieceTypeInstance.Rook] != value)
+                if (_scoreModel.CapturedPieces[PieceType.BRook] != value)
                 {
-                    _scoreModel.BlackCapturedPieces[PieceTypeInstance.Rook] = value;
+                    _scoreModel.CapturedPieces[PieceType.BRook] = value;
                     OnPropertyChanged();
                 }
             }
@@ -350,12 +307,12 @@ namespace Chess.UI.ViewModels
 
         public int WhiteCapturedPawn
         {
-            get => _scoreModel.WhiteCapturedPieces[PieceTypeInstance.Pawn];
+            get => _scoreModel.CapturedPieces[PieceType.WPawn];
             set
             {
-                if (_scoreModel.WhiteCapturedPieces[PieceTypeInstance.Pawn] != value)
+                if (_scoreModel.CapturedPieces[PieceType.WPawn] != value)
                 {
-                    _scoreModel.WhiteCapturedPieces[PieceTypeInstance.Pawn] = value;
+                    _scoreModel.CapturedPieces[PieceType.WPawn] = value;
                     OnPropertyChanged();
                 }
             }
@@ -363,12 +320,12 @@ namespace Chess.UI.ViewModels
 
         public int WhiteCapturedBishop
         {
-            get => _scoreModel.WhiteCapturedPieces[PieceTypeInstance.Bishop];
+            get => _scoreModel.CapturedPieces[PieceType.WBishop];
             set
             {
-                if (_scoreModel.WhiteCapturedPieces[PieceTypeInstance.Bishop] != value)
+                if (_scoreModel.CapturedPieces[PieceType.WBishop] != value)
                 {
-                    _scoreModel.WhiteCapturedPieces[PieceTypeInstance.Bishop] = value;
+                    _scoreModel.CapturedPieces[PieceType.WBishop] = value;
                     OnPropertyChanged();
                 }
             }
@@ -376,12 +333,12 @@ namespace Chess.UI.ViewModels
 
         public int WhiteCapturedKnight
         {
-            get => _scoreModel.WhiteCapturedPieces[PieceTypeInstance.Knight];
+            get => _scoreModel.CapturedPieces[PieceType.WKnight];
             set
             {
-                if (_scoreModel.WhiteCapturedPieces[PieceTypeInstance.Knight] != value)
+                if (_scoreModel.CapturedPieces[PieceType.WKnight] != value)
                 {
-                    _scoreModel.WhiteCapturedPieces[PieceTypeInstance.Knight] = value;
+                    _scoreModel.CapturedPieces[PieceType.WKnight] = value;
                     OnPropertyChanged();
                 }
             }
@@ -389,12 +346,12 @@ namespace Chess.UI.ViewModels
 
         public int WhiteCapturedQueen
         {
-            get => _scoreModel.WhiteCapturedPieces[PieceTypeInstance.Queen];
+            get => _scoreModel.CapturedPieces[PieceType.WQueen];
             set
             {
-                if (_scoreModel.WhiteCapturedPieces[PieceTypeInstance.Queen] != value)
+                if (_scoreModel.CapturedPieces[PieceType.WQueen] != value)
                 {
-                    _scoreModel.WhiteCapturedPieces[PieceTypeInstance.Queen] = value;
+                    _scoreModel.CapturedPieces[PieceType.WQueen] = value;
                     OnPropertyChanged();
                 }
             }
@@ -402,12 +359,12 @@ namespace Chess.UI.ViewModels
 
         public int WhiteCapturedRook
         {
-            get => _scoreModel.WhiteCapturedPieces[PieceTypeInstance.Rook];
+            get => _scoreModel.CapturedPieces[PieceType.WRook];
             set
             {
-                if (_scoreModel.WhiteCapturedPieces[PieceTypeInstance.Rook] != value)
+                if (_scoreModel.CapturedPieces[PieceType.WRook] != value)
                 {
-                    _scoreModel.WhiteCapturedPieces[PieceTypeInstance.Rook] = value;
+                    _scoreModel.CapturedPieces[PieceType.WRook] = value;
                     OnPropertyChanged();
                 }
             }
@@ -415,39 +372,6 @@ namespace Chess.UI.ViewModels
 
         #endregion
 
-
-        #region Score Values
-
-        private int whiteScoreValue = 0;
-        public int WhiteScoreValue
-        {
-            get => whiteScoreValue;
-            set
-            {
-                if (whiteScoreValue != value)
-                {
-                    whiteScoreValue = value;
-                    OnPropertyChanged();
-                }
-            }
-        }
-
-
-        private int blackScoreValue = 0;
-        public int BlackScoreValue
-        {
-            get => blackScoreValue;
-            set
-            {
-                if (blackScoreValue != value)
-                {
-                    blackScoreValue = value;
-                    OnPropertyChanged();
-                }
-            }
-        }
-
-        #endregion
 
 
         protected void OnPropertyChanged([CallerMemberName] string name = null)
