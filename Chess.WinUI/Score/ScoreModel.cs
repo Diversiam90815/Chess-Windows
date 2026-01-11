@@ -1,32 +1,36 @@
 ﻿using Chess.UI.Services;
 using System;
 using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
 using static Chess.UI.Services.EngineAPI;
+
 
 namespace Chess.UI.Score
 {
+    public interface IScoreModel
+    {
+        // Properties
+        Dictionary<PieceType, int> CapturedPieces { get; }
+
+        // Events
+        event Action<PlayerCapturedPiece> PlayerCapturedPiece;
+    }
+
+
     public class ScoreModel : IScoreModel
     {
 
-        public Dictionary<PieceTypeInstance, int> WhiteCapturedPieces { get; } = new Dictionary<PieceTypeInstance, int>
+        public Dictionary<PieceType, int> CapturedPieces { get; } = new Dictionary<PieceType, int>
     {
-        { PieceTypeInstance.Pawn, 0 },
-        { PieceTypeInstance.Bishop, 0 },
-        { PieceTypeInstance.Knight, 0 },
-        { PieceTypeInstance.Rook, 0 },
-        { PieceTypeInstance.Queen, 0 }
-    };
-
-        public Dictionary<PieceTypeInstance, int> BlackCapturedPieces { get; } = new Dictionary<PieceTypeInstance, int>
-    {
-        { PieceTypeInstance.Pawn, 0 },
-        { PieceTypeInstance.Bishop, 0 },
-        { PieceTypeInstance.Knight, 0 },
-        { PieceTypeInstance.Rook, 0 },
-        { PieceTypeInstance.Queen, 0 }
+        { PieceType.WPawn, 0 },
+        { PieceType.WBishop, 0 },
+        { PieceType.WKnight, 0 },
+        { PieceType.WRook, 0 },
+        { PieceType.WQueen, 0 },
+        { PieceType.BPawn, 0 },
+        { PieceType.BBishop, 0 },
+        { PieceType.BKnight, 0 },
+        { PieceType.BRook, 0 },
+        { PieceType.BQueen, 0 }
     };
 
 
@@ -34,8 +38,6 @@ namespace Chess.UI.Score
         {
             var logicCommunication = App.Current.ChessLogicCommunication as CommunicationLayer;
             logicCommunication.PlayerCapturedPieceEvent += OnPlayerCapturedPiece;
-            logicCommunication.PlayerScoreUpdated += HandlePlayerScoreUpdated;
-
         }
 
 
@@ -45,14 +47,6 @@ namespace Chess.UI.Score
         }
 
 
-        private void HandlePlayerScoreUpdated(EngineAPI.Score score)
-        {
-            PlayerScoreUpdated?.Invoke(score);
-        }
-
-
         public event Action<PlayerCapturedPiece> PlayerCapturedPiece;
-        public event Action<EngineAPI.Score> PlayerScoreUpdated;
-
     }
 }

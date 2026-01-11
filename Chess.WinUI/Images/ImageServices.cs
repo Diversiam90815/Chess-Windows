@@ -1,13 +1,23 @@
-﻿using Microsoft.UI.Xaml.Media;
+﻿using Chess.UI.Styles;
+using Microsoft.UI.Xaml.Media;
 using Microsoft.UI.Xaml.Media.Imaging;
 using System;
 using System.Collections.Generic;
-using Chess.UI.Styles;
 using static Chess.UI.Services.EngineAPI;
 
 
 namespace Chess.UI.Images
 {
+    public interface IImageService
+    {
+        ImageSource GetPieceImage(PieceStyle theme, PieceType pieceType);
+        ImageSource LoadImage(string relativeFilePath);
+        ImageSource GetImage(ImageServices.MainMenuButton button);
+        ImageSource GetImage(BoardStyle background);
+        ImageSource GetCapturedPieceImage(PieceType pieceTypeInstance);
+    }
+
+
     public class ImageServices : IImageService
     {
         public enum MainMenuButton
@@ -20,11 +30,9 @@ namespace Chess.UI.Images
 
         public Dictionary<BoardStyle, ImageSource> BoardBackgroundImages;
 
-        public Dictionary<MainMenuButton, ImageSource> MainMenutImages;
+        public Dictionary<MainMenuButton, ImageSource> MainMenuImages;
 
-        public Dictionary<PieceTypeInstance, ImageSource> CapturedWhitePiecesImages;
-
-        public Dictionary<PieceTypeInstance, ImageSource> CapturedBlackPiecesImages;
+        public Dictionary<PieceType, ImageSource> CapturedPiecesImages;
 
 
         public ImageServices()
@@ -47,7 +55,7 @@ namespace Chess.UI.Images
             { BoardStyle.Glass, LoadImage("/Assets/Board/Glass.png") }
         };
 
-            MainMenutImages = new()
+            MainMenuImages = new()
         {
         {MainMenuButton.StartGame, LoadImage("/Assets/Buttons/pawn.png") },
         {MainMenuButton.Settings, LoadImage("/Assets/Buttons/rook.png") },
@@ -55,38 +63,33 @@ namespace Chess.UI.Images
         {MainMenuButton.EndGame, LoadImage("/Assets/Buttons/horse.png") }
         };
 
-            CapturedWhitePiecesImages = new()
+            CapturedPiecesImages = new()
         {
-        {PieceTypeInstance.Pawn, LoadImage("/Assets/Pieces/Standard/PawnW.png") },
-        {PieceTypeInstance.Bishop, LoadImage("/Assets/Pieces/Standard/BishopW.png") },
-        {PieceTypeInstance.Queen, LoadImage("/Assets/Pieces/Standard/QueenW.png") },
-        {PieceTypeInstance.Rook, LoadImage("/Assets/Pieces/Standard/RookW.png") },
-        {PieceTypeInstance.Knight, LoadImage("/Assets/Pieces/Standard/KnightW.png") },
-        {PieceTypeInstance.King, LoadImage("/Assets/Pieces/Standard/KingW.png") }
-        };
-
-            CapturedBlackPiecesImages = new()
-        {
-        {PieceTypeInstance.Pawn, LoadImage("/Assets/Pieces/Standard/PawnB.png") },
-        {PieceTypeInstance.Bishop, LoadImage("/Assets/Pieces/Standard/BishopB.png") },
-        {PieceTypeInstance.Queen, LoadImage("/Assets/Pieces/Standard/QueenB.png") },
-        {PieceTypeInstance.Rook, LoadImage("/Assets/Pieces/Standard/RookB.png") },
-        {PieceTypeInstance.Knight, LoadImage("/Assets/Pieces/Standard/KnightB.png") },
-        {PieceTypeInstance.King, LoadImage("/Assets/Pieces/Standard/KingB.png") }
+        {PieceType.WPawn, LoadImage("/Assets/Pieces/Standard/PawnW.png") },
+        {PieceType.WBishop, LoadImage("/Assets/Pieces/Standard/BishopW.png") },
+        {PieceType.WQueen, LoadImage("/Assets/Pieces/Standard/QueenW.png") },
+        {PieceType.WRook, LoadImage("/Assets/Pieces/Standard/RookW.png") },
+        {PieceType.WKnight, LoadImage("/Assets/Pieces/Standard/KnightW.png") },
+        {PieceType.WKing, LoadImage("/Assets/Pieces/Standard/KingW.png") },
+        {PieceType.BPawn, LoadImage("/Assets/Pieces/Standard/PawnB.png") },
+        {PieceType.BBishop, LoadImage("/Assets/Pieces/Standard/BishopB.png") },
+        {PieceType.BQueen, LoadImage("/Assets/Pieces/Standard/QueenB.png") },
+        {PieceType.BRook, LoadImage("/Assets/Pieces/Standard/RookB.png") },
+        {PieceType.BKnight, LoadImage("/Assets/Pieces/Standard/KnightB.png") },
+        {PieceType.BKing, LoadImage("/Assets/Pieces/Standard/KingB.png") }
         };
         }
 
 
         // Dynamic piece image loading based on theme, color, and type
-        public ImageSource GetPieceImage(PieceStyle theme, PlayerColor color, PieceTypeInstance pieceType)
+        public ImageSource GetPieceImage(PieceStyle theme, PieceType piece)
         {
             // Convert enum values to strings that match folder and file naming conventions
             string themeName = theme.ToString();
-            string colorSuffix = color == PlayerColor.White ? "W" : "B";
-            string pieceName = pieceType.ToString();
+            string pieceName = piece.ToString();
 
             // Construct the relative file path. Assumes folder structure: Assets/Pieces/{Theme}/
-            string relativePath = $"/Assets/Pieces/{themeName}/{pieceName}{colorSuffix}.png";
+            string relativePath = $"/Assets/Pieces/{themeName}/{pieceName}.png";
 
             return LoadImage(relativePath);
         }
@@ -98,19 +101,10 @@ namespace Chess.UI.Images
         }
 
 
-        public ImageSource GetImage(MainMenuButton button) => MainMenutImages[button];
+        public ImageSource GetImage(MainMenuButton button) => MainMenuImages[button];
 
         public ImageSource GetImage(BoardStyle background) => BoardBackgroundImages[background];
 
-
-        public ImageSource GetCapturedPieceImage(PlayerColor player, PieceTypeInstance pieceTypeInstance)
-        {
-            return player switch
-            {
-                PlayerColor.White => CapturedWhitePiecesImages[pieceTypeInstance],
-                PlayerColor.Black => CapturedBlackPiecesImages[pieceTypeInstance],
-                _ => null
-            };
-        }
+        public ImageSource GetCapturedPieceImage(PieceType piece) => CapturedPiecesImages[piece];
     }
 }

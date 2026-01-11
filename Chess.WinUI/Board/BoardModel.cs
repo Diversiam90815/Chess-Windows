@@ -10,6 +10,14 @@ using static Chess.UI.Services.EngineAPI;
 
 namespace Chess.UI.Board
 {
+    public interface IBoardModel
+    {
+        int[] GetBoardStateFromNative();
+        BoardSquare DecodeBoardState(int index, int[] boardState);
+        (Dictionary<int, int>, int[]) UpdateBoardState();
+
+    }
+
     public class BoardModel : IBoardModel
     {
         private int[] _currentBoardState;

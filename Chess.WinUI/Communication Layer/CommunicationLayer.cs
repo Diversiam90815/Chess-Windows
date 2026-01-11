@@ -1,11 +1,31 @@
-﻿using Chess.UI.Communication_Layer.Interfaces;
-using System;
+﻿using System;
 using System.Runtime.InteropServices;
 using static Chess.UI.Services.EngineAPI;
 
 
 namespace Chess.UI.Services
 {
+    public interface ICommunicationLayer
+    {
+        // Initialization methods
+        void Init();
+        void Deinit();
+
+        // Event handlers for communication from native code
+        void DelegateHandler(int message, nint data);
+
+        // Events for notifying UI components
+        event Action<Side> PlayerChanged;
+        event Action<GamePhase> GameStateChanged;
+        event Action<MoveHistoryEvent> MoveHistoryUpdated;
+        event Action<PlayerCapturedPiece> PlayerCapturedPieceEvent;
+        event Action<EndGameStateEvent> EndGameStateEvent;
+        event Action<ConnectionStatusEvent> ConnectionStatusEvent;
+        event Action<Side> MultiPlayerChosenByRemote;
+        event Action<PossibleMoveInstance> MoveExecuted;
+    }
+
+
     public class CommunicationLayer : ICommunicationLayer
     {
         private GCHandle _delegateHandle;
@@ -17,14 +37,16 @@ namespace Chess.UI.Services
         public enum DelegateMessage
         {
             EndGameState = 1,
-            PlayerScoreUpdated = 2,
-            PlayerCapturedPiece = 3,
-            PlayerChanged = 4,
-            GameStateChanged = 5,
-            MoveHistoryUpdated = 6,
-            MoveExecuted = 7,
-            ConnectionStateChanged = 8,
-            MultiplayerPlayerChosen = 9,
+            PlayerCapturedPiece = 2,
+            PlayerChanged = 3,
+            GameStateChanged = 4,
+            MoveHistoryUpdated = 5,
+            MoveExecuted = 6,
+            ConnectionStateChanged = 7,
+            MultiplayerPlayerChosen = 8,
+            BoardStateChanged = 9,
+            PawnPromotion = 10,
+            PossibleMovesCalculated = 11,
         }
 
 
@@ -59,11 +81,6 @@ namespace Chess.UI.Services
                 case DelegateMessage.EndGameState:
                     {
                         HandleEndGameState(data);
-                        break;
-                    }
-                case DelegateMessage.PlayerScoreUpdated:
-                    {
-                        HandlePlayerScoreUpdate(data);
                         break;
                     }
                 case DelegateMessage.PlayerChanged:
@@ -107,13 +124,6 @@ namespace Chess.UI.Services
         }
 
 
-        private void HandlePlayerScoreUpdate(nint data)
-        {
-            EngineAPI.Score score = (EngineAPI.Score)Marshal.PtrToStructure(data, typeof(EngineAPI.Score));
-            PlayerScoreUpdated?.Invoke(score);
-        }
-
-
         private void HandleMoveHistoryUpdated(nint data)
         {
             MoveHistoryEvent moveHistoryEvent = (MoveHistoryEvent)Marshal.PtrToStructure(data, typeof(MoveHistoryEvent));
@@ -131,7 +141,7 @@ namespace Chess.UI.Services
         private void HandlePlayerChanged(nint data)
         {
             int iPlayer = Marshal.ReadInt32(data);
-            PlayerColor player = (PlayerColor)iPlayer;
+            Side player = (Side)iPlayer;
             PlayerChanged?.Invoke(player);
         }
 
@@ -153,7 +163,7 @@ namespace Chess.UI.Services
         private void HandleGameStateChanges(nint data)
         {
             int iState = Marshal.ReadInt32(data);
-            GameState state = (GameState)iState;
+            GamePhase state = (GamePhase)iState;
             GameStateChanged?.Invoke(state);
         }
 
@@ -168,22 +178,21 @@ namespace Chess.UI.Services
         private void HandlePlayerChosenForMultiplayerByRemote(nint data)
         {
             int iPlayer = Marshal.ReadInt32(data);
-            PlayerColor player = (PlayerColor)iPlayer;
+            Side player = (Side)iPlayer;
             MultiPlayerChosenByRemote?.Invoke(player);
         }
 
 
         #region ViewModel Delegates
 
-        public event Action<PlayerColor> PlayerChanged;
-        public event Action<GameState> GameStateChanged;
+        public event Action<Side> PlayerChanged;
+        public event Action<GamePhase> GameStateChanged;
         public event Action<MoveHistoryEvent> MoveHistoryUpdated;
         public event Action<PossibleMoveInstance> MoveExecuted;
         public event Action<PlayerCapturedPiece> PlayerCapturedPieceEvent;
-        public event Action<EngineAPI.Score> PlayerScoreUpdated;
         public event Action<EndGameStateEvent> EndGameStateEvent;
         public event Action<ConnectionStatusEvent> ConnectionStatusEvent;
-        public event Action<PlayerColor> MultiPlayerChosenByRemote;
+        public event Action<Side> MultiPlayerChosenByRemote;
 
         #endregion
 
