@@ -91,7 +91,7 @@ namespace Chess.UI.Services
 
         #endregion // Multiplayer
 
-       
+
         #region Settings
 
         [DllImport(LOGIC_API_PATH, CallingConvention = CallingConvention.Cdecl)]
@@ -270,6 +270,7 @@ namespace Chess.UI.Services
             GameStarted = 11,
         }
 
+
         public enum GamePhase
         {
             Initializing = 0,
@@ -278,6 +279,7 @@ namespace Chess.UI.Services
             PromotionDialog = 3,
             GameEnded = 4,
         }
+
 
         public enum EndGameState
         {
@@ -293,8 +295,8 @@ namespace Chess.UI.Services
         {
             None = 0,
             LocalCoop = 1,
-            VsCPU = 2,
-            Multiplayer = 3
+            SinglePlayer = 2,
+            MultiPlayer = 3
         }
 
 
@@ -378,16 +380,67 @@ namespace Chess.UI.Services
         }
 
 
-        [StructLayout(LayoutKind.Sequential)]
         public struct GameConfiguration
         {
             public GameModeSelection Mode;
-            public Side PlayerColor;
-            public CPUDifficulty CpuDifficulty;
+            public Side PlayerColor;        // Used for SinglePlayer and Multiplayer
+            public CPUDifficulty CpuDifficulty;  // Only used for SinglePlayer mode
+
+            /// <summary>
+            /// Creates configuration for local cooperative mode.
+            /// </summary>
+            public static GameConfiguration CreateLocalCoop()
+            {
+                return new GameConfiguration
+                {
+                    Mode = GameModeSelection.LocalCoop,
+                    PlayerColor = Side.White,
+                    CpuDifficulty = CPUDifficulty.None
+                };
+            }
+
+            /// <summary>
+            /// Creates configuration for single-player mode against CPU.
+            /// </summary>
+            public static GameConfiguration CreateSinglePlayer(Side humanColor, CPUDifficulty difficulty)
+            {
+                return new GameConfiguration
+                {
+                    Mode = GameModeSelection.SinglePlayer,
+                    PlayerColor = humanColor,
+                    CpuDifficulty = difficulty
+                };
+            }
+
+            /// <summary>
+            /// Creates configuration for multiplayer mode.
+            /// </summary>
+            public static GameConfiguration CreateMultiplayer(Side localPlayerColor)
+            {
+                return new GameConfiguration
+                {
+                    Mode = GameModeSelection.MultiPlayer,
+                    PlayerColor = localPlayerColor,
+                    CpuDifficulty = CPUDifficulty.None
+                };
+            }
+
+            /// <summary>
+            /// Validates the configuration based on mode.
+            /// </summary>
+            public bool IsValid()
+            {
+                return Mode switch
+                {
+                    GameModeSelection.LocalCoop => true,
+                    GameModeSelection.SinglePlayer => PlayerColor != Side.None && CpuDifficulty != CPUDifficulty.None,
+                    GameModeSelection.MultiPlayer => PlayerColor != Side.None,
+                    _ => false
+                };
+            }
+
+
+            #endregion  // Structures and Enums
         }
-
-
-
-        #endregion  // Structures and Enums
     }
 }

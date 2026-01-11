@@ -164,7 +164,7 @@
                     VerticalAlignment="Top"
                     Click="StartCPUGameButton_Click"
                     Content="Start Game"
-                    Visibility="{x:Bind converter:Converter.BoolToVisibility(_viewModel.StartGameButtonVisible), Mode=OneWay}" />
+                    Visibility="{x:Bind converter:Converter.BoolToVisibility(_viewModel.CanStartSinglePlayerGame), Mode=OneWay}" />
 
                 <Button
                     Name="DifficultyReturnButton"

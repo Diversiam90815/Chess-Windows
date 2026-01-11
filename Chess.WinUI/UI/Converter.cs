@@ -45,7 +45,7 @@ namespace Chess.UI.UI
 
                 var imgService = App.Current.Services.GetService<IImageService>();
                 // Using a white pawn as representative icon
-                var img = imgService?.GetPieceImage(style, PlayerColor.White, PieceTypeInstance.Pawn);
+                var img = imgService?.GetPieceImage(style, PieceType.WPawn);
 
                 if (img != null)
                     _cache[style] = img;
@@ -86,10 +86,15 @@ namespace Chess.UI.UI
 
     public class Converter
     {
-        public static ImageSource PlayerToPawnImage(PlayerColor player)
+        public static ImageSource PlayerToPawnImage(Side player)
         {
             IImageService imageService = App.Current.Services.GetService<IImageService>();
-            return imageService.GetCapturedPieceImage(player, PieceTypeInstance.Pawn);
+            if (player == Side.White)
+                return imageService.GetCapturedPieceImage(PieceType.WPawn);
+            else if (player == Side.Black)
+                return imageService.GetCapturedPieceImage(PieceType.BPawn);
+            else
+                return imageService.GetCapturedPieceImage(PieceType.WPawn); // falback
         }
 
         public static Visibility BoolToVisibility(bool value)
@@ -107,17 +112,17 @@ namespace Chess.UI.UI
             return value ? new SolidColorBrush(Microsoft.UI.Colors.Green) : new SolidColorBrush(Microsoft.UI.Colors.Red);
         }
 
-        public static Thickness PlayerToWhiteBorderThickness(PlayerColor player)
+        public static Thickness PlayerToWhiteBorderThickness(Side player)
         {
-            int value = player == PlayerColor.White ? 1 : 0;
+            int value = player == Side.White ? 1 : 0;
 
             Thickness thicknessValue = new Thickness(value);
             return thicknessValue;
         }
 
-        public static Thickness PlayerToBlackBorderThickness(PlayerColor player)
+        public static Thickness PlayerToBlackBorderThickness(Side player)
         {
-            int value = player == PlayerColor.Black ? 1 : 0;
+            int value = player == Side.Black ? 1 : 0;
 
             Thickness thicknessValue = new Thickness(value);
             return thicknessValue;

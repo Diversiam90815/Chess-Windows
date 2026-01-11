@@ -36,6 +36,12 @@ namespace Chess.UI.Views
         }
 
 
+        private void StartCPUGameButton_Click(object sender, RoutedEventArgs e)
+        {
+            _viewModel.StartSinglePlayerGameAsnyc();
+        }
+
+
         private void PlayerReturnButton_Click(object sender, RoutedEventArgs e)
         {
             this.Close();
@@ -53,13 +59,13 @@ namespace Chess.UI.Views
 
         private void SelectWhiteButton_Click(object sender, RoutedEventArgs e)
         {
-            _viewModel.PlayerColor = EngineAPI.PlayerColor.White;
+            _viewModel.PlayerColor = EngineAPI.Side.White;
         }
 
 
         private void SelectBlackButton_Click(object sender, RoutedEventArgs e)
         {
-            _viewModel.PlayerColor = EngineAPI.PlayerColor.Black;
+            _viewModel.PlayerColor = EngineAPI.Side.Black;
         }
 
 
@@ -78,12 +84,6 @@ namespace Chess.UI.Views
         private void HardDifficultyButton_Click(object sender, RoutedEventArgs e)
         {
             _viewModel.CPUDifficulty = EngineAPI.CPUDifficulty.Hard;
-        }
-
-
-        private void StartCPUGameButton_Click(object sender, RoutedEventArgs e)
-        {
-            _viewModel.StartGameAsync();
         }
     }
 }

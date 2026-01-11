@@ -1,8 +1,10 @@
 ﻿using Chess.UI.Services;
 using Chess.UI.Wrappers;
 using Microsoft.Extensions.DependencyInjection;
+using System;
 using System.ComponentModel;
 using System.Runtime.CompilerServices;
+using System.Threading.Tasks;
 using static Chess.UI.Services.EngineAPI;
 
 
@@ -11,8 +13,6 @@ namespace Chess.UI.ViewModels
     public class GameSetupViewModel : INotifyPropertyChanged
     {
         public event PropertyChangedEventHandler PropertyChanged;
-
-        private readonly IGameConfigurationBuilder _configuration;
 
         private readonly IDispatcherQueueWrapper _dispatcherQueue;
 
@@ -23,56 +23,66 @@ namespace Chess.UI.ViewModels
         {
             _dispatcherQueue = dispatcher;
 
-            _configuration = App.Current.Services.GetService<IGameConfigurationBuilder>();
             _configurationService = App.Current.Services.GetService<IGameConfigurationService>();
         }
 
 
         public void Reset()
         {
-            _configuration.Reset();
-
             CPUDifficulty = CPUDifficulty.None;
-            PlayerColor = PlayerColor.NoColor;
+            PlayerColor = Side.None;
 
             PlayerConfigVisible = true;
             CPUConfigVisible = false;
         }
 
 
-        public void LocalCoopInitiated()
+        public async void LocalCoopInitiated()
         {
             GameMode = GameModeSelection.LocalCoop;
 
-            StartGameAsync();
+            var config = GameConfiguration.CreateLocalCoop();
+            await StartGameAsync(config);
         }
+
 
 
         public void CPUGameInitiated()
         {
-            GameMode = GameModeSelection.VsCPU;
+            GameMode = GameModeSelection.SinglePlayer;
 
             PlayerConfigVisible = false;
             CPUConfigVisible = true;
         }
 
 
-        public async void StartGameAsync()
+        public async void StartSinglePlayerGameAsnyc()
         {
-            // Set the values 
-            _configuration.SetGameMode(GameMode);
+            if (!CanStartSinglePlayerGame)
+                return;
 
-            if (_gameMode == GameModeSelection.VsCPU)
+            var config = GameConfiguration.CreateSinglePlayer(PlayerColor, CPUDifficulty);
+            await StartGameAsync(config);
+        }
+
+
+
+        public async Task<bool> StartGameAsync(GameConfiguration configuration)
+        {
+            try
             {
-                _configuration.SetPlayerColor(PlayerColor);
-                _configuration.SetCPUDifficulty(CPUDifficulty);
+                bool success = await _configurationService.StartGameAsync(configuration);
+
+                if (success)
+                    Reset();
+
+                return success;
             }
-
-            var config = _configuration.GetConfiguration();
-
-            await _configurationService.StartGameAsync(config);
-
-            Reset();
+            catch(Exception ex)
+            {
+                Logger.LogError($"Failed to start game: {ex.Message} ");
+                return false;
+            }
         }
 
 
@@ -122,11 +132,11 @@ namespace Chess.UI.ViewModels
         }
 
 
-        public bool StartGameButtonVisible => (CPUDifficulty != CPUDifficulty.None && PlayerColor != PlayerColor.NoColor);
+        public bool CanStartSinglePlayerGame => (CPUDifficulty != CPUDifficulty.None && PlayerColor != Side.None);
 
 
-        private PlayerColor _playerColor = PlayerColor.NoColor;
-        public PlayerColor PlayerColor
+        private Side _playerColor = Side.None;
+        public Side PlayerColor
         {
             get => _playerColor;
             set
@@ -135,7 +145,7 @@ namespace Chess.UI.ViewModels
                 {
                     _playerColor = value;
                     OnPropertyChanged();
-                    OnPropertyChanged(nameof(StartGameButtonVisible));
+                    OnPropertyChanged(nameof(CanStartSinglePlayerGame));
                 }
             }
         }
@@ -151,7 +161,7 @@ namespace Chess.UI.ViewModels
                 {
                     _cpuDifficulty = value;
                     OnPropertyChanged();
-                    OnPropertyChanged(nameof(StartGameButtonVisible));
+                    OnPropertyChanged(nameof(CanStartSinglePlayerGame));
                 }
             }
         }

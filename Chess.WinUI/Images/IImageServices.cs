@@ -7,10 +7,10 @@ namespace Chess.UI.Images
 {
     public interface IImageService
     {
-        ImageSource GetPieceImage(PieceStyle theme, PlayerColor color, PieceTypeInstance pieceType);
+        ImageSource GetPieceImage(PieceStyle theme, PieceType pieceType);
         ImageSource LoadImage(string relativeFilePath);
         ImageSource GetImage(ImageServices.MainMenuButton button);
         ImageSource GetImage(BoardStyle background);
-        ImageSource GetCapturedPieceImage(PlayerColor player, PieceTypeInstance pieceTypeInstance);
+        ImageSource GetCapturedPieceImage(PieceType pieceTypeInstance);
     }
 }
