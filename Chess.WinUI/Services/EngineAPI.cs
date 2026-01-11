@@ -270,15 +270,13 @@ namespace Chess.UI.Services
             GameStarted = 11,
         }
 
-        public enum GameState
+        public enum GamePhase
         {
-            Init = 1,
-            WaitingForInput = 2,
-            WaitingForTarget = 3,
-            PawnPromotion = 4,
-            WaitingForRemoteMove = 5,
-            WaitingForCPUMove = 6,
-            GameOver = 7,
+            Initializing = 0,
+            PlayerTurn = 1,
+            OpponentTurn = 2,
+            PromotionDialog = 3,
+            GameEnded = 4,
         }
 
         public enum EndGameState
