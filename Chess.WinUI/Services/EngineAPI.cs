@@ -272,18 +272,13 @@ namespace Chess.UI.Services
 
         public enum GameState
         {
-            Undefined = 0,
             Init = 1,
-            InitSucceeded = 2,
-            WaitingForInput = 3,
-            MoveInitiated = 4,
-            WaitingForTarget = 5,
-            ValidatingMove = 6,
-            ExecutingMove = 7,
-            PawnPromotion = 8,
-            WaitingForRemoteMove = 9,
-            WaitingForCPUMove = 10,
-            GameOver = 11
+            WaitingForInput = 2,
+            WaitingForTarget = 3,
+            PawnPromotion = 4,
+            WaitingForRemoteMove = 5,
+            WaitingForCPUMove = 6,
+            GameOver = 7,
         }
 
         public enum EndGameState
