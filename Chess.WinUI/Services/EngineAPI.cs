@@ -17,16 +17,196 @@ namespace Chess.UI.Services
         #endregion // Defines
 
 
-        #region Program
+        #region Core Lifecycle
 
-        [DllImport(LOGIC_API_PATH, CallingConvention = CallingConvention.Cdecl, EntryPoint = "Init", CharSet = CharSet.Unicode)]
+        [DllImport(LOGIC_API_PATH, CallingConvention = CallingConvention.Cdecl)]
         public static extern void Init();
 
-        [DllImport(LOGIC_API_PATH, CallingConvention = CallingConvention.Cdecl, EntryPoint = "Deinit", CharSet = CharSet.Unicode)]
+        [DllImport(LOGIC_API_PATH, CallingConvention = CallingConvention.Cdecl)]
         public static extern void Deinit();
 
-        [DllImport(LOGIC_API_PATH, CallingConvention = CallingConvention.Cdecl, EntryPoint = "SetDelegate", CharSet = CharSet.Unicode)]
+        [DllImport(LOGIC_API_PATH, CallingConvention = CallingConvention.Cdecl)]
         public static extern void SetDelegate(APIDelegate pDelegate);
+
+        #endregion // Core Lifecycle
+
+
+        #region Game Management
+
+        [DllImport(LOGIC_API_PATH, CallingConvention = CallingConvention.Cdecl)]
+        public static extern void StartGame([In, MarshalAs(UnmanagedType.Struct)] GameConfiguration config);
+
+        [DllImport(LOGIC_API_PATH, CallingConvention = CallingConvention.Cdecl)]
+        public static extern void ResetGame();
+
+        [DllImport(LOGIC_API_PATH, CallingConvention = CallingConvention.Cdecl)]
+        public static extern void UndoMove();
+
+        [DllImport(LOGIC_API_PATH, CallingConvention = CallingConvention.Cdecl)]
+        public static extern bool GetBoardState([Out, MarshalAs(UnmanagedType.LPArray, SizeConst = 64)] int[] boardState);
+
+        #endregion // Game Management
+
+
+        #region Moves & Input Generation
+
+        [DllImport(LOGIC_API_PATH, CallingConvention = CallingConvention.Cdecl)]
+        public static extern void OnSquareSelected(int square);
+
+        [DllImport(LOGIC_API_PATH, CallingConvention = CallingConvention.Cdecl)]
+        public static extern void OnPawnPromotionChosen(int pieceType);
+
+        [DllImport(LOGIC_API_PATH, CallingConvention = CallingConvention.Cdecl)]
+        public static extern int GetNumLegalMoves();
+
+        [DllImport(LOGIC_API_PATH, CallingConvention = CallingConvention.Cdecl)]
+        [return: MarshalAs(UnmanagedType.I1)]
+        public static extern bool GetLegalMoveAtIndex(int index, out ushort move);
+
+        #endregion // Moves & Input Generation
+
+
+        #region Multiplayer
+
+        [DllImport(LOGIC_API_PATH, CallingConvention = CallingConvention.Cdecl)]
+        public static extern void StartedMultiplayer();
+
+        [DllImport(LOGIC_API_PATH, CallingConvention = CallingConvention.Cdecl)]
+        public static extern void StartRemoteDiscovery([MarshalAs(UnmanagedType.I1)] bool isHost);
+
+        [DllImport(LOGIC_API_PATH, CallingConvention = CallingConvention.Cdecl)]
+        public static extern void AnswerConnectionInvitation([MarshalAs(UnmanagedType.I1)] bool accept);
+
+        [DllImport(LOGIC_API_PATH, CallingConvention = CallingConvention.Cdecl)]
+        public static extern void SendConnectionRequestToHost();
+
+        [DllImport(LOGIC_API_PATH, CallingConvention = CallingConvention.Cdecl)]
+        public static extern void StoppedMultiplayer();
+
+        [DllImport(LOGIC_API_PATH, CallingConvention = CallingConvention.Cdecl)]
+        public static extern void SetLocalPlayer(int iLocalPlayer);
+
+        [DllImport(LOGIC_API_PATH, CallingConvention = CallingConvention.Cdecl)]
+        public static extern void SetLocalPlayerReady([MarshalAs(UnmanagedType.I1)] bool ready);
+
+        #endregion // Multiplayer
+
+       
+        #region Settings
+
+        [DllImport(LOGIC_API_PATH, CallingConvention = CallingConvention.Cdecl)]
+        public static extern void SetCurrentBoardTheme([MarshalAs(UnmanagedType.LPStr)] string theme);
+
+        [DllImport(LOGIC_API_PATH, CallingConvention = CallingConvention.Cdecl)]
+        [return: MarshalAs(UnmanagedType.LPStr)]
+        public static extern string GetCurrentBoardTheme();
+
+        [DllImport(LOGIC_API_PATH, CallingConvention = CallingConvention.Cdecl)]
+        public static extern void SetCurrentPieceTheme([MarshalAs(UnmanagedType.LPStr)] string theme);
+
+        [DllImport(LOGIC_API_PATH, CallingConvention = CallingConvention.Cdecl)]
+        [return: MarshalAs(UnmanagedType.LPStr)]
+        public static extern string GetCurrentPieceTheme();
+
+        [DllImport(LOGIC_API_PATH, CallingConvention = CallingConvention.Cdecl)]
+        public static extern void SetLocalPlayerName([MarshalAs(UnmanagedType.LPStr)] string name);
+
+        [DllImport(LOGIC_API_PATH, CallingConvention = CallingConvention.Cdecl)]
+        [return: MarshalAs(UnmanagedType.LPStr)]
+        public static extern string GetLocalPlayerName();
+
+        [DllImport(LOGIC_API_PATH, CallingConvention = CallingConvention.Cdecl)]
+        [return: MarshalAs(UnmanagedType.I1)]
+        public static extern bool GetSFXEnabled();
+
+        [DllImport(LOGIC_API_PATH, CallingConvention = CallingConvention.Cdecl)]
+        public static extern void SetSFXEnabled([MarshalAs(UnmanagedType.I1)] bool enabled);
+
+        [DllImport(LOGIC_API_PATH, CallingConvention = CallingConvention.Cdecl)]
+        [return: MarshalAs(UnmanagedType.I1)]
+        public static extern bool GetAtmosEnabled();
+
+        [DllImport(LOGIC_API_PATH, CallingConvention = CallingConvention.Cdecl)]
+        public static extern void SetAtmosEnabled([MarshalAs(UnmanagedType.I1)] bool enabled);
+
+        [DllImport(LOGIC_API_PATH, CallingConvention = CallingConvention.Cdecl)]
+        public static extern void SetSFXVolume(float volume);
+
+        [DllImport(LOGIC_API_PATH, CallingConvention = CallingConvention.Cdecl)]
+        public static extern float GetSFXVolume();
+
+        [DllImport(LOGIC_API_PATH, CallingConvention = CallingConvention.Cdecl)]
+        public static extern void SetAtmosVolume(float volume);
+
+        [DllImport(LOGIC_API_PATH, CallingConvention = CallingConvention.Cdecl)]
+        public static extern float GetAtmosVolume();
+
+        [DllImport(LOGIC_API_PATH, CallingConvention = CallingConvention.Cdecl)]
+        public static extern void SetAtmosScenario([MarshalAs(UnmanagedType.LPStr)] string scenario);
+
+        [DllImport(LOGIC_API_PATH, CallingConvention = CallingConvention.Cdecl)]
+        [return: MarshalAs(UnmanagedType.LPStr)]
+        public static extern string GetAtmosScenario();
+
+        [DllImport(LOGIC_API_PATH, CallingConvention = CallingConvention.Cdecl)]
+        public static extern void SetMasterVolume(float volume);
+
+        [DllImport(LOGIC_API_PATH, CallingConvention = CallingConvention.Cdecl)]
+        public static extern float GetMasterVolume();
+
+        #endregion
+
+
+        #region Network
+
+        [DllImport(LOGIC_API_PATH, CallingConvention = CallingConvention.Cdecl)]
+        public static extern int GetNetworkAdapterCount();
+
+        [DllImport(LOGIC_API_PATH, CallingConvention = CallingConvention.Cdecl)]
+        [return: MarshalAs(UnmanagedType.I1)]
+        public static extern bool GetNetworkAdapterAtIndex(uint index, out NetworkAdapterInstance adapter);
+
+        [DllImport(LOGIC_API_PATH, CallingConvention = CallingConvention.Cdecl)]
+        [return: MarshalAs(UnmanagedType.I1)]
+        public static extern bool ChangeCurrentAdapter(int ID);
+
+        #endregion
+
+
+        #region Logging
+
+        [DllImport(LOGIC_API_PATH, CallingConvention = CallingConvention.Cdecl)]
+        public static extern void LogInfoWithCaller(
+            [MarshalAs(UnmanagedType.LPStr)] string message,
+            [MarshalAs(UnmanagedType.LPStr)] string functionName,
+            [MarshalAs(UnmanagedType.LPStr)] string className,
+            int lineNumber);
+
+        [DllImport(LOGIC_API_PATH, CallingConvention = CallingConvention.Cdecl)]
+        public static extern void LogErrorWithCaller(
+            [MarshalAs(UnmanagedType.LPStr)] string message,
+            [MarshalAs(UnmanagedType.LPStr)] string functionName,
+            [MarshalAs(UnmanagedType.LPStr)] string className,
+            int lineNumber);
+
+        [DllImport(LOGIC_API_PATH, CallingConvention = CallingConvention.Cdecl)]
+        public static extern void LogWarningWithCaller(
+            [MarshalAs(UnmanagedType.LPStr)] string message,
+            [MarshalAs(UnmanagedType.LPStr)] string functionName,
+            [MarshalAs(UnmanagedType.LPStr)] string className,
+            int lineNumber);
+
+        [DllImport(LOGIC_API_PATH, CallingConvention = CallingConvention.Cdecl)]
+        public static extern void LogDebugWithCaller(
+            [MarshalAs(UnmanagedType.LPStr)] string message,
+            [MarshalAs(UnmanagedType.LPStr)] string functionName,
+            [MarshalAs(UnmanagedType.LPStr)] string className,
+            int lineNumber);
+
+        #endregion
+
+
+        #region Utilities
 
         [DllImport(LOGIC_API_PATH, CallingConvention = CallingConvention.Cdecl, EntryPoint = "GetWindowScalingFactor", CharSet = CharSet.Unicode)]
         public static extern float GetWindowScalingFactor(nint hwnd);
@@ -34,261 +214,37 @@ namespace Chess.UI.Services
         [DllImport(LOGIC_API_PATH, CallingConvention = CallingConvention.Cdecl, EntryPoint = "SetUnvirtualizedAppDataPath", CharSet = CharSet.Unicode)]
         public static extern void SetUnvirtualizedAppDataPath([In()][MarshalAs(UnmanagedType.LPStr)] string appDataPath);
 
-
-        #endregion // Program
-
-
-        #region Moves
-
-        [DllImport(LOGIC_API_PATH, CallingConvention = CallingConvention.Cdecl, EntryPoint = "GetNumPossibleMoves", CharSet = CharSet.Unicode)]
-        public static extern int GetNumPossibleMoves();
-
-        [DllImport(LOGIC_API_PATH, CallingConvention = CallingConvention.Cdecl, EntryPoint = "GetPossibleMoveAtIndex", CharSet = CharSet.Unicode)]
-        public static extern bool GetPossibleMoveAtIndex(uint index, out PossibleMoveInstance move);
-
-        #endregion // Moves
-
-
-        #region Board
-
-        [DllImport(LOGIC_API_PATH, CallingConvention = CallingConvention.Cdecl, EntryPoint = "GetBoardState", CharSet = CharSet.Unicode)]
-        public static extern bool GetBoardState([Out, MarshalAs(UnmanagedType.LPArray, SizeConst = 64)] int[] boardState);
-
-        #endregion // Board
-
-
-        #region Game
-
-        [DllImport(LOGIC_API_PATH, CallingConvention = CallingConvention.Cdecl, EntryPoint = "StartGame", CharSet = CharSet.Unicode)]
-        public static extern void StartGame([In, MarshalAs(UnmanagedType.Struct)] GameConfiguration config);
-
-        [DllImport(LOGIC_API_PATH, CallingConvention = CallingConvention.Cdecl, EntryPoint = "ResetGame", CharSet = CharSet.Unicode)]
-        public static extern void ResetGame();
-
-        [DllImport(LOGIC_API_PATH, CallingConvention = CallingConvention.Cdecl, EntryPoint = "UndoMove", CharSet = CharSet.Unicode)]
-        public static extern void UndoMove();
-
-        #endregion // Game
-
-
-        #region State Machine
-
-        [DllImport(LOGIC_API_PATH, CallingConvention = CallingConvention.Cdecl, EntryPoint = "OnSquareSelected", CharSet = CharSet.Unicode)]
-        public static extern void OnSquareSelected(PositionInstance position);
-
-        [DllImport(LOGIC_API_PATH, CallingConvention = CallingConvention.Cdecl, EntryPoint = "OnPawnPromotionChosen", CharSet = CharSet.Unicode)]
-        public static extern void OnPawnPromotionChosen(PieceTypeInstance promotion);
-
-
-        #endregion  // State Machine
-
-
-        #region Multiplayer
-
-        [DllImport(LOGIC_API_PATH, CallingConvention = CallingConvention.Cdecl, EntryPoint = "StartedMultiplayer", CharSet = CharSet.Unicode)]
-        public static extern void StartedMultiplayer();
-
-        [DllImport(LOGIC_API_PATH, CallingConvention = CallingConvention.Cdecl, EntryPoint = "StartMultiplayerGame", CharSet = CharSet.Unicode)]
-        public static extern void StartMultiplayerGame();
-
-        [DllImport(LOGIC_API_PATH, CallingConvention = CallingConvention.Cdecl, EntryPoint = "StartRemoteDiscovery", CharSet = CharSet.Unicode)]
-        public static extern void StartRemoteDiscovery(bool isHost);
-
-        [DllImport(LOGIC_API_PATH, CallingConvention = CallingConvention.Cdecl, EntryPoint = "DisconnectMultiplayerGame", CharSet = CharSet.Unicode)]
-        public static extern void DisconnectMultiplayerGame();
-
-        [DllImport(LOGIC_API_PATH, CallingConvention = CallingConvention.Cdecl, EntryPoint = "AnswerConnectionInvitation", CharSet = CharSet.Unicode)]
-        public static extern void AnswerConnectionInvitation(bool accepted);
-
-        [DllImport(LOGIC_API_PATH, CallingConvention = CallingConvention.Cdecl, EntryPoint = "SendConnectionRequestToHost", CharSet = CharSet.Unicode)]
-        public static extern void SendConnectionRequestToHost();
-
-        [DllImport(LOGIC_API_PATH, CallingConvention = CallingConvention.Cdecl, EntryPoint = "StoppedMultiplayer", CharSet = CharSet.Unicode)]
-        public static extern void StoppedMultiplayer();
-
-        [DllImport(LOGIC_API_PATH, CallingConvention = CallingConvention.Cdecl, EntryPoint = "SetLocalPlayer", CharSet = CharSet.Unicode)]
-        public static extern void SetLocalPlayer(int iLocalPlayer);
-
-        [DllImport(LOGIC_API_PATH, CallingConvention = CallingConvention.Cdecl, EntryPoint = "SetLocalPlayerReady", CharSet = CharSet.Unicode)]
-        public static extern void SetLocalPlayerReady(bool ready);
-
-        #endregion // Multiplayer
-
-
-        #region Logging
-
-        [DllImport(LOGIC_API_PATH, CallingConvention = CallingConvention.Cdecl, EntryPoint = "LogInfoWithCaller", CharSet = CharSet.Unicode)]
-        public static extern void LogInfoWithCaller([In()][MarshalAs(UnmanagedType.LPStr)] string message, [In()][MarshalAs(UnmanagedType.LPStr)] string functionName, [In()][MarshalAs(UnmanagedType.LPStr)] string className, int lineNumber);
-
-        [DllImport(LOGIC_API_PATH, CallingConvention = CallingConvention.Cdecl, EntryPoint = "LogErrorWithCaller", CharSet = CharSet.Unicode)]
-        public static extern void LogErrorWithCaller([In()][MarshalAs(UnmanagedType.LPStr)] string message, [In()][MarshalAs(UnmanagedType.LPStr)] string functionName, [In()][MarshalAs(UnmanagedType.LPStr)] string className, int lineNumber);
-
-        [DllImport(LOGIC_API_PATH, CallingConvention = CallingConvention.Cdecl, EntryPoint = "LogWarningWithCaller", CharSet = CharSet.Unicode)]
-        public static extern void LogWarningWithCaller([In()][MarshalAs(UnmanagedType.LPStr)] string message, [In()][MarshalAs(UnmanagedType.LPStr)] string functionName, [In()][MarshalAs(UnmanagedType.LPStr)] string className, int lineNumber);
-
-        [DllImport(LOGIC_API_PATH, CallingConvention = CallingConvention.Cdecl, EntryPoint = "LogDebugWithCaller", CharSet = CharSet.Unicode)]
-        public static extern void LogDebugWithCaller([In()][MarshalAs(UnmanagedType.LPStr)] string message, [In()][MarshalAs(UnmanagedType.LPStr)] string functionName, [In()][MarshalAs(UnmanagedType.LPStr)] string className, int lineNumber);
-
-        #endregion // Logging
-
-
-        #region User Config
-
-        [DllImport(LOGIC_API_PATH, CallingConvention = CallingConvention.Cdecl, EntryPoint = "SetCurrentBoardTheme", CharSet = CharSet.Unicode)]
-        public static extern void SetCurrentBoardTheme([In()][MarshalAs(UnmanagedType.LPStr)] string theme);
-
-        [DllImport(LOGIC_API_PATH, CallingConvention = CallingConvention.Cdecl, EntryPoint = "GetCurrentBoardTheme", CharSet = CharSet.Unicode)]
-        [return: MarshalAs(UnmanagedType.LPStr)]
-        public static extern string GetCurrentBoardTheme();
-
-        [DllImport(LOGIC_API_PATH, CallingConvention = CallingConvention.Cdecl, EntryPoint = "SetCurrentPieceTheme", CharSet = CharSet.Unicode)]
-        public static extern void SetCurrentPieceTheme([In()][MarshalAs(UnmanagedType.LPStr)] string theme);
-
-        [DllImport(LOGIC_API_PATH, CallingConvention = CallingConvention.Cdecl, EntryPoint = "GetCurrentPieceTheme", CharSet = CharSet.Unicode)]
-        [return: MarshalAs(UnmanagedType.LPStr)]
-        public static extern string GetCurrentPieceTheme();
-
-        [DllImport(LOGIC_API_PATH, CallingConvention = CallingConvention.Cdecl, EntryPoint = "SetLocalPlayerName", CharSet = CharSet.Unicode)]
-        public static extern void SetLocalPlayerName([In()][MarshalAs(UnmanagedType.LPStr)] string name);
-
-        [DllImport(LOGIC_API_PATH, CallingConvention = CallingConvention.Cdecl, EntryPoint = "GetLocalPlayerName", CharSet = CharSet.Unicode)]
-        [return: MarshalAs(UnmanagedType.LPStr)]
-        public static extern string GetLocalPlayerName();
-
-
-
-        [DllImport(LOGIC_API_PATH, CallingConvention = CallingConvention.Cdecl, EntryPoint = "GetSFXEnabled", CharSet = CharSet.Unicode)]
-        public static extern bool GetSFXEnabled();
-
-        [DllImport(LOGIC_API_PATH, CallingConvention = CallingConvention.Cdecl, EntryPoint = "SetSFXEnabled", CharSet = CharSet.Unicode)]
-        public static extern void SetSFXEnabled(bool enabled);
-
-        [DllImport(LOGIC_API_PATH, CallingConvention = CallingConvention.Cdecl, EntryPoint = "GetAtmosEnabled", CharSet = CharSet.Unicode)]
-        public static extern bool GetAtmosEnabled();
-
-        [DllImport(LOGIC_API_PATH, CallingConvention = CallingConvention.Cdecl, EntryPoint = "SetAtmosEnabled", CharSet = CharSet.Unicode)]
-        public static extern void SetAtmosEnabled(bool enabled);
-
-        [DllImport(LOGIC_API_PATH, CallingConvention = CallingConvention.Cdecl, EntryPoint = "SetSFXVolume", CharSet = CharSet.Unicode)]
-        public static extern void SetSFXVolume(float volume);
-
-        [DllImport(LOGIC_API_PATH, CallingConvention = CallingConvention.Cdecl, EntryPoint = "GetSFXVolume", CharSet = CharSet.Unicode)]
-        public static extern float GetSFXVolume();
-
-        [DllImport(LOGIC_API_PATH, CallingConvention = CallingConvention.Cdecl, EntryPoint = "SetAtmosVolume", CharSet = CharSet.Unicode)]
-        public static extern void SetAtmosVolume(float volume);
-
-        [DllImport(LOGIC_API_PATH, CallingConvention = CallingConvention.Cdecl, EntryPoint = "GetAtmosVolume", CharSet = CharSet.Unicode)]
-        public static extern float GetAtmosVolume();
-
-        [DllImport(LOGIC_API_PATH, CallingConvention = CallingConvention.Cdecl, EntryPoint = "SetMasterVolume", CharSet = CharSet.Unicode)]
-        public static extern void SetMasterVolume(float volume);
-
-        [DllImport(LOGIC_API_PATH, CallingConvention = CallingConvention.Cdecl, EntryPoint = "GetMasterVolume", CharSet = CharSet.Unicode)]
-        public static extern float GetMasterVolume();
-
-        [DllImport(LOGIC_API_PATH, CallingConvention = CallingConvention.Cdecl, EntryPoint = "SetAtmosScenario", CharSet = CharSet.Unicode)]
-        public static extern void SetAtmosScenario([In()][MarshalAs(UnmanagedType.LPStr)] string scenario);
-
-        [DllImport(LOGIC_API_PATH, CallingConvention = CallingConvention.Cdecl, EntryPoint = "GetAtmosScenario", CharSet = CharSet.Unicode)]
-        [return: MarshalAs(UnmanagedType.LPStr)]
-        public static extern string GetAtmosScenario();
-
-        #endregion // User Config
-
-
-        #region Network
-
-        [DllImport(LOGIC_API_PATH, CallingConvention = CallingConvention.Cdecl, EntryPoint = "GetNetworkAdapterCount", CharSet = CharSet.Unicode)]
-        public static extern int GetNetworkAdapterCount();
-
-        [DllImport(LOGIC_API_PATH, CallingConvention = CallingConvention.Cdecl, EntryPoint = "GetNetworkAdapterAtIndex", CharSet = CharSet.Unicode)]
-        public static extern bool GetNetworkAdapterAtIndex(uint index, out NetworkAdapterInstance adapter);
-
-        [DllImport(LOGIC_API_PATH, CallingConvention = CallingConvention.Cdecl, EntryPoint = "GetSavedAdapterID", CharSet = CharSet.Unicode)]
-        public static extern int GetSavedAdapterID();
-
-        [DllImport(LOGIC_API_PATH, CallingConvention = CallingConvention.Cdecl, EntryPoint = "ChangeCurrentAdapter", CharSet = CharSet.Unicode)]
-        public static extern void ChangeCurrentAdapter(int ID);
-
-        #endregion // Network
-
+        #endregion
 
         #endregion // DLL Defines
 
 
         #region Structures & Enums
 
-        [StructLayout(LayoutKind.Sequential, CharSet = CharSet.Ansi)]
-        public struct PositionInstance
+        public enum PieceType
         {
-            public PositionInstance(int x, int y)
-            {
-                this.x = x;
-                this.y = y;
-            }
-
-            public int x { get; set; }
-            public int y { get; set; }
-
-
-            public override readonly bool Equals(object obj)
-            {
-                if (obj is PositionInstance)
-                {
-                    var other = (PositionInstance)obj;
-                    return (this.x == other.x) && (this.y == other.y);
-                }
-                return false;
-            }
-
-
-            public static bool operator ==(PositionInstance left, PositionInstance right)
-            {
-                if (Equals(left, right))
-                {
-                    return true;
-                }
-
-                return left.Equals(right);
-            }
-
-
-            public static bool operator !=(PositionInstance left, PositionInstance right)
-            {
-                return !(left == right);
-            }
-
-
-            public override int GetHashCode()
-            {
-                int hashcode = 17;
-                hashcode = hashcode * 23 + x.GetHashCode();
-                hashcode = hashcode * 23 + y.GetHashCode();
-                return hashcode;
-            }
+            None = -1,
+            WKing = 0,
+            WQueen = 1,
+            WPawn = 2,
+            WKnight = 3,
+            WBishop = 4,
+            WRook = 5,
+            BKing = 6,
+            BQueen = 7,
+            BPawn = 8,
+            BKnight = 9,
+            BBishop = 10,
+            BRook = 11
         }
 
-
-        public enum PieceTypeInstance
+        public enum Side
         {
-            DefaultType,
-            Pawn,
-            Knight,
-            Bishop,
-            Rook,
-            Queen,
-            King
+            None = -1,
+            White = 0,
+            Black = 1,
+            Both = 2
         }
-
-
-        public enum PlayerColor
-        {
-            NoColor,
-            White,
-            Black
-        }
-
 
         public enum CPUDifficulty
         {
@@ -314,7 +270,6 @@ namespace Chess.UI.Services
             GameStarted = 11,
         }
 
-
         public enum GameState
         {
             Undefined = 0,
@@ -328,99 +283,33 @@ namespace Chess.UI.Services
             PawnPromotion = 8,
             WaitingForRemoteMove = 9,
             WaitingForCPUMove = 10,
-            GameOver = 11,
+            GameOver = 11
         }
-
 
         public enum EndGameState
         {
             OnGoing = 1,
             Checkmate = 2,
             StaleMate = 3,
-            Reset = 4
+            Draw = 4,
+            Reset = 5
         }
 
 
         public enum GameModeSelection
         {
-            None,
-            LocalCoop,
-            VsCPU,
-        }
-
-
-        [Flags]
-        public enum MoveTypeInstance : int
-        {
-            MoveType_None = 0,
-            MoveType_Normal = 1 << 0, // 1
-            MoveType_DoublePawnPush = 1 << 1, // 2
-            MoveType_PawnPromotion = 1 << 2, // 4
-            MoveType_Capture = 1 << 3, // 8
-            MoveType_EnPassant = 1 << 4, // 16
-            MoveType_CastlingKingside = 1 << 5, // 32
-            MoveType_CastlingQueenside = 1 << 6, // 64
-            MoveType_Check = 1 << 7, // 128
-            MoveType_Checkmate = 1 << 8, // 256
-        }
-
-
-        [StructLayout(LayoutKind.Sequential, CharSet = CharSet.Ansi)]
-        public struct PossibleMoveInstance
-        {
-            public PositionInstance start;
-            public PositionInstance end;
-            public MoveTypeInstance type;
-            public PieceTypeInstance promotionPiece;
-
-            public override readonly bool Equals(object obj)
-            {
-                if (obj is PossibleMoveInstance)
-                {
-                    var other = (PossibleMoveInstance)obj;
-                    return (start == other.start) && (end == other.end);
-                }
-                return false;
-            }
-
-
-            public static bool operator ==(PossibleMoveInstance left, PossibleMoveInstance right)
-            {
-                if (Equals(left, right))
-                {
-                    return true;
-                }
-
-                return left.Equals(right);
-            }
-
-
-            public static bool operator !=(PossibleMoveInstance left, PossibleMoveInstance right)
-            {
-                return !left.Equals(right);
-            }
-
-
-            public override int GetHashCode()
-            {
-                return start.GetHashCode() ^ end.GetHashCode();
-            }
-        }
-
-
-        [StructLayout(LayoutKind.Sequential)]
-        public struct Score
-        {
-            public PlayerColor player;
-            public int score;
+            None = 0,
+            LocalCoop = 1,
+            VsCPU = 2,
+            Multiplayer = 3
         }
 
 
         [StructLayout(LayoutKind.Sequential)]
         public struct PlayerCapturedPiece
         {
-            public PlayerColor playerColor;
-            public PieceTypeInstance pieceType;
+            public Side playerColor;
+            public PieceType pieceType;
             public bool captured;
         };
 
@@ -451,7 +340,7 @@ namespace Chess.UI.Services
         public struct EndGameStateEvent
         {
             public EndGameState State;
-            public PlayerColor winner;
+            public Side winner;
         };
 
 
@@ -500,7 +389,7 @@ namespace Chess.UI.Services
         public struct GameConfiguration
         {
             public GameModeSelection Mode;
-            public PlayerColor PlayerColor;
+            public Side PlayerColor;
             public CPUDifficulty CpuDifficulty;
         }
 
