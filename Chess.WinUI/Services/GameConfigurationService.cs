@@ -1,5 +1,4 @@
 ﻿using Chess.UI.ViewModels;
-using Microsoft.Extensions.DependencyInjection;
 using System;
 using System.Threading.Tasks;
 using static Chess.UI.Services.EngineAPI;

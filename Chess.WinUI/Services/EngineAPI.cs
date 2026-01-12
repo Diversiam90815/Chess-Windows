@@ -254,7 +254,6 @@ namespace Chess.UI.Services
             Hard = 3,
         }
 
-
         public enum ConnectionState
         {
             None = 0,
@@ -270,7 +269,6 @@ namespace Chess.UI.Services
             GameStarted = 11,
         }
 
-
         public enum GamePhase
         {
             Initializing = 0,
@@ -280,7 +278,6 @@ namespace Chess.UI.Services
             GameEnded = 4,
         }
 
-
         public enum EndGameState
         {
             OnGoing = 1,
@@ -289,7 +286,6 @@ namespace Chess.UI.Services
             Draw = 4,
             Reset = 5
         }
-
 
         public enum GameModeSelection
         {

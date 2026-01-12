@@ -1,5 +1,4 @@
 ﻿using Chess.UI.MoveHistory;
-using Chess.UI.Services;
 using Chess.UI.Wrappers;
 using System.Collections.ObjectModel;
 using System.Linq;

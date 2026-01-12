@@ -3,10 +3,8 @@ using Chess.UI.Multiplayer;
 using Chess.UI.Services;
 using Chess.UI.Wrappers;
 using Microsoft.Extensions.DependencyInjection;
-using Microsoft.UI.Dispatching;
 using Microsoft.UI.Xaml;
 using System;
-using System.Collections.ObjectModel;
 using System.ComponentModel;
 using System.Runtime.CompilerServices;
 
@@ -141,8 +139,8 @@ namespace Chess.UI.ViewModels
         }
 
 
-        private EngineAPI.PlayerColor _localPlayer;
-        public EngineAPI.PlayerColor LocalPlayer
+        private EngineAPI.Side _localPlayer;
+        public EngineAPI.Side LocalPlayer
         {
             get => _localPlayer;
             set

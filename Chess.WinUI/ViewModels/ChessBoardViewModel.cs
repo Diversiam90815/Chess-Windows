@@ -252,30 +252,30 @@ namespace Chess.UI.ViewModels
         }
 
 
-        private Task<PieceTypeInstance?> RequestPawnPromotionAsync()
+        private Task<PieceType?> RequestPawnPromotionAsync()
         {
             if (ShowPawnPromotionDialogRequested != null)
             {
                 return ShowPawnPromotionDialogRequested.Invoke();
             }
-            return Task.FromResult<PieceTypeInstance?>(null);
+            return Task.FromResult<PieceType?>(null);
         }
 
 
-        private void OnEndGameState(EndGameState state, PlayerColor winner)
+        private void OnEndGameState(EndGameState state, Side winner)
         {
             ShowEndGameDialog?.Invoke(state, winner);
         }
 
 
-        private void OnHandlePlayerChanged(PlayerColor player)
+        private void OnHandlePlayerChanged(Side player)
         {
             CurrentPlayer = player;
         }
 
 
-        private PlayerColor _currentPlayer;
-        public PlayerColor CurrentPlayer
+        private Side _currentPlayer;
+        public Side CurrentPlayer
         {
             get => _currentPlayer;
             set

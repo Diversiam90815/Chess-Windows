@@ -8,10 +8,10 @@ namespace Chess.UI.Moves
 {
     public interface IMoveModel
     {
-        List<PossibleMoveInstance> PossibleMoves { get; }
+        List<Move> LegalMoves { get; }
 
         public event Action ChesspieceSelected;
-        event Action PossibleMovesCalculated;
+        event Action LegalMovesCalculated;
         event Action<Side> PlayerChanged;
         event Action GameStateInitSucceeded;
         event Action<EndGameState, Side> GameOverEvent;
@@ -24,9 +24,9 @@ namespace Chess.UI.Moves
 
     public class MoveModel : IMoveModel
     {
-        private List<PossibleMoveInstance> possibleMoves = [];
+        private List<Move> legalMoves = [];
 
-        public List<PossibleMoveInstance> PossibleMoves => possibleMoves;
+        public List<Move> LegalMoves => legalMoves;
 
 
         public MoveModel()
@@ -38,54 +38,72 @@ namespace Chess.UI.Moves
         }
 
 
-        private void HandleGameStateChanged(GameState gameState)
+        private void HandleGameStateChanged(GamePhase phase)
         {
-            switch (gameState)
+            switch (phase)
             {
-                case GameState.InitSucceeded:
+                case GamePhase.Initializing:
                     {
-                        GameStateInitSucceeded?.Invoke();
+                        //GameStateInitSucceeded?.Invoke();
                         break;
                     }
-                case GameState.WaitingForInput:
-                    {
-                        NewBoardFromBackendEvent?.Invoke();
-                        break;
-                    }
-                case GameState.WaitingForTarget:
-                    {
-                        HandleWaitingForTarget();
-                        break;
-                    }
-                case GameState.ValidatingMove:
+                case GamePhase.PlayerTurn:
                     {
                         break;
                     }
-                case GameState.ExecutingMove:
-                    {
-                        NewBoardFromBackendEvent?.Invoke();
-                        break;
-                    }
-                case GameState.WaitingForCPUMove:
-                    {
-                        NewBoardFromBackendEvent?.Invoke();
-                        break;
-                    }
-                case GameState.GameOver:
+                case GamePhase.OpponentTurn:
                     {
                         break;
                     }
-                case GameState.PawnPromotion:
+                case GamePhase.PromotionDialog:
                     {
-                        PawnPromotionEvent?.Invoke();
                         break;
                     }
-                case GameState.WaitingForRemoteMove:
+                case GamePhase.GameEnded:
                     {
-                        NewBoardFromBackendEvent?.Invoke();
-                        RemotePlayersTurn?.Invoke();
                         break;
                     }
+
+
+                //case GameState.WaitingForInput:
+                //    {
+                //        //NewBoardFromBackendEvent?.Invoke();
+                //        break;
+                //    }
+                //case GameState.WaitingForTarget:
+                //    {
+                //        //HandleWaitingForTarget();
+                //        break;
+                //    }
+                //case GameState.ValidatingMove:
+                //    {
+                //        break;
+                //    }
+                //case GameState.ExecutingMove:
+                //    {
+                //        //NewBoardFromBackendEvent?.Invoke();
+                //        break;
+                //    }
+                //case GameState.WaitingForCPUMove:
+                //    {
+                //        //NewBoardFromBackendEvent?.Invoke();
+                //        break;
+                //    }
+                //case GameState.GameOver:
+                //    {
+                //        break;
+                //    }
+                //case GameState.PawnPromotion:
+                //    {
+                //        //PawnPromotionEvent?.Invoke();
+                //        break;
+                //    }
+                //case GameState.WaitingForRemoteMove:
+                //    {
+                //        //NewBoardFromBackendEvent?.Invoke();
+                //        //RemotePlayersTurn?.Invoke();
+                //        break;
+                //    }
                 default:
                     break;
             }
@@ -101,6 +119,24 @@ namespace Chess.UI.Moves
         }
 
 
+        private List<Move> GetLegalMoves()
+        {
+            LegalMoves.Clear();
+
+            int numMoves = EngineAPI.GetNumLegalMoves();
+
+            for (int i = 0; i < numMoves; ++i)
+            {
+                if (EngineAPI.GetLegalMoveAtIndex(i, out ushort moveData))
+                {
+                    var move = new Move(moveData);
+                    LegalMoves.Add(move);
+                }
+            }
+            return LegalMoves;
+        }
+
+
         private void HandleWaitingForTarget()
         {
             Logger.LogInfo("Due to delegate message WaitingForTarget we start getting the moves!");
@@ -108,24 +144,16 @@ namespace Chess.UI.Moves
             // We have selected a chesspiece and started the move cycle
             ChesspieceSelected?.Invoke();
 
-            PossibleMoves.Clear();
+            GetLegalMoves();
 
-            int numMoves = GetNumPossibleMoves();
-            for (int i = 0; i < numMoves; i++)
-            {
-                if (GetPossibleMoveAtIndex((uint)i, out var move))
-                {
-                    PossibleMoves.Add(move);
-                }
-            }
-            PossibleMovesCalculated?.Invoke();
+            LegalMovesCalculated?.Invoke();
         }
 
 
         public void SetPromotionPieceType(PieceType pieceType)
         {
             Logger.LogInfo("Promoting to " + pieceType.ToString());
-            OnPawnPromotionChosen(pieceType);
+            OnPawnPromotionChosen((int)pieceType);
         }
 
 
@@ -136,7 +164,7 @@ namespace Chess.UI.Moves
 
 
         public event Action ChesspieceSelected;
-        public event Action PossibleMovesCalculated;
+        public event Action LegalMovesCalculated;
         public event Action<Side> PlayerChanged;
         public event Action RemotePlayersTurn;
         public event Action GameStateInitSucceeded;
