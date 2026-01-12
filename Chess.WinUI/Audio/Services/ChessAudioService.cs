@@ -2,6 +2,7 @@
 using Chess.UI.Audio.Modules;
 using Chess.UI.Moves;
 using Chess.UI.Services;
+using Chess.UI.Settings;
 using Chess.UI.ViewModels;
 using Microsoft.Extensions.DependencyInjection;
 using System;

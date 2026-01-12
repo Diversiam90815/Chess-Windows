@@ -3,8 +3,8 @@ using System.ComponentModel;
 using System.Runtime.CompilerServices;
 using static Chess.UI.Services.EngineAPI;
 using Chess.UI.Score;
-using Chess.UI.Images;
 using Chess.UI.Wrappers;
+using Chess.UI.Services;
 
 
 namespace Chess.UI.ViewModels

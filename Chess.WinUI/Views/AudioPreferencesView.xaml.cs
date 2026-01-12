@@ -1,4 +1,4 @@
-using Chess.UI.ViewModels;
+using Chess.UI.Settings;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.UI.Xaml.Controls;
 using Microsoft.UI.Xaml.Input;

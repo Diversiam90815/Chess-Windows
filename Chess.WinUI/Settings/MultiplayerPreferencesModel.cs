@@ -5,7 +5,7 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 
-namespace Chess.UI.Multiplayer
+namespace Chess.UI.Settings
 {
     public interface IMultiplayerPreferencesModel
     {
@@ -15,7 +15,7 @@ namespace Chess.UI.Multiplayer
 
         void ChangeNetworkAdapter(int adapterID);
 
-        List<Multiplayer.NetworkAdapter> GetNetworkAdapters();
+        List<NetworkAdapter> GetNetworkAdapters();
 
         void SetLocalPlayerName(string playerName);
 

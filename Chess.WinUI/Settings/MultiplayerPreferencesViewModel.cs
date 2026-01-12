@@ -1,4 +1,4 @@
-﻿using Chess.UI.Multiplayer;
+﻿using Chess.UI.Settings;
 using Chess.UI.UI;
 using Chess.UI.Wrappers;
 using Microsoft.Extensions.DependencyInjection;
@@ -98,7 +98,7 @@ namespace Chess.UI.ViewModels
             {
                 for (int i = 0; i < NetworkAdapters.Count; i++)
                 {
-                    Multiplayer.NetworkAdapter adapter = NetworkAdapters[i];
+                    NetworkAdapter adapter = NetworkAdapters[i];
                     if (adapter != null && adapter.ID == savedAdapterID)
                     {
                         SelectedAdapter = adapter;

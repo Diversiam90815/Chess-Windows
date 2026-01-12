@@ -4,7 +4,7 @@ using System.Collections.Generic;
 using System.Linq;
 using static Chess.UI.Services.EngineAPI;
 
-namespace Chess.UI.MoveHistory
+namespace Chess.UI.Moves
 {
     public interface IMoveHistoryModel
     {

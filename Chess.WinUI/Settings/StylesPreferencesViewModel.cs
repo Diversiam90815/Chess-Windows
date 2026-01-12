@@ -9,7 +9,7 @@ using System.Runtime.CompilerServices;
 using System.Threading.Tasks;
 
 
-namespace Chess.UI.ViewModels
+namespace Chess.UI.Settings
 {
     public class StylesPreferencesViewModel
     {

@@ -1,5 +1,4 @@
-﻿using Chess.UI.Images;
-using Chess.UI.Services;
+﻿using Chess.UI.Services;
 using Chess.UI.Wrappers;
 using Microsoft.UI.Xaml;
 using Microsoft.UI.Xaml.Media;

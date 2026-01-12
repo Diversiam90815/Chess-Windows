@@ -1,4 +1,4 @@
-﻿using Chess.UI.MoveHistory;
+﻿using Chess.UI.Moves;
 using System;
 using System.Collections.Generic;
 using System.Linq;

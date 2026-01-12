@@ -1,5 +1,4 @@
-﻿using Chess.UI.Images;
-using Chess.UI.Score;
+﻿using Chess.UI.Score;
 using Chess.UI.Services;
 using Chess.UI.ViewModels;
 using Chess.UI.Wrappers;

@@ -10,7 +10,7 @@ using System.Runtime.CompilerServices;
 
 
 
-namespace Chess.UI.ViewModels
+namespace Chess.UI.Settings
 {
     public record AtmosphereScenarioItem
     {

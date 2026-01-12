@@ -1,4 +1,4 @@
-﻿using Chess.UI.MoveHistory;
+﻿using Chess.UI.Moves;
 using Chess.UI.ViewModels;
 using Chess.UI.Wrappers;
 using Moq;

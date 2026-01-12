@@ -2,13 +2,11 @@
 using Chess.UI.Audio.Services;
 using Chess.UI.Board;
 using Chess.UI.Coordinates;
-using Chess.UI.Images;
 using Chess.UI.Models;
-using Chess.UI.MoveHistory;
 using Chess.UI.Moves;
-using Chess.UI.Multiplayer;
 using Chess.UI.Score;
 using Chess.UI.Services;
+using Chess.UI.Settings;
 using Chess.UI.Styles;
 using Chess.UI.ViewModels;
 using Chess.UI.Views;
