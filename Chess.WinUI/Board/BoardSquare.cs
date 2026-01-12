@@ -1,4 +1,4 @@
-﻿using Chess.UI.Images;
+﻿using Chess.UI.Services;
 using Chess.UI.Styles;
 using Chess.UI.Wrappers;
 using Microsoft.Extensions.DependencyInjection;

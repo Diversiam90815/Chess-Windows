@@ -9,21 +9,6 @@ namespace Chess.UI.Settings
 {
     public class Settings
     {
-        #region Configuration
-
-        public Settings()
-        {
-
-        }
-
-        public void Init()
-        {
-
-        }
-
-        #endregion
-
-
         #region User Config
 
         static public string CurrentPieceTheme

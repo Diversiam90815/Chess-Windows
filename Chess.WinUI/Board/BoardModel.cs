@@ -16,7 +16,7 @@ namespace Chess.UI.Board
 
     public class BoardModel : IBoardModel
     {
-        private PieceType[] _currentBoardState;
+        private readonly PieceType[] _currentBoardState;
 
         private readonly BoardSquare[] _squares;
 

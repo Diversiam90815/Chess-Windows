@@ -6,7 +6,7 @@ using System.Collections.Generic;
 using static Chess.UI.Services.EngineAPI;
 
 
-namespace Chess.UI.Images
+namespace Chess.UI.Services
 {
     public interface IImageService
     {

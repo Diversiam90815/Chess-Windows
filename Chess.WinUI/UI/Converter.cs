@@ -1,5 +1,5 @@
-﻿using Chess.UI.Multiplayer;
-using Chess.UI.Services;
+﻿using Chess.UI.Services;
+using Chess.UI.Settings;
 using Chess.UI.Styles;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.UI.Xaml;
