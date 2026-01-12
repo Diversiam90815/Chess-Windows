@@ -14,9 +14,8 @@ namespace Chess.UI.Board
     {
         // Properties
         PieceStyle _pieceStyle { get; }
-        PositionInstance pos { get; set; }
-        PieceTypeInstance piece { get; set; }
-        PlayerColor colour { get; set; }
+        Square Position { get; set; }
+        PieceType Piece { get; set; }
         bool IsHighlighted { get; set; }
         Brush BackgroundBrush { get; }
         ImageSource PieceImage { get; }
@@ -40,9 +39,8 @@ namespace Chess.UI.Board
 
         public BoardSquare()
         {
-            pos = new PositionInstance(0, 0);
-            piece = PieceTypeInstance.DefaultType;
-            colour = PlayerColor.NoColor;
+            Position = Square.None;
+            Piece = PieceType.None;
 
             _dispatcherQueue = App.Current.Services.GetService<IDispatcherQueueWrapper>();
             _styleManager = App.Current.Services.GetService<IStyleManager>();
@@ -53,11 +51,10 @@ namespace Chess.UI.Board
         }
 
 
-        public BoardSquare(int x, int y, PieceTypeInstance pieceTypeInstance, PlayerColor color)
+        public BoardSquare(Square position, PieceType piece)
         {
-            pos = new PositionInstance(x, y);
-            piece = pieceTypeInstance;
-            colour = color;
+            Position = position;
+            Piece = piece;
 
             _dispatcherQueue = App.Current.Services.GetService<IDispatcherQueueWrapper>();
             _styleManager = App.Current.Services.GetService<IStyleManager>();
@@ -83,23 +80,23 @@ namespace Chess.UI.Board
         }
 
 
-        private PositionInstance _pos;
-        public PositionInstance pos
+        private Square _position;
+        public Square Position
         {
-            get => _pos;
+            get => _position;
             set
             {
-                if (_pos.x != value.x || _pos.y != value.y)
+                if (_position != value)
                 {
-                    _pos = value;
+                    _position = value;
                     OnPropertyChanged();
                 }
             }
         }
 
 
-        private PieceTypeInstance _piece;
-        public PieceTypeInstance piece
+        private PieceType _piece;
+        public PieceType Piece
         {
             get => _piece;
             set
@@ -113,19 +110,9 @@ namespace Chess.UI.Board
         }
 
 
-        private PlayerColor _colour;
-        public PlayerColor colour
-        {
-            get => _colour;
-            set
-            {
-                if (_colour != value)
-                {
-                    _colour = value;
-                    OnPropertyChanged();
-                }
-            }
-        }
+        // Display coordinates for UI grid positioning
+        public int DisplayX => Position.File();
+        public int DisplayY => Position.DisplayRank();
 
 
         private bool isHighlighted;
@@ -160,12 +147,12 @@ namespace Chess.UI.Board
         {
             get
             {
-                if (piece == PieceTypeInstance.DefaultType || colour == PlayerColor.NoColor)
+                if (Piece == PieceType.None)
                     return null;
 
                 _images = new ImageServices();
 
-                return _images.GetPieceImage(_pieceStyle, colour, piece);
+                return _images.GetPieceImage(_pieceStyle, Piece);
             }
         }
 

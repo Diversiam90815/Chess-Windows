@@ -1,96 +1,99 @@
 ﻿using Chess.UI.Services;
-using Chess.UI.Coordinates;
-using Microsoft.Extensions.DependencyInjection;
-using System;
 using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
 using static Chess.UI.Services.EngineAPI;
+
 
 namespace Chess.UI.Board
 {
     public interface IBoardModel
     {
-        int[] GetBoardStateFromNative();
-        BoardSquare DecodeBoardState(int index, int[] boardState);
-        (Dictionary<int, int>, int[]) UpdateBoardState();
+        PieceType[] GetBoardStateFromNative();
+        BoardSquare GetSquare(Square square);
+        Dictionary<Square, PieceType> UpdateBoardState();
+        BoardSquare[] GetAllSquares();
 
     }
 
     public class BoardModel : IBoardModel
     {
-        private int[] _currentBoardState;
+        private PieceType[] _currentBoardState;
 
-        private readonly IChessCoordinate _coordinate;
+        private readonly BoardSquare[] _squares;
 
 
         public BoardModel()
         {
-            _coordinate = App.Current.Services.GetService<IChessCoordinate>();
+            _currentBoardState = new PieceType[64];
+            _squares = new BoardSquare[64];
+
+            // Initialize all 64 squares
+            for (int i = 0; i < 64; i++)
+            {
+                Square square = (Square)i;
+                _squares[i] = new BoardSquare(square, PieceType.None);
+            }
         }
 
 
-        public int[] GetBoardStateFromNative()
+        public PieceType[] GetBoardStateFromNative()
         {
-            int[] board = new int[64]; // pre-allocated array
+            int[] rawBoard = new int[64]; // pre-allocated array
+            EngineAPI.GetBoardState(rawBoard);
 
-            EngineAPI.GetBoardState(board);
+            PieceType[] board = new PieceType[64];
+            for (int i = 0; i < 64; ++i)
+            {
+                board[i] = (PieceType)rawBoard[i];
+            }
+
             return board;
         }
 
 
-        public (Dictionary<int, int>, int[]) UpdateBoardState()
+        public BoardSquare GetSquare(Square square)
         {
-            int[] newBoardState = GetBoardStateFromNative();    // Get the latest board state
+            if (square == Square.None || (int)square < 0 || (int)square >= 64)
+                return null;
 
-            // Dictionary to track changes: <Index, New Value>
-            Dictionary<int, int> changedSquares = new Dictionary<int, int>();
-
-            if (_currentBoardState == null) // If current board is not initialized, all squares are considered changed
-            {
-                _currentBoardState = new int[64];
-                for (int i = 0; i < newBoardState.Length; i++)
-                {
-                    changedSquares[i] = newBoardState[i];
-                    _currentBoardState[i] = newBoardState[i];
-                }
-            }
-            else
-            {
-                // Compare each square and identify changes
-                for (int i = 0; i < newBoardState.Length; i++)
-                {
-                    if (_currentBoardState[i] != newBoardState[i])
-                    {
-                        changedSquares[i] = newBoardState[i];
-                        _currentBoardState[i] = newBoardState[i];
-                    }
-                }
-            }
-            return (changedSquares, newBoardState);
+            return _squares[(int)square];
         }
 
 
-        public BoardSquare DecodeBoardState(int index, int[] boardState)
+        public BoardSquare[] GetAllSquares()
         {
-            int encoded = boardState[index];
+            return _squares;
+        }
 
-            // Decode color and piece
-            int colorVal = (encoded >> 4) & 0xF;    // top 8 bits
-            int pieceVal = encoded & 0xF;          // bottom 8 bits
 
-            PositionInstance enginePos = _coordinate.FromIndex(index);  // Get engine pos from index
-            PositionInstance displayPos = _coordinate.ToDisplayCoordinates(enginePos); // Convert it to the UI pos
 
-            var square = new BoardSquare(
-                x: displayPos.x,
-                y: displayPos.y,
-                (PieceTypeInstance)pieceVal,
-                (PlayerColor)colorVal
-            );
+        public Dictionary<Square, PieceType> UpdateBoardState()
+        {
+            PieceType[] newBoardState = GetBoardStateFromNative();    // Get the latest board state
+            Dictionary<Square, PieceType> changedSquares = new Dictionary<Square, PieceType>();
 
-            return square;
+            for (int i = 0; i < 64; i++)
+            {
+                if (_currentBoardState[i] != newBoardState[i])
+                {
+                    Square square = (Square)i;
+                    PieceType newPiece = newBoardState[i];
+
+                    changedSquares[square] = newPiece;
+                    _currentBoardState[i] = newPiece;
+
+                    // Update the BoardSquare object
+                    UpdateSquarePiece(square, newPiece);
+                }
+            }
+
+            return changedSquares;
+        }
+
+
+        private void UpdateSquarePiece(Square square, PieceType piece)
+        {
+            var boardSquare = _squares[(int)square];
+            boardSquare.Piece = piece;
         }
     }
 }
