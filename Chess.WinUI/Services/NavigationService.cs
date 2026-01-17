@@ -25,6 +25,7 @@ namespace Chess.UI.Services
     public class NavigationService : INavigationService
     {
         private readonly IDispatcherQueueWrapper _dispatcherQueue;
+        private readonly IChessGameService _gameService;
 
         private GameConfigurationView _gameConfigurationView;
         private ChessBoardWindow _chessBoardWindow;
@@ -35,9 +36,10 @@ namespace Chess.UI.Services
         private bool _configurationWindowClosedProgrammatically = false;
 
 
-        public NavigationService(IDispatcherQueueWrapper dispatcherQueue)
+        public NavigationService(IDispatcherQueueWrapper dispatcherQueue, IChessGameService gameService)
         {
             _dispatcherQueue = dispatcherQueue;
+            _gameService = gameService;
         }
 
 
@@ -61,6 +63,10 @@ namespace Chess.UI.Services
 
                         _mainMenuWindow?.AppWindow.Hide();
                     }
+                    else
+                    {
+                        _gameConfigurationView.Activate();
+                    }
                 });
             });
         }
@@ -77,29 +83,12 @@ namespace Chess.UI.Services
                         _chessBoardWindow = App.Current.Services.GetService<ChessBoardWindow>();
                         _chessBoardWindow.Activate();
                         _chessBoardWindow.Closed += OnChessBoardWindowClosed;
+
                         _mainMenuWindow?.AppWindow.Hide();
 
-                        var chessBoardViewModel = App.Current.Services.GetService<ChessBoardViewModel>();
-                        chessBoardViewModel.IsMultiplayerGame = isMultiplayer;
-
-                        // Close multiplayer window when opening chessboard from multiplayer
-                        if (isMultiplayer && _multiplayerWindow != null)
-                        {
-                            _multiplayerWindowClosedProgrammatically = true;
-                            _multiplayerWindow.Close();
-                        }
-
-                        // Close Game Configuration Window when opening chessboard
-                        if (_gameConfigurationView != null)
-                        {
-                            _configurationWindowClosedProgrammatically = true;
-                            _gameConfigurationView.Close();
-                        }
-
-                        if (!isMultiplayer && config.HasValue)
-                        {
-                            chessBoardViewModel.StartGame(config.Value);
-                        }
+                        // Close transitional windows
+                        CloseMultiplayerWindow();
+                        CloseGameConfigurationWindow();
                     }
                     else
                     {
@@ -122,6 +111,7 @@ namespace Chess.UI.Services
                         _multiplayerWindow = App.Current.Services.GetService<MultiplayerWindow>();
                         _multiplayerWindow.Activate();
                         _multiplayerWindow.Closed += OnMultiplayerWindowClosed;
+
                         _mainMenuWindow?.AppWindow.Hide();
                     }
                     else
@@ -148,20 +138,21 @@ namespace Chess.UI.Services
         }
 
 
-        public void CloseChessboard()
+        public void CloseCurrentView()
         {
-            _ = _dispatcherQueue.TryEnqueue(() =>
+            _dispatcherQueue.TryEnqueue(() =>
             {
                 if (_chessBoardWindow != null)
                 {
-                    _chessBoardWindow.Closed -= OnChessBoardWindowClosed;
                     _chessBoardWindow.Close();
-                    _chessBoardWindow = null;
-
-                    var chessBoardViewModel = App.Current.Services.GetService<ChessBoardViewModel>();
-                    chessBoardViewModel.ResetGame();
-
-                     _ = NavigateToMainMenuAsync();
+                }
+                else if (_multiplayerWindow != null)
+                {
+                    _multiplayerWindow.Close();
+                }
+                else if (_gameConfigurationView != null)
+                {
+                    _gameConfigurationView.Close();
                 }
             });
         }
@@ -181,6 +172,26 @@ namespace Chess.UI.Services
             preferencesView.ButtonClicked += mainMenuViewModel.OnButtonClicked;
 
             await preferencesView.ShowAsync();
+        }
+
+
+        private void CloseMultiplayerWindow()
+        {
+            if (_multiplayerWindow != null)
+            {
+                _multiplayerWindowClosedProgrammatically = true;
+                _multiplayerWindow.Close();
+            }
+        }
+
+
+        private void CloseGameConfigurationWindow()
+        {
+            if (_gameConfigurationView != null)
+            {
+                _configurationWindowClosedProgrammatically = true;
+                _gameConfigurationView.Close();
+            }
         }
 
 
@@ -214,16 +225,7 @@ namespace Chess.UI.Services
             _chessBoardWindow.Closed -= OnChessBoardWindowClosed;
             _chessBoardWindow = null;
 
-            var chessBoardViewModel = App.Current.Services.GetService<ChessBoardViewModel>();
-            chessBoardViewModel.ResetGame();
-
-            // Disconnect Multiplayer if this is a MP game
-            if (chessBoardViewModel.IsMultiplayerGame)
-            {
-                var multiplayerViewModel = App.Current.Services.GetService<MultiplayerViewModel>();
-                multiplayerViewModel.DisconnectMultiplayer();
-            }
-
+            _ = _gameService.EndGameAsync();
             _ = NavigateToMainMenuAsync();
         }
 
