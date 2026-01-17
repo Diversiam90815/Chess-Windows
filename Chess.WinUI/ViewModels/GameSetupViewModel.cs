@@ -1,6 +1,4 @@
 ﻿using Chess.UI.Services;
-using Chess.UI.Wrappers;
-using Microsoft.Extensions.DependencyInjection;
 using System;
 using System.ComponentModel;
 using System.Runtime.CompilerServices;
@@ -10,120 +8,138 @@ using static Chess.UI.Services.EngineAPI;
 
 namespace Chess.UI.ViewModels
 {
-    public class GameSetupViewModel : INotifyPropertyChanged
+    public interface IGameSetupViewModel
     {
+        Task<bool> StartGameAsync(GameConfiguration config);
+        Task<bool> StartLocalCoopGameAsync();
+        Task<bool> StartSinglePlayerGameAsync(Side playerColor, CPUDifficulty difficulty);
+        Task<bool> StartMultiplayerGameAsync(Side playerColor);
+        Task ResetCurrentGameAsync(); 
+        
+        // UI state
+        void Reset();
+        bool PlayerConfigVisible { get; set; }
+        bool CPUConfigVisible { get; set; }
+        Side PlayerColor { get; set; }
+        CPUDifficulty CPUDifficulty { get; set; }
+
+        event PropertyChangedEventHandler PropertyChanged;
+    }
+
+
+    public class GameSetupViewModel : IGameSetupViewModel
+    {
+        private readonly IChessGameService _gameService;
+        private readonly INavigationService _navigationService;
+
         public event PropertyChangedEventHandler PropertyChanged;
 
-        private readonly IDispatcherQueueWrapper _dispatcherQueue;
 
-        private readonly IGameConfigurationService _configurationService;
-
-
-        public GameSetupViewModel(IDispatcherQueueWrapper dispatcher)
+        public GameSetupViewModel(IChessGameService gameService, INavigationService navigationService)
         {
-            _dispatcherQueue = dispatcher;
-
-            _configurationService = App.Current.Services.GetService<IGameConfigurationService>();
+            _gameService = gameService;
+            _navigationService = navigationService;
         }
 
 
-        public void Reset()
+        public async Task<bool> StartGameAsync(GameConfiguration config)
         {
-            CPUDifficulty = CPUDifficulty.None;
-            PlayerColor = Side.None;
+            if(config.IsValid())
+            {
+                Logger.LogError($"Invalid game configuration for mode: {config.Mode}");
+                return false;
+            }
 
-            PlayerConfigVisible = true;
-            CPUConfigVisible = false;
+            // delegate to specific setup method on mode
+            return config.Mode switch
+            {
+                GameModeSelection.LocalCoop => await StartLocalCoopGameAsync(),
+                GameModeSelection.SinglePlayer => await StartSinglePlayerGameAsync(config.PlayerColor, config.CpuDifficulty),
+                GameModeSelection.MultiPlayer => await StartMultiplayerGameAsync(config.PlayerColor),
+                _ => throw new NotSupportedException($"Game mode not supported: {config.Mode}")
+            };
         }
 
 
-        public async void LocalCoopInitiated()
+        public async Task<bool> StartLocalCoopGameAsync()
         {
-            GameMode = GameModeSelection.LocalCoop;
-
             var config = GameConfiguration.CreateLocalCoop();
-            await StartGameAsync(config);
+            return await StartGameWithConfigAsync(config);
         }
 
 
-
-        public void CPUGameInitiated()
+        public async Task<bool> StartSinglePlayerGameAsync(Side playerColor, CPUDifficulty difficulty)
         {
-            GameMode = GameModeSelection.SinglePlayer;
+            if (difficulty == CPUDifficulty.None)
+            {
+                Logger.LogError("CPU difficulty must be set for single-player mode");
+                return false;
+            }
 
-            PlayerConfigVisible = false;
-            CPUConfigVisible = true;
+            var config = GameConfiguration.CreateSinglePlayer(playerColor, difficulty);
+            return await StartGameWithConfigAsync(config);
         }
 
 
-        public async void StartSinglePlayerGameAsnyc()
+        /// <summary>
+        /// Starts a single-player game using the current UI state
+        /// </summary>
+        public async Task<bool> StartSinglePlayerWithCurrentStateAsync()
         {
-            if (!CanStartSinglePlayerGame)
-                return;
-
-            var config = GameConfiguration.CreateSinglePlayer(PlayerColor, CPUDifficulty);
-            await StartGameAsync(config);
+            return await StartSinglePlayerGameAsync(PlayerColor, CPUDifficulty);
         }
 
 
+        public async Task<bool> StartMultiplayerGameAsync(Side playerColor)
+        {
+            var config = GameConfiguration.CreateMultiplayer(playerColor);
+            return await StartGameWithConfigAsync(config);
+        }
 
-        public async Task<bool> StartGameAsync(GameConfiguration configuration)
+
+        private async Task<bool> StartGameWithConfigAsync(GameConfiguration config)
         {
             try
             {
-                bool success = await _configurationService.StartGameAsync(configuration);
+                Logger.LogInfo($"Starting game: Mode = {config.Mode}, Player = {config.PlayerColor}, Difficulty = {config.CpuDifficulty}");
 
-                if (success)
-                    Reset();
+                // Start game through service
+                bool gameStarted = await _gameService.StartGameAsync(config);
 
-                return success;
+                if(!gameStarted)
+                {
+                    Logger.LogError("Failed to start game!");
+                    return false;
+                }
+
+                await _navigationService.NavigateToChessboardAsync();
+
+                Logger.LogInfo("Successfully navigated to chessboard");
+                return true;
             }
             catch(Exception ex)
             {
-                Logger.LogError($"Failed to start game: {ex.Message} ");
+                Logger.LogError($"Exception occured : {ex.Message}");
                 return false;
             }
         }
 
 
-        private GameModeSelection _gameMode;
-        public GameModeSelection GameMode
+        public async Task ResetCurrentGameAsync()
         {
-            get => _gameMode;
-            set
-            {
-                if (_gameMode != value)
-                {
-                    _gameMode = value;
-                    OnPropertyChanged();
-                }
-            }
+            await _gameService.ResetGameAsync();
         }
 
 
-        // Game Config Menu : CPU Configuration
-        private bool _cpuConfigVisible = false;
-        public bool CPUConfigVisible
-        {
-            get => _cpuConfigVisible;
-            set
-            {
-                if (value != _cpuConfigVisible)
-                {
-                    _cpuConfigVisible = value;
-                    OnPropertyChanged();
-                }
-            }
-        }
+        #region UI State Properties
 
-        // Game Config Menu : CPU or Coop Game
-        private bool _playerConfigVisible = true;
+        private bool _playerConfigVisible;
         public bool PlayerConfigVisible
         {
             get => _playerConfigVisible;
             set
             {
-                if (value != _playerConfigVisible)
+                if (_playerConfigVisible != value)
                 {
                     _playerConfigVisible = value;
                     OnPropertyChanged();
@@ -132,47 +148,75 @@ namespace Chess.UI.ViewModels
         }
 
 
-        public bool CanStartSinglePlayerGame => (CPUDifficulty != CPUDifficulty.None && PlayerColor != Side.None);
+        private bool _cpuConfigVisible;
+        public bool CPUConfigVisible
+        {
+            get => _cpuConfigVisible;
+            set
+            {
+                if (_cpuConfigVisible != value)
+                {
+                    _cpuConfigVisible = value;
+                    OnPropertyChanged();
+                }
+            }
+        }
 
 
-        private Side _playerColor = Side.None;
+        private Side _playerColor;
         public Side PlayerColor
         {
             get => _playerColor;
             set
             {
-                if (value != _playerColor)
+                if (_playerColor != value)
                 {
                     _playerColor = value;
                     OnPropertyChanged();
-                    OnPropertyChanged(nameof(CanStartSinglePlayerGame));
+
+                    // When player selects a color, show CPU difficulty selection
+                    if (value != Side.None)
+                    {
+                        PlayerConfigVisible = false;
+                        CPUConfigVisible = true;
+                    }
                 }
             }
         }
 
 
-        private CPUDifficulty _cpuDifficulty = CPUDifficulty.None;
+        private CPUDifficulty _cpuDifficulty;
         public CPUDifficulty CPUDifficulty
         {
             get => _cpuDifficulty;
             set
             {
-                if (value != _cpuDifficulty)
+                if (_cpuDifficulty != value)
                 {
                     _cpuDifficulty = value;
                     OnPropertyChanged();
-                    OnPropertyChanged(nameof(CanStartSinglePlayerGame));
                 }
             }
         }
 
 
-        protected void OnPropertyChanged([CallerMemberName] string name = null)
+        /// <summary>
+        /// Resets the UI state to initial configuration
+        /// </summary>
+        public void Reset()
         {
-            _dispatcherQueue.TryEnqueue(() =>
-            {
-                PropertyChanged?.Invoke(this, new PropertyChangedEventArgs(name));
-            });
+            PlayerConfigVisible = true;
+            CPUConfigVisible = false;
+            PlayerColor = Side.None;
+            CPUDifficulty = CPUDifficulty.None;
+        }
+
+
+        #endregion
+
+        protected void OnPropertyChanged([CallerMemberName] string propertyName = null)
+        {
+            PropertyChanged?.Invoke(this, new PropertyChangedEventArgs(propertyName));
         }
     }
 }

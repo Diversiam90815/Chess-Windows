@@ -14,11 +14,11 @@ namespace Chess.UI.Services
     public interface INavigationService
     {
         Task NavigateToGameConfigurationView();
-        Task<bool> NavigateToChessboardAsync(bool isMutiplayer, GameConfiguration? config = null);
+        Task<bool> NavigateToChessboardAsync();
         Task<bool> NavigateToMultiplayerAsync();
         Task<bool> NavigateToMainMenuAsync();
         Task ShowPreferencesAsync();
-        void CloseChessboard();
+        void CloseCurrentView();
     }
 
 
@@ -72,7 +72,7 @@ namespace Chess.UI.Services
         }
 
 
-        public async Task<bool> NavigateToChessboardAsync(bool isMultiplayer, GameConfiguration? config = null)
+        public async Task<bool> NavigateToChessboardAsync()
         {
             return await Task.Run(() =>
             {
@@ -226,6 +226,7 @@ namespace Chess.UI.Services
             _chessBoardWindow = null;
 
             _ = _gameService.EndGameAsync();
+
             _ = NavigateToMainMenuAsync();
         }
 
