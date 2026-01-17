@@ -51,21 +51,67 @@ namespace Chess.UI.Services
             _dispatcherQueue = dispatcherQueue;
         }
 
-        public Task<bool> StartGameAsync(GameConfiguration config)
+        public async Task<bool> StartGameAsync(GameConfiguration config)
         {
-            // TODO
+            return await Task.Run(() =>
+            {
+                try
+                {
+                    _currentConfiguration = config;
+
+                    _dispatcherQueue.TryEnqueue(() =>
+                    {
+                        EngineAPI.StartGame(config);
+                        _isGameActive = true;
+
+                        Logger.LogInfo($"Game started: Mode={config.Mode}, Player={config.PlayerColor}");
+
+                        ConfigurationChanged?.Invoke(config);
+                        GameStarted?.Invoke();
+                    });
+
+                    return true;
+                }
+                catch (Exception ex)
+                {
+                    Logger.LogError($"Failed to start game: {ex.Message}");
+                    return false;
+                }
+            });
         }
 
 
-        public Task ResetGameAsync()
+        public async Task ResetGameAsync()
         {
-            // TODO
+            await Task.Run(() =>
+            {
+                _dispatcherQueue.TryEnqueue(() =>
+                {
+                    EngineAPI.ResetGame();
+                    _isGameActive = false;
+
+                    Logger.LogInfo("Game reset");
+
+                    GameReset?.Invoke();
+                });
+            });
         }
 
 
-        public Task EndGameAsync()
+        public async Task EndGameAsync()
         {
-            // TODO
+            await Task.Run(() =>
+            {
+                _dispatcherQueue.TryEnqueue(() =>
+                {
+                    _isGameActive = false;
+                    _currentConfiguration = null;
+
+                    Logger.LogInfo("Game ended");
+
+                    GameEnded?.Invoke();
+                });
+            });
         }
 
     }
