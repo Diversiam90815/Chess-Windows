@@ -13,6 +13,7 @@ using Microsoft.UI.Xaml.Controls;
 using Microsoft.UI.Xaml.Input;
 using Microsoft.UI.Xaml.Media;
 using System;
+using System.ComponentModel.DataAnnotations;
 using System.Linq;
 using System.Threading.Tasks;
 using Windows.UI.Text;
@@ -23,15 +24,13 @@ namespace Chess.UI.Views
 {
     public sealed partial class ChessBoardWindow : Window
     {
-        private readonly ChessBoardViewModel _viewModel;
-
-        private PieceTypeInstance? ViewModelSelectedPiece { get; set; }
-
+        private readonly GameWindowViewModel _viewModel;
         private readonly IImageService _images;
-
         private readonly IDispatcherQueueWrapper _dispatcher;
-
         private readonly IWindowSizeService _windowSizeService;
+        private readonly IStyleManager _styleManager;
+
+        private PieceType? _selectedPromotionPiece { get; set; }
 
 
         public ChessBoardWindow()
@@ -41,12 +40,13 @@ namespace Chess.UI.Views
 
             _dispatcher = App.Current.Services.GetService<IDispatcherQueueWrapper>();
             _images = App.Current.Services.GetService<IImageService>();
-            _viewModel = App.Current.Services.GetService<ChessBoardViewModel>();
+            _viewModel = App.Current.Services.GetService<GameWindowViewModel>();
             _windowSizeService = App.Current.Services.GetService<IWindowSizeService>();
+            _styleManager = App.Current.Services.GetService<IStyleManager>();
 
             RootPanel.DataContext = _viewModel;
 
-            _viewModel.ShowPawnPromotionDialogRequested += OnShowPawnPromotionPieces;
+            _viewModel.ShowPawnPromotionDialogRequested += OnShowPawnPromotionDialog;
             _viewModel.ShowEndGameDialog += OnGameOverState;
 
             _windowSizeService.SetWindowSize(this, 1100, 800);
@@ -54,20 +54,20 @@ namespace Chess.UI.Views
         }
 
 
+        #region Button Click handlers
+
+
         private void UndoMove_Click(object sender, RoutedEventArgs e)
         {
             _viewModel.OnButtonClicked();
-
             _viewModel.UndoLastMove();
         }
 
 
-        private void ResetGame_Click(object sender, RoutedEventArgs e)
+        private async void ResetGame_Click(object sender, RoutedEventArgs e)
         {
             _viewModel.OnButtonClicked();
-
-            _viewModel.ResetGame();
-            _viewModel.StartGame(new GameConfiguration());
+            await _viewModel.ResetCurrentGameAsync();
         }
 
 
@@ -80,17 +80,22 @@ namespace Chess.UI.Views
 
         private void ChessPiece_Clicked(object sender, TappedRoutedEventArgs e)
         {
-            _viewModel.OnSquareClicked();
-
             var grid = sender as FrameworkElement;
-            var square = grid.DataContext as BoardSquare;
+            var square = grid?.DataContext as BoardSquare;
 
-            // Handle the move
-            _viewModel.HandleSquareClick(square);
+            if (square != null)
+            {
+                _viewModel.ChessBoardViewModel.HandleSquareClick(square);
+            }
         }
 
 
-        private async Task OnGameOverState(EndGameState endGameState, PlayerColor winner)
+        #endregion
+
+
+        #region Dialog Handlers
+
+        private async Task OnGameOverState(EndGameState endGameState, Side winner)
         {
             var tcs = new TaskCompletionSource<bool>();
 
@@ -123,16 +128,15 @@ namespace Chess.UI.Views
         }
 
 
-        private async Task ShowEnhancedEndGameDialog(string gameResult, PlayerColor winner, EndGameState endGameState)
+        private async Task ShowEnhancedEndGameDialog(string gameResult, Side winner, EndGameState endGameState)
         {
-            // Create enhanced dialog content
             var stackPanel = new StackPanel
             {
                 Spacing = 16,
                 Margin = new Thickness(16)
             };
 
-            // Title section
+            // Title
             var titleBlock = new TextBlock
             {
                 Text = gameResult,
@@ -143,8 +147,8 @@ namespace Chess.UI.Views
             };
             stackPanel.Children.Add(titleBlock);
 
-            // Winner section (only for checkmate)
-            if (endGameState == EndGameState.Checkmate && winner != PlayerColor.NoColor)
+            // Winner/Draw message
+            if (endGameState == EndGameState.Checkmate && winner != Side.None)
             {
                 var winnerBlock = new TextBlock
                 {
@@ -152,14 +156,14 @@ namespace Chess.UI.Views
                     FontSize = 18,
                     FontWeight = FontWeights.SemiBold,
                     HorizontalAlignment = HorizontalAlignment.Center,
-                    Foreground = winner == PlayerColor.White ?
+                    Foreground = winner == Side.White ?
                         new SolidColorBrush(Colors.DarkBlue) :
                         new SolidColorBrush(Colors.DarkRed),
                     Margin = new Thickness(0, 0, 0, 12)
                 };
                 stackPanel.Children.Add(winnerBlock);
             }
-            else if (endGameState == EndGameState.StaleMate)
+            else
             {
                 var drawBlock = new TextBlock
                 {
@@ -173,78 +177,10 @@ namespace Chess.UI.Views
                 stackPanel.Children.Add(drawBlock);
             }
 
-            // Game statistics section
-            var statsHeader = new TextBlock
-            {
-                Text = "📊 Game Statistics",
-                FontSize = 16,
-                FontWeight = FontWeights.SemiBold,
-                Margin = new Thickness(0, 8, 0, 8)
-            };
-            stackPanel.Children.Add(statsHeader);
+            // Game statistics
+            AddGameStatistics(stackPanel);
 
-            // Statistics grid
-            var statsGrid = new Grid
-            {
-                ColumnDefinitions =
-                {
-                    new ColumnDefinition { Width = new GridLength(1, GridUnitType.Star) },
-                    new ColumnDefinition { Width = new GridLength(1, GridUnitType.Star) }
-                },
-                RowSpacing = 8,
-                ColumnSpacing = 16
-            };
-
-            // Move count
-            var totalMoves = _viewModel.MoveHistoryViewModel.MoveHistoryColumns
-                .SelectMany(col => col)
-                .Count();
-
-            AddStatRow(statsGrid, 0, "Total Moves:", totalMoves.ToString());
-
-            // Score information
-            AddStatRow(statsGrid, 1, "White Score:", _viewModel.ScoreViewModel.WhiteScoreValue.ToString());
-            AddStatRow(statsGrid, 2, "Black Score:", _viewModel.ScoreViewModel.BlackScoreValue.ToString());
-
-            // Captured pieces summary
-            var whiteCaptured = _viewModel.ScoreViewModel.WhiteCapturedPawn +
-                               _viewModel.ScoreViewModel.WhiteCapturedBishop +
-                               _viewModel.ScoreViewModel.WhiteCapturedKnight +
-                               _viewModel.ScoreViewModel.WhiteCapturedRook +
-                               _viewModel.ScoreViewModel.WhiteCapturedQueen;
-
-            var blackCaptured = _viewModel.ScoreViewModel.BlackCapturedPawn +
-                               _viewModel.ScoreViewModel.BlackCapturedBishop +
-                               _viewModel.ScoreViewModel.BlackCapturedKnight +
-                               _viewModel.ScoreViewModel.BlackCapturedRook +
-                               _viewModel.ScoreViewModel.BlackCapturedQueen;
-
-            AddStatRow(statsGrid, 3, "White Captured:", whiteCaptured.ToString() + " pieces");
-            AddStatRow(statsGrid, 4, "Black Captured:", blackCaptured.ToString() + " pieces");
-
-            // Game type
-            var gameType = _viewModel.IsMultiplayerGame ? "Multiplayer" : "Single Player";
-            AddStatRow(statsGrid, 5, "Game Type:", gameType);
-
-            stackPanel.Children.Add(statsGrid);
-
-            // Captured pieces details (if any pieces were captured)
-            if (whiteCaptured > 0 || blackCaptured > 0)
-            {
-                var capturedHeader = new TextBlock
-                {
-                    Text = "🎯 Captured Pieces",
-                    FontSize = 16,
-                    FontWeight = FontWeights.SemiBold,
-                    Margin = new Thickness(0, 16, 0, 8)
-                };
-                stackPanel.Children.Add(capturedHeader);
-
-                var capturedGrid = CreateCapturedPieceDisplay();
-                stackPanel.Children.Add(capturedGrid);
-            }
-
-            // Create the dialog
+            // Create dialog
             var dialog = new ContentDialog
             {
                 Title = $"Game Over - {gameResult}",
@@ -263,26 +199,80 @@ namespace Chess.UI.Views
 
             var result = await dialog.ShowAsync();
 
-            switch (result)
+            await HandleEndGameDialogResult(result);
+        }
+
+
+        private void AddGameStatistics(StackPanel stackPanel)
+        {
+            var statsHeader = new TextBlock
             {
-                case ContentDialogResult.Primary: // New Game
-                    _viewModel.ResetGame();
-                    _viewModel.StartGame(new GameConfiguration());
-                    break;
-                case ContentDialogResult.Secondary: // View Board
-                    // Do nothing - just close dialog and let user examine the board
-                    break;
-                case ContentDialogResult.None: // Main Menu
-                default:
-                    _viewModel.ResetGame();
-                    this.Close();
-                    break;
+                Text = "📊 Game Statistics",
+                FontSize = 16,
+                FontWeight = FontWeights.SemiBold,
+                Margin = new Thickness(0, 8, 0, 8)
+            };
+            stackPanel.Children.Add(statsHeader);
+
+            var statsGrid = new Grid
+            {
+                ColumnDefinitions =
+                {
+                    new ColumnDefinition { Width = new GridLength(1, GridUnitType.Star) },
+                    new ColumnDefinition { Width = new GridLength(1, GridUnitType.Star) }
+                },
+                RowSpacing = 8,
+                ColumnSpacing = 16
+            };
+
+            // Add statistics
+            var totalMoves = _viewModel.MoveHistoryViewModel.MoveHistoryColumns
+                .SelectMany(col => col)
+                .Count();
+
+            AddStatRow(statsGrid, 0, "Total Moves:", totalMoves.ToString());
+
+            var whiteCaptured = _viewModel.ScoreViewModel.WhiteCapturedPawn +
+                               _viewModel.ScoreViewModel.WhiteCapturedBishop +
+                               _viewModel.ScoreViewModel.WhiteCapturedKnight +
+                               _viewModel.ScoreViewModel.WhiteCapturedRook +
+                               _viewModel.ScoreViewModel.WhiteCapturedQueen;
+
+            var blackCaptured = _viewModel.ScoreViewModel.BlackCapturedPawn +
+                               _viewModel.ScoreViewModel.BlackCapturedBishop +
+                               _viewModel.ScoreViewModel.BlackCapturedKnight +
+                               _viewModel.ScoreViewModel.BlackCapturedRook +
+                               _viewModel.ScoreViewModel.BlackCapturedQueen;
+
+            AddStatRow(statsGrid, 3, "White Captured:", $"{whiteCaptured} pieces");
+            AddStatRow(statsGrid, 4, "Black Captured:", $"{blackCaptured} pieces");
+
+            var gameType = _viewModel.IsMultiplayerGame ? "Multiplayer" :
+                          _viewModel.IsKoopGame ? "Local Co-op" : "Single Player";
+            AddStatRow(statsGrid, 5, "Game Type:", gameType);
+
+            stackPanel.Children.Add(statsGrid);
+
+            // Captured pieces details
+            if (whiteCaptured > 0 || blackCaptured > 0)
+            {
+                var capturedHeader = new TextBlock
+                {
+                    Text = "🎯 Captured Pieces",
+                    FontSize = 16,
+                    FontWeight = FontWeights.SemiBold,
+                    Margin = new Thickness(0, 16, 0, 8)
+                };
+                stackPanel.Children.Add(capturedHeader);
+
+                var capturedGrid = CreateCapturedPieceDisplay();
+                stackPanel.Children.Add(capturedGrid);
             }
         }
 
 
         private void AddStatRow(Grid grid, int row, string label, string value)
-            
+
         {
             // Ensure we have enough row definitions
             while (grid.RowDefinitions.Count <= row)
@@ -332,13 +322,13 @@ namespace Chess.UI.Views
             };
 
             // White captured pieces
-            var whitePanel = CreatePlayerCapturedPanel("White Captured:", PlayerColor.White);
+            var whitePanel = CreatePlayerCapturedPanel("White Captured:", Side.White);
             Grid.SetRow(whitePanel, 0);
             Grid.SetColumn(whitePanel, 0);
             grid.Children.Add(whitePanel);
 
             // Black captured pieces
-            var blackPanel = CreatePlayerCapturedPanel("Black Captured:", PlayerColor.Black);
+            var blackPanel = CreatePlayerCapturedPanel("Black Captured:", Side.Black);
             Grid.SetRow(blackPanel, 0);
             Grid.SetColumn(blackPanel, 1);
             grid.Children.Add(blackPanel);
@@ -347,7 +337,7 @@ namespace Chess.UI.Views
         }
 
 
-        private StackPanel CreatePlayerCapturedPanel(string title, PlayerColor player)
+        private StackPanel CreatePlayerCapturedPanel(string title, Side player)
         {
             var panel = new StackPanel
             {
@@ -371,14 +361,14 @@ namespace Chess.UI.Views
             // Add captured piece counts
             var pieces = new[]
             {
-                (PieceTypeInstance.Pawn, player == PlayerColor.White ? _viewModel.ScoreViewModel.WhiteCapturedPawn : _viewModel.ScoreViewModel.BlackCapturedPawn, "♟"),
-                (PieceTypeInstance.Knight, player == PlayerColor.White ? _viewModel.ScoreViewModel.WhiteCapturedKnight : _viewModel.ScoreViewModel.BlackCapturedKnight, "♞"),
-                (PieceTypeInstance.Bishop, player == PlayerColor.White ? _viewModel.ScoreViewModel.WhiteCapturedBishop : _viewModel.ScoreViewModel.BlackCapturedBishop, "♝"),
-                (PieceTypeInstance.Rook, player == PlayerColor.White ? _viewModel.ScoreViewModel.WhiteCapturedRook : _viewModel.ScoreViewModel.BlackCapturedRook, "♜"),
-                (PieceTypeInstance.Queen, player == PlayerColor.White ? _viewModel.ScoreViewModel.WhiteCapturedQueen : _viewModel.ScoreViewModel.BlackCapturedQueen, "♛")
+                ("♟", player == Side.White ? _viewModel.ScoreViewModel.WhiteCapturedPawn : _viewModel.ScoreViewModel.BlackCapturedPawn),
+                ("♞", player == Side.White ? _viewModel.ScoreViewModel.WhiteCapturedKnight : _viewModel.ScoreViewModel.BlackCapturedKnight),
+                ("♝", player == Side.White ? _viewModel.ScoreViewModel.WhiteCapturedBishop : _viewModel.ScoreViewModel.BlackCapturedBishop),
+                ("♜", player == Side.White ? _viewModel.ScoreViewModel.WhiteCapturedRook : _viewModel.ScoreViewModel.BlackCapturedRook),
+                ("♛", player == Side.White ? _viewModel.ScoreViewModel.WhiteCapturedQueen : _viewModel.ScoreViewModel.BlackCapturedQueen)
             };
 
-            foreach (var (pieceType, count, symbol) in pieces)
+            foreach (var (symbol, count) in pieces)
             {
                 if (count > 0)
                 {
@@ -409,79 +399,102 @@ namespace Chess.UI.Views
         }
 
 
-        private async Task<PieceTypeInstance?> OnShowPawnPromotionPieces()
+        private void AddPromotionButton(Panel panel, PieceType pieceType, Side playerSide, ContentDialog dialog)
         {
-            TaskCompletionSource<PieceTypeInstance?> tcs = new();
-
-            DispatcherQueue.TryEnqueue(() =>
+            var button = new Button
             {
-                var dialog = new ContentDialog
-                {
-                    Title = "Pawn Promotion",
-                    XamlRoot = this.Content.XamlRoot
-                };
+                Tag = pieceType,
+                Width = 80,
+                Height = 80,
+                Padding = new Thickness(0)
+            };
 
-                // Customize the dialog to include all four options
-                // Since ContentDialog has limited buttons, we'll use a custom Content
-                var stackPanel = new StackPanel
-                {
-                    Orientation = Orientation.Horizontal,
-                    HorizontalAlignment = HorizontalAlignment.Center,
-                    VerticalAlignment = VerticalAlignment.Center
-                };
+            var image = new Image
+            {
+                Source = _images.GetPieceImage(_styleManager.CurrentPieceStyle, pieceType),
+                Stretch = Stretch.Uniform
+            };
 
-                PlayerColor currentPlayer = _viewModel.CurrentPlayer;
+            button.Content = image;
 
-                // Helper method to create a button with an image
-                Button CreatePieceButton(PieceTypeInstance pieceType)
+            button.Click += (s, e) =>
+            {
+                _selectedPromotionPiece = pieceType;
+                dialog.Hide();
+            };
+
+            panel.Children.Add(button);
+        }
+
+
+        private async Task<PieceType?> OnShowPawnPromotionDialog()
+        {
+            var tcs = new TaskCompletionSource<PieceType?>();
+
+            _dispatcher.TryEnqueue(async () =>
+            {
+                try
                 {
-                    var button = new Button
+                    var dialog = new ContentDialog
                     {
-                        Tag = pieceType,
-                        Margin = new Thickness(5),
-                        Padding = new Thickness(0),
-                        Width = 80,
-                        Height = 80
+                        Title = "Pawn Promotion",
+                        XamlRoot = this.Content.XamlRoot
                     };
 
-                    var image = new Image
+                    var stackPanel = new StackPanel
                     {
-                        Source = _images.GetPieceImage(PieceStyle.Basic, currentPlayer, pieceType),       // Need to adapt to current theme!
-                        Stretch = Stretch.Uniform
+                        Orientation = Orientation.Horizontal,
+                        HorizontalAlignment = HorizontalAlignment.Center,
+                        VerticalAlignment = VerticalAlignment.Center,
+                        Spacing = 10
                     };
 
-                    button.Content = image;
+                    Side currentPlayer = _viewModel.ChessBoardViewModel.CurrentPlayer;
+                    _selectedPromotionPiece = null;
 
-                    button.Click += (s, e) =>
-                    {
-                        dialog.Hide();
-                        ViewModelSelectedPiece = pieceType;
-                    };
+                    // Create promotion piece buttons
+                    AddPromotionButton(stackPanel, PieceType.WQueen, currentPlayer, dialog);
+                    AddPromotionButton(stackPanel, PieceType.WRook, currentPlayer, dialog);
+                    AddPromotionButton(stackPanel, PieceType.WBishop, currentPlayer, dialog);
+                    AddPromotionButton(stackPanel, PieceType.WKnight, currentPlayer, dialog);
 
-                    return button;
+                    dialog.Content = stackPanel;
+
+                    await dialog.ShowAsync();
+
+                    tcs.SetResult(_selectedPromotionPiece);
                 }
-
-                // Create buttons for each promotion option
-                var queenButton = CreatePieceButton(PieceTypeInstance.Queen);
-                var rookButton = CreatePieceButton(PieceTypeInstance.Rook);
-                var bishopButton = CreatePieceButton(PieceTypeInstance.Bishop);
-                var knightButton = CreatePieceButton(PieceTypeInstance.Knight);
-
-                stackPanel.Children.Add(queenButton);
-                stackPanel.Children.Add(rookButton);
-                stackPanel.Children.Add(bishopButton);
-                stackPanel.Children.Add(knightButton);
-
-                dialog.Content = stackPanel;
-
-                ViewModelSelectedPiece = null;
-
-                // Show the dialog and wait for it to close
-                _ = dialog.ShowAsync().AsTask().ContinueWith(t => { tcs.SetResult(ViewModelSelectedPiece); });
+                catch (Exception ex)
+                {
+                    Logger.LogError($"Error showing pawn promotion dialog: {ex.Message}");
+                    tcs.SetException(ex);
+                }
             });
 
             return await tcs.Task;
         }
 
+
+        private async Task HandleEndGameDialogResult(ContentDialogResult result)
+        {
+            switch (result)
+            {
+                case ContentDialogResult.Primary: // New Game
+                    await _viewModel.ResetCurrentGameAsync();
+                    break;
+
+                case ContentDialogResult.Secondary: // View Board
+                    // Do nothing - just close dialog
+                    break;
+
+                case ContentDialogResult.None: // Main Menu
+                default:
+                    this.Close();
+                    break;
+            }
+        }
+
+
+        #endregion
     }
 }

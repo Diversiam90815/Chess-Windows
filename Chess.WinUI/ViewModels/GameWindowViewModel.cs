@@ -97,7 +97,7 @@ namespace Chess.UI.ViewModels
         }
 
 
-        private void OnButtonClicked()
+        public void OnButtonClicked()
         {
             ButtonClicked?.Invoke();
         }
