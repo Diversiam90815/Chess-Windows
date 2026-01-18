@@ -305,16 +305,6 @@ namespace Chess.UI.Services
         };
 
 
-        [StructLayout(LayoutKind.Sequential, CharSet = CharSet.Ansi)]
-        public struct MoveHistoryEvent
-        {
-            public bool added;
-
-            [MarshalAs(UnmanagedType.ByValTStr, SizeConst = 250)]
-            public string moveNotation;
-        };
-
-
         [StructLayout(LayoutKind.Sequential)]
         public struct ConnectionStatusEvent
         {
@@ -438,5 +428,16 @@ namespace Chess.UI.Services
 
             #endregion  // Structures and Enums
         }
+
+
+        [StructLayout(LayoutKind.Sequential, CharSet = CharSet.Ansi)]
+        public struct MoveEvent
+        {
+            public ushort data;
+
+            [MarshalAs(UnmanagedType.ByValTStr, SizeConst = 250)]
+            public string moveNotation;
+        }
+
     }
 }
