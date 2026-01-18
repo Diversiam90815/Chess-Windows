@@ -60,7 +60,7 @@ namespace Chess.UI.Audio.Services
             moveModel.ChesspieceSelected += () => _ = Task.Run(async () => await HandleUIInteractionAsync(UIInteraction.PieceSelect));
 
             var backendCom = App.Current.ChessLogicCommunication;
-            backendCom.MoveExecuted += (Move move) => _ = Task.Run(async () => await HandleMoveAsync(move));
+            backendCom.MoveExecuted += (Move move, string notation) => _ = Task.Run(async () => await HandleMoveAsync(move));
 
             var themePreferences = App.Current.Services.GetService<StylesPreferencesViewModel>();
             themePreferences.ItemSelected += () => _ = Task.Run(async () => await HandleUIInteractionAsync(UIInteraction.ItemSelected));
@@ -121,9 +121,9 @@ namespace Chess.UI.Audio.Services
         }
 
 
-        public async Task HandleMoveAsync(PossibleMoveInstance move)
+        public async Task HandleMoveAsync(Move move)
         {
-            bool isCapture = move.type.HasFlag(MoveTypeInstance.MoveType_Capture);
+            bool isCapture = move.IsCapture;
 
             var sfx = DetermineMoveSound(move, isCapture);
             var volume = DetermineMoveVolume(move, isCapture);
@@ -284,10 +284,10 @@ namespace Chess.UI.Audio.Services
         }
 
 
-        private SoundEffect DetermineMoveSound(PossibleMoveInstance move, bool isCapture)
+        private SoundEffect DetermineMoveSound(Move move, bool isCapture)
         {
-            if (move.type.HasFlag(MoveTypeInstance.MoveType_Checkmate))
-                return SoundEffect.Checkmate;
+            //if (move.type.HasFlag(MoveTypeInstance.MoveType_Checkmate))
+            //    return SoundEffect.Checkmate;
             if (isCapture)
                 return SoundEffect.PieceCapture;
 
@@ -295,16 +295,12 @@ namespace Chess.UI.Audio.Services
         }
 
 
-        private float DetermineMoveVolume(PossibleMoveInstance move, bool isCapture)
+        private float DetermineMoveVolume(Move move, bool isCapture)
         {
-            if (move.type.HasFlag(MoveTypeInstance.MoveType_Checkmate))
-                return 0.9f;
-            if (move.type.HasFlag(MoveTypeInstance.MoveType_Check))
-                return 0.7f;
             if (isCapture)
-                return 0.6f;
+                return 0.8f;
 
-            return 0.5f;
+            return 0.6f;
         }
 
     }

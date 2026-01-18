@@ -1,5 +1,4 @@
-﻿using Chess.UI.Multiplayer;
-using Chess.UI.Services;
+﻿using Chess.UI.Services;
 using System;
 using static Chess.UI.Services.EngineAPI;
 
@@ -127,13 +126,17 @@ namespace Chess.UI.Models
 
         public void StartMultiplerGame()
         {
-            EngineAPI.StartMultiplayerGame();
+            // TODO
+
+            //EngineAPI.StartMultiplayerGame();
         }
 
 
         public void DisconnectMultiplayer()
         {
-            EngineAPI.DisconnectMultiplayerGame();
+            // TODO
+
+            //EngineAPI.DisconnectMultiplayerGame();
         }
 
 

@@ -170,6 +170,9 @@ namespace Chess.UI.Services
         [return: MarshalAs(UnmanagedType.I1)]
         public static extern bool ChangeCurrentAdapter(int ID);
 
+        [DllImport(LOGIC_API_PATH, CallingConvention = CallingConvention.Cdecl)]
+        public static extern int GetCurrentNetworkAdapterID();
+
         #endregion
 
 

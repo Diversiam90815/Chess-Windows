@@ -1,5 +1,4 @@
 ﻿using Chess.UI.Board;
-using Chess.UI.Moves;
 using Chess.UI.Services;
 using System;
 using System.Collections.Generic;

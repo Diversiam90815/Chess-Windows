@@ -1,6 +1,8 @@
 ﻿using Chess.UI.Audio.Modules;
+using Chess.UI.Models;
 using System.Threading.Tasks;
 using static Chess.UI.Services.EngineAPI;
+
 
 namespace Chess.UI.Audio.Services
 {
@@ -19,7 +21,7 @@ namespace Chess.UI.Audio.Services
         Task InitializeAsync();
 
         // Chess Game Events
-        Task HandleMoveAsync(PossibleMoveInstance move);
+        Task HandleMoveAsync(Move move);
         Task HandleEndGameStateAsync(EndGameState state);
         Task HandleGameStartAsync();
 

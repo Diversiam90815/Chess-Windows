@@ -111,7 +111,7 @@ namespace Chess.UI.Views
         {
             _viewModel.OnButtonClicked();
 
-            _viewModel.SelectPlayerColor(EngineAPI.PlayerColor.White);
+            _viewModel.SelectPlayerColor(EngineAPI.Side.White);
         }
 
 
@@ -119,7 +119,7 @@ namespace Chess.UI.Views
         {
             _viewModel.OnButtonClicked();
 
-            _viewModel.SelectPlayerColor(EngineAPI.PlayerColor.Black);
+            _viewModel.SelectPlayerColor(EngineAPI.Side.Black);
         }
 
 

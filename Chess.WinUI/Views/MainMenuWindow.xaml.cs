@@ -54,9 +54,11 @@ namespace Chess.UI
             var multiplayerViewModel = App.Current.Services.GetService<MultiplayerViewModel>();
             multiplayerViewModel.RequestNavigationToChessboard += () =>
             {
-                _ = Task.Run(async () => await _navigationService.NavigateToChessboardAsync(true));
+                _ = Task.Run(async () => await _navigationService.NavigateToChessboardAsync());
             };
-            multiplayerViewModel.RequestCloseChessboard += () => _navigationService.CloseChessboard();
+
+            // TODO
+            //multiplayerViewModel.RequestCloseChessboard += () => _navigationService.CloseChessboard();
         }
 
 

@@ -2,7 +2,7 @@
 using System;
 using System.Collections.Generic;
 using System.Linq;
-using static Chess.UI.Services.EngineAPI;
+
 
 namespace Chess.UI.Models
 {
@@ -12,7 +12,8 @@ namespace Chess.UI.Models
         List<string> MoveHistory { get; }
 
         // Methods
-        void RemoveLastMove();
+        void OnMoveExecuted(Move move, string notation);
+        void OnMoveUndone();
 
         // Events
         event Action MoveHistoryUpdated;
@@ -21,35 +22,30 @@ namespace Chess.UI.Models
 
     public class MoveHistoryModel : IMoveHistoryModel
     {
-        public List<string> MoveHistory { get; } = new();
+        private static readonly List<string> list = new();
+
+        public List<string> MoveHistory { get; } = list;
 
 
         public MoveHistoryModel()
         {
             var logicCommunication = App.Current.ChessLogicCommunication as CommunicationLayer;
-            logicCommunication.MoveHistoryUpdated += UpdateMoveHistory;
+            logicCommunication.MoveExecuted += OnMoveExecuted;
+            logicCommunication.MoveUndone += OnMoveUndone;
         }
 
 
-        private void UpdateMoveHistory(MoveHistoryEvent moveHistoryEvent)
+        public void OnMoveExecuted(Move move, string notation)
         {
-            if (moveHistoryEvent.added)
-            {
-                string moveNotation = moveHistoryEvent.moveNotation;
-                MoveHistory.Add(moveNotation);
-            }
-            else
-            {
-                MoveHistory.Clear();
-            }
-
+            MoveHistory.Add(notation);
             MoveHistoryUpdated?.Invoke();
         }
 
 
-        public void RemoveLastMove()
+        public void OnMoveUndone()
         {
             MoveHistory.Remove(MoveHistory.LastOrDefault());
+            MoveHistoryUpdated?.Invoke();
         }
 
 

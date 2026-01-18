@@ -36,14 +36,14 @@
                     Name="CPUGame"
                     Height="40"
                     Margin="12"
-                    Click="CPUGame_Click"
-                    Content="Player vs CPU" />
+                    Click="OnSinglePlayerClicked"
+                    Content="Single Player" />
                 <Button
                     Name="CoopGame"
                     Height="40"
                     Margin="12"
-                    Click="CoopGame_Click"
-                    Content="Player vs Player" />
+                    Click="OnLocalCoopClicked"
+                    Content="Local COOP" />
             </StackPanel>
 
             <Border Height="110" />
@@ -156,15 +156,15 @@
                     <ColumnDefinition Width="Auto" />
                 </Grid.ColumnDefinitions>
 
+                <!--TODO: Implement clicked -> start game -->
                 <Button
                     Name="StartCPUGameButton"
                     Grid.Column="0"
                     Width="200"
                     HorizontalAlignment="Center"
                     VerticalAlignment="Top"
-                    Click="StartCPUGameButton_Click"
                     Content="Start Game"
-                    Visibility="{x:Bind converter:Converter.BoolToVisibility(_viewModel.CanStartSinglePlayerGame), Mode=OneWay}" />
+                    Visibility="{x:Bind converter:Converter.BoolToVisibility(_viewModel.PlayerConfigVisible), Mode=OneWay}" />
 
                 <Button
                     Name="DifficultyReturnButton"

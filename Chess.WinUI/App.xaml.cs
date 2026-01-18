@@ -1,6 +1,5 @@
 ﻿using Chess.UI.Audio.Core;
 using Chess.UI.Audio.Services;
-using Chess.UI.Coordinates;
 using Chess.UI.Models;
 using Chess.UI.Services;
 using Chess.UI.Settings;
@@ -62,12 +61,10 @@ namespace Chess.UI
 
             services.AddSingleton<IDispatcherQueueWrapper, DispatcherQueueWrapper>();
 
-            services.AddSingleton<IChessCoordinate, ChessCoordinate>();
             services.AddSingleton<IStyleManager, StyleManager>();
             services.AddSingleton<IImageService, ImageServices>();
             services.AddSingleton<INavigationService, NavigationService>();
-            services.AddSingleton<IGameConfigurationService, GameConfigurationService>();
-            services.AddSingleton<IGameConfigurationBuilder, GameConfigurationBuilder>();
+            services.AddSingleton<IChessGameService, ChessGameService>();
             services.AddSingleton<IWindowSizeService, WindowSizeService>();
 
             services.AddSingleton<IMoveModel, MoveModel>();
@@ -77,7 +74,8 @@ namespace Chess.UI
             services.AddSingleton<IMultiplayerModel, MultiplayerModel>();
             services.AddSingleton<IMultiplayerPreferencesModel, MultiplayerPreferencesModel>();
 
-            // Register view models
+            // Register view models            
+            services.AddSingleton<GameWindowViewModel>();
             services.AddSingleton<ChessBoardViewModel>();
             services.AddSingleton<ScoreViewModel>();
             services.AddSingleton<MoveHistoryViewModel>();
@@ -87,7 +85,7 @@ namespace Chess.UI
             services.AddSingleton<MultiplayerPreferencesViewModel>();
             services.AddSingleton<AudioPreferencesViewModel>();
             services.AddSingleton<GameSetupViewModel>();
-
+            
             services.AddTransient<MainMenuWindow>();
             services.AddTransient<ChessBoardWindow>();
             services.AddTransient<MultiplayerWindow>();

@@ -83,7 +83,7 @@ namespace Chess.UI.Settings
 
         public BoardStyleInfo GetCurrentSelectedBoardTheme()
         {
-            string currentThemeName = Settings.Settings.CurrentBoardTheme;
+            string currentThemeName = Settings.CurrentBoardTheme;
             BoardStyleInfo theme = BoardThemes.FirstOrDefault(b => string.Equals(b.Name, currentThemeName, StringComparison.OrdinalIgnoreCase));
             return theme;
         }
@@ -91,7 +91,7 @@ namespace Chess.UI.Settings
 
         public PieceStyleInfo GetCurrentSelectedPieceTheme()
         {
-            string currentThemeName = Settings.Settings.CurrentPieceTheme;
+            string currentThemeName = Settings.CurrentPieceTheme;
             PieceStyleInfo theme = PieceThemes.FirstOrDefault(p => string.Equals(p.Name, currentThemeName, StringComparison.OrdinalIgnoreCase));
             return theme;
         }
@@ -108,7 +108,7 @@ namespace Chess.UI.Settings
                     _selectedBoardTheme = value;
 
                     if (value != null)
-                        Settings.Settings.CurrentBoardTheme = value.Name;
+                        Settings.CurrentBoardTheme = value.Name;
 
                     OnPropertyChanged();
 
@@ -133,7 +133,7 @@ namespace Chess.UI.Settings
                 {
                     _selectedPieceTheme = value;
                     if (value != null)
-                        Settings.Settings.CurrentPieceTheme = value.Name;
+                        Settings.CurrentPieceTheme = value.Name;
 
                     OnPropertyChanged();
 

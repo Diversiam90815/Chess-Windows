@@ -50,7 +50,6 @@ namespace Chess.UI.ViewModels
 
         public void RemoveLastMove()
         {
-            Model.RemoveLastMove();
             OnHandleMoveHistoryUpdated();
         }
 

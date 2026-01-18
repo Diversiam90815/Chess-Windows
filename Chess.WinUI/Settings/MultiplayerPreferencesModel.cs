@@ -118,7 +118,7 @@ namespace Chess.UI.Settings
 
         public int GetSelectedNetworkAdapterID()
         {
-            return EngineAPI.GetSavedAdapterID();
+            return EngineAPI.GetCurrentNetworkAdapterID();
         }
 
 
