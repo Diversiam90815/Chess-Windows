@@ -27,10 +27,10 @@
                 VerticalAlignment="Top"
                 XYFocusKeyboardNavigation="Enabled">
                 <Grid.Background>
-                    <ImageBrush ImageSource="{x:Bind _viewModel.BoardBackgroundImage, Mode=OneWay}" />
+                    <ImageBrush ImageSource="{x:Bind _viewModel.ChessBoardViewModel.BoardBackgroundImage, Mode=OneWay}" />
                 </Grid.Background>
 
-                <ItemsRepeater x:Name="ChessBoardRepeater" ItemsSource="{x:Bind _viewModel.Board, Mode=TwoWay}">
+                <ItemsRepeater x:Name="ChessBoardRepeater" ItemsSource="{x:Bind _viewModel.ChessBoardViewModel.Board, Mode=TwoWay}">
                     <ItemsRepeater.Layout>
                         <UniformGridLayout
                             MaximumRowsOrColumns="8"
@@ -78,7 +78,7 @@
                             FontSize="24"
                             Text="Current Player"
                             TextAlignment="Center" />
-                        <Image Source="{x:Bind converter:Converter.PlayerToPawnImage(_viewModel.CurrentPlayer), Mode=OneWay}" Style="{StaticResource CurrentPlayerImageStyle}" />
+                        <Image Source="{x:Bind converter:Converter.PlayerToPawnImage(_viewModel.ChessBoardViewModel.CurrentPlayer), Mode=OneWay}" Style="{StaticResource CurrentPlayerImageStyle}" />
                     </StackPanel>
 
 
@@ -97,13 +97,13 @@
                             FontSize="24"
                             Text="Local Player"
                             TextAlignment="Center" />
-                        <Image Source="{x:Bind converter:Converter.PlayerToPawnImage(_viewModel.MultiplayerViewModel.LocalPlayer), Mode=OneWay}" Style="{StaticResource CurrentPlayerImageStyle}" />
+                        <Image Source="{x:Bind converter:Converter.PlayerToPawnImage(_viewModel.MultiplayerInfoViewModel.LocalPlayer), Mode=OneWay}" Style="{StaticResource CurrentPlayerImageStyle}" />
                         <Ellipse
                             Width="10"
                             Height="10"
                             Margin="8,0,0,0"
                             VerticalAlignment="Center"
-                            Fill="{x:Bind converter:Converter.BoolToColor(_viewModel.MultiplayerViewModel.IsLocalPlayersTurn), Mode=OneWay}" />
+                            Fill="{x:Bind converter:Converter.BoolToColor(_viewModel.MultiplayerInfoViewModel.IsLocalPlayersTurn), Mode=OneWay}" />
                     </StackPanel>
 
                     <Grid
