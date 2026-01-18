@@ -20,66 +20,56 @@ namespace Chess.UI.ViewModels
         public event PropertyChangedEventHandler PropertyChanged;
 
         private readonly IDispatcherQueueWrapper _dispatcherQueue;
+        private readonly IStyleManager _styleManager;
+        private readonly IMoveModel _moveModel;
+        private readonly IBoardModel _boardModel;
+        private readonly IImageService _imageServices;
+        private readonly IChessGameService _gameService;
 
         public event Action ButtonClicked;
         public event Action SquareClicked;
-
-        public ObservableCollection<BoardSquare> Board { get; set; }
-
         public event Func<EndGameState, Side, Task> ShowEndGameDialog;
-
         public event Func<Task<PieceType?>> ShowPawnPromotionDialogRequested;
 
-        public ScoreViewModel ScoreViewModel { get; }
-
-        public MoveHistoryViewModel MoveHistoryViewModel { get; set; }
-
-        public MultiplayerViewModel MultiplayerViewModel { get; }
-
-        private readonly IStyleManager _styleManager;
-
-        private readonly IMoveModel _moveModel;
-
-        private readonly IBoardModel _boardModel;
-
-        private readonly IImageService _imageServices;
+        public ObservableCollection<BoardSquare> Board { get; set; }
 
         public BoardStyle CurrentBoardStyle;
 
 
-        public ChessBoardViewModel(IDispatcherQueueWrapper dispatcherQueue)
+        public ChessBoardViewModel(IDispatcherQueueWrapper dispatcherQueue, IChessGameService gameService, IStyleManager styleManager, IMoveModel moveModel, IBoardModel boardModel, IImageService imageServices)
         {
             _dispatcherQueue = dispatcherQueue;
+            _gameService = gameService;
+            _styleManager = styleManager;
+            _moveModel = moveModel;
+            _boardModel = boardModel;
+            _imageServices = imageServices;
 
-            MoveHistoryViewModel = App.Current.Services.GetService<MoveHistoryViewModel>();
-            ScoreViewModel = App.Current.Services.GetService<ScoreViewModel>();
-            _moveModel = App.Current.Services.GetService<IMoveModel>();
-            _boardModel = App.Current.Services.GetService<IBoardModel>();
-            _imageServices = App.Current.Services.GetService<IImageService>();
-            _styleManager = App.Current.Services.GetService<IStyleManager>();
-            MultiplayerViewModel = App.Current.Services.GetService<MultiplayerViewModel>();
+            // Subscribe to game service events
+            _gameService.GameStarted += OnGameStarted;
+            _gameService.GameEnded += OnGameEnded;
+            _gameService.GameReset += OnGameReset;
 
+            // Subscribe to move model events
             _moveModel.LegalMovesCalculated += OnHighlightLegalMoves;
             _moveModel.PlayerChanged += OnHandlePlayerChanged;
             _moveModel.GameStateInitSucceeded += OnGameStateInitSucceeded;
             _moveModel.GameOverEvent += OnEndGameState;
             _moveModel.NewBoardFromBackendEvent += OnBoardFromBackendUpdated;
-
-            _styleManager.PropertyChanged += OnThemeManagerPropertyChanged;
-
             _moveModel.PawnPromotionEvent += OnPromotionPiece;
 
-            this.CurrentBoardStyle = _styleManager.CurrentBoardStyle;
+            // Subscribe to style manager events
+            _styleManager.PropertyChanged += OnThemeManagerPropertyChanged;
 
-            Board = [];
+            CurrentBoardStyle = _styleManager.CurrentBoardStyle;
 
+            Board = new ObservableCollection<BoardSquare>();
             InitializeEmptyBoard();
         }
 
 
-        /// <summary>
-        /// Initializes an empty 64-square board in display order
-        /// </summary>
+        #region Board initialization and updates
+
         private void InitializeEmptyBoard()
         {
             Board.Clear();
@@ -164,43 +154,93 @@ namespace Chess.UI.ViewModels
         }
 
 
-        /// <summary>
-        /// Converts display coordinates (x, y) to Square
-        /// </summary>
-        private Square GetSquareFromDisplayCoordinates(int x, int y)
+        #endregion
+
+
+        #region Event Handlers
+
+        private void OnGameStarted()
         {
-            return SquareExtension.FromDisplayCoordinates(x, y);
+            Logger.LogInfo("ChessBoardViewModel: Game started");
+        }
+
+
+        private void OnGameEnded()
+        {
+            Logger.LogInfo("ChessBoardViewModel: Game ended");
+            ResetHighlightsOnBoard();
+        }
+
+
+        private void OnGameReset()
+        {
+            Logger.LogInfo("ChessBoardViewModel: Game reset");
+            InitializeEmptyBoard();
+        }
+
+
+        private void OnGameStateInitSucceeded()
+        {
+            Logger.LogInfo("ChessBoardViewModel: Game state initialized");
+            InitializeBoardFromNative();
         }
 
 
         private void OnBoardFromBackendUpdated()
         {
-            _dispatcherQueue.TryEnqueue(() =>
+            Logger.LogInfo("ChessBoardViewModel: Board updated from backend");
+            UpdateBoardFromNative();
+        }
+
+
+        private void OnHighlightLegalMoves()
+        {
+            Logger.LogInfo($"ChessBoardViewModel: Highlighting {_moveModel.LegalMoves.Count} legal moves");
+
+            ResetHighlightsOnBoard();
+
+            foreach (var move in _moveModel.LegalMoves)
             {
-                UpdateBoardFromNative();
-            });
+                Square targetSquare = move.To;
+                int displayIndex = GetDisplayIndex(targetSquare);
+
+                if (displayIndex >= 0 && displayIndex < Board.Count)
+                {
+                    Board[displayIndex].IsHighlighted = true;
+                }
+            }
         }
 
 
-        public void ResetGame()
+        private async void OnPromotionPiece()
         {
-            EngineAPI.ResetGame();
+            Logger.LogInfo("ChessBoardViewModel: Pawn promotion required");
 
-            InitializeEmptyBoard();
-            ScoreViewModel.ReinitScoreValues();
+            var promotionPiece = await RequestPawnPromotionAsync();
+
+            if (promotionPiece.HasValue)
+            {
+                _moveModel.SetPromotionPieceType(promotionPiece.Value);
+            }
+            else
+            {
+                Logger.LogWarning("Pawn promotion cancelled");
+                ResetHighlightsOnBoard();
+            }
         }
 
 
-        public void StartGame(GameConfiguration config)
+        private void OnHandlePlayerChanged(Side player)
         {
-            EngineAPI.StartGame(config);  // Start the game and thus the StateMachine
+            Logger.LogInfo($"ChessBoardViewModel: Player changed to {player}");
+            CurrentPlayer = player;
         }
 
 
-        public void OnGameStateInitSucceeded()
+        private void OnEndGameState(EndGameState state, Side winner)
         {
-            // Once the board is ready calculated, we load it from native
-            InitializeBoardFromNative();
+            Logger.LogInfo($"ChessBoardViewModel: Game ended - State={state}, Winner={winner}");
+            ShowEndGameDialog?.Invoke(state, winner);
         }
 
 
@@ -216,62 +256,30 @@ namespace Chess.UI.ViewModels
         private void UpdateBoardTheme(BoardStyle boardTheme)
         {
             CurrentBoardStyle = boardTheme;
+            OnPropertyChanged(nameof(BoardBackgroundImage));
         }
 
 
-        private async void OnPromotionPiece()
-        {
-            var promotionPiece = await RequestPawnPromotionAsync();
-            if (promotionPiece.HasValue)
-            {
-                _moveModel.SetPromotionPieceType(promotionPiece.Value);
-            }
-            else
-            {
-                // Pawn Promotion has been cancelled
-                ResetHighlightsOnBoard();
-            }
-        }
+        #endregion
 
+
+        #region User Actions
 
         public void HandleSquareClick(BoardSquare square)
         {
             Square engineSquare = square.Position;
+            Logger.LogInfo($"Square {engineSquare.ToAlgebraic()} clicked");
 
-            Logger.LogInfo($"Square {engineSquare.ToAlgebraic()} (index {(int)engineSquare}) clicked!");
-
-            // Send the square index directly to the engine
             EngineAPI.OnSquareSelected((int)engineSquare);
         }
 
 
-        public void OnHighlightLegalMoves()
+        public void UndoLastMove()
         {
-            ResetHighlightsOnBoard();
+            Logger.LogInfo("ChessBoardViewModel: Undo last move");
 
-            foreach (var move in _moveModel.LegalMoves)
-            {
-                // Assuming LegalMoves now contains Move objects with Square properties
-                Square targetSquare = move.To;
-                int displayIndex = GetDisplayIndex(targetSquare);
-
-                if (displayIndex >= 0 && displayIndex < Board.Count)
-                {
-                    Board[displayIndex].IsHighlighted = true;
-                }
-            }
-        }
-
-
-        public void OnButtonClicked()
-        {
-            ButtonClicked?.Invoke();
-        }
-
-
-        public void OnSquareClicked()
-        {
-            SquareClicked?.Invoke();
+            EngineAPI.UndoMove();
+            UpdateBoardFromNative();
         }
 
 
@@ -281,14 +289,6 @@ namespace Chess.UI.ViewModels
             {
                 square.IsHighlighted = false;
             }
-        }
-
-
-        public void UndoLastMove()
-        {
-            EngineAPI.UndoMove();
-            UpdateBoardFromNative();
-            MoveHistoryViewModel.RemoveLastMove();
         }
 
 
@@ -302,17 +302,14 @@ namespace Chess.UI.ViewModels
         }
 
 
-        private void OnEndGameState(EndGameState state, Side winner)
-        {
-            ShowEndGameDialog?.Invoke(state, winner);
-        }
+        public void OnButtonClicked() => ButtonClicked?.Invoke();
+        public void OnSquareClicked() => SquareClicked?.Invoke();
 
 
-        private void OnHandlePlayerChanged(Side player)
-        {
-            CurrentPlayer = player;
-        }
+        #endregion
 
+
+        #region Properties
 
         private Side _currentPlayer;
         public Side CurrentPlayer
@@ -320,7 +317,7 @@ namespace Chess.UI.ViewModels
             get => _currentPlayer;
             set
             {
-                if (value != _currentPlayer)
+                if (_currentPlayer != value)
                 {
                     _currentPlayer = value;
                     OnPropertyChanged();
@@ -329,42 +326,10 @@ namespace Chess.UI.ViewModels
         }
 
 
-        private bool _isMultiplayerGame;
-        public bool IsMultiplayerGame
-        {
-            get => _isMultiplayerGame;
-            set
-            {
-                if (value != _isMultiplayerGame)
-                {
-                    _isMultiplayerGame = value;
-                    OnPropertyChanged();
-                }
-            }
-        }
-
-        private bool _isKoopGame;
-        public bool IsKoopGame
-        {
-            get => _isKoopGame;
-            set
-            {
-                if (value != _isKoopGame)
-                {
-                    _isKoopGame = value;
-                    OnPropertyChanged();
-                }
-            }
-        }
+        public ImageSource BoardBackgroundImage => _imageServices.GetImage(CurrentBoardStyle);
 
 
-        public ImageSource BoardBackgroundImage
-        {
-            get
-            {
-                return _imageServices.GetImage(CurrentBoardStyle);
-            }
-        }
+        #endregion
 
 
         protected void OnPropertyChanged([CallerMemberName] string name = null)
