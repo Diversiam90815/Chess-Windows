@@ -10,7 +10,7 @@ using Chess.UI.Styles;
 using Chess.UI.Board;
 using Chess.UI.Wrappers;
 using Microsoft.Extensions.DependencyInjection;
-using Chess.UI.Moves;
+using Chess.UI.Models;
 
 
 namespace Chess.UI.ViewModels

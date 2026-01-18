@@ -1,6 +1,6 @@
 ﻿using Chess.UI.Audio.Core;
 using Chess.UI.Audio.Modules;
-using Chess.UI.Moves;
+using Chess.UI.Models;
 using Chess.UI.Services;
 using Chess.UI.Settings;
 using Chess.UI.ViewModels;
@@ -56,11 +56,11 @@ namespace Chess.UI.Audio.Services
             chessboardVM.ButtonClicked += () => _ = Task.Run(async () => await HandleUIInteractionAsync(UIInteraction.ButtonClick));
 
             var moveModel = App.Current.Services.GetService<IMoveModel>();
-            moveModel.GameOverEvent += (EndGameState state, PlayerColor player) => _ = Task.Run(async () => await HandleEndGameStateAsync(state));
+            moveModel.GameOverEvent += (EndGameState state, Side player) => _ = Task.Run(async () => await HandleEndGameStateAsync(state));
             moveModel.ChesspieceSelected += () => _ = Task.Run(async () => await HandleUIInteractionAsync(UIInteraction.PieceSelect));
 
             var backendCom = App.Current.ChessLogicCommunication;
-            backendCom.MoveExecuted += (PossibleMoveInstance move) => _ = Task.Run(async () => await HandleMoveAsync(move));
+            backendCom.MoveExecuted += (Move move) => _ = Task.Run(async () => await HandleMoveAsync(move));
 
             var themePreferences = App.Current.Services.GetService<StylesPreferencesViewModel>();
             themePreferences.ItemSelected += () => _ = Task.Run(async () => await HandleUIInteractionAsync(UIInteraction.ItemSelected));

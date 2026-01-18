@@ -2,9 +2,9 @@
 using System.ComponentModel;
 using System.Runtime.CompilerServices;
 using static Chess.UI.Services.EngineAPI;
-using Chess.UI.Score;
 using Chess.UI.Wrappers;
 using Chess.UI.Services;
+using Chess.UI.Models;
 
 
 namespace Chess.UI.ViewModels

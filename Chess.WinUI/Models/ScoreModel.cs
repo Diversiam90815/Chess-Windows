@@ -4,7 +4,7 @@ using System.Collections.Generic;
 using static Chess.UI.Services.EngineAPI;
 
 
-namespace Chess.UI.Score
+namespace Chess.UI.Models
 {
     public interface IScoreModel
     {

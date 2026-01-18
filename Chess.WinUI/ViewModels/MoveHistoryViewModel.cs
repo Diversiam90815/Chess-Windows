@@ -1,4 +1,4 @@
-﻿using Chess.UI.Moves;
+﻿using Chess.UI.Models;
 using Chess.UI.Wrappers;
 using System.Collections.ObjectModel;
 using System.Linq;

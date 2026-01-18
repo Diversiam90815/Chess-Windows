@@ -24,7 +24,6 @@ namespace Chess.UI.ViewModels
         private readonly IDispatcherQueueWrapper _dispatcherQueue;
         private readonly IImageService _imageServices;
         private readonly INavigationService _navigationService;
-        private readonly IGameConfigurationService _gameConfigurationService;
 
         private Window _ownerWindow;
 
@@ -32,13 +31,11 @@ namespace Chess.UI.ViewModels
         public MainMenuViewModel(
           IDispatcherQueueWrapper dispatcher,
           IImageService imageServices,
-          INavigationService navigationService,
-          IGameConfigurationService gameConfigurationService)
+          INavigationService navigationService)
         {
             _dispatcherQueue = dispatcher;
             _imageServices = imageServices;
             _navigationService = navigationService;
-            _gameConfigurationService = gameConfigurationService;
 
             Init();
         }

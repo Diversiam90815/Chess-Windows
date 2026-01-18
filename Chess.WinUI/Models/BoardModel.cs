@@ -1,9 +1,10 @@
-﻿using Chess.UI.Services;
+﻿using Chess.UI.Board;
+using Chess.UI.Services;
 using System.Collections.Generic;
 using static Chess.UI.Services.EngineAPI;
 
 
-namespace Chess.UI.Board
+namespace Chess.UI.Models
 {
     public interface IBoardModel
     {
