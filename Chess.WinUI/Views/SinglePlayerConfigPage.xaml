@@ -38,7 +38,7 @@
                         Width="70"
                         Height="70"
                         BorderBrush="Green"
-                        BorderThickness="{Binding PlayerColor, Converter={StaticResource SideToBorderThicknessConverter}, ConverterParameter='white'}"
+                        BorderThickness="{x:Bind _viewModel.PlayerColor, Converter={StaticResource SideToBorderThicknessConverter}, ConverterParameter='white'}"
                         Click="SelectWhiteButton_Click">
                         <Image Source="ms-appx:///Assets/Pieces/Basic/WKing.png" Stretch="Uniform" />
                     </Button>
@@ -48,7 +48,7 @@
                         Width="70"
                         Height="70"
                         BorderBrush="Green"
-                        BorderThickness="{Binding PlayerColor, Converter={StaticResource SideToBorderThicknessConverter}, ConverterParameter='black'}"
+                        BorderThickness="{x:Bind _viewModel.PlayerColor, Converter={StaticResource SideToBorderThicknessConverter}, ConverterParameter='black'}"
                         Click="SelectBlackButton_Click">
                         <Image Source="ms-appx:///Assets/Pieces/Basic/BKing.png" Stretch="Uniform" />
                     </Button>
@@ -66,19 +66,19 @@
                     <Button
                         Name="EasyDifficultyButton"
                         BorderBrush="Green"
-                        BorderThickness="{Binding CPUDifficulty, Converter={StaticResource CPUDifficultyToBorderThicknessConverter}, ConverterParameter='easy'}"
+                        BorderThickness="{x:Bind _viewModel.CPUDifficulty, Mode=TwoWay, Converter={StaticResource CPUDifficultyToBorderThicknessConverter}, ConverterParameter='easy'}"
                         Click="EasyDifficultyButton_Click"
                         Content="Easy" />
                     <Button
                         Name="MediumDifficultyButton"
                         BorderBrush="Green"
-                        BorderThickness="{Binding CPUDifficulty, Converter={StaticResource CPUDifficultyToBorderThicknessConverter}, ConverterParameter='medium'}"
+                        BorderThickness="{x:Bind _viewModel.CPUDifficulty, Mode=TwoWay, Converter={StaticResource CPUDifficultyToBorderThicknessConverter}, ConverterParameter='medium'}"
                         Click="MediumDifficultyButton_Click"
                         Content="Medium" />
                     <Button
                         Name="HardDifficultyButton"
                         BorderBrush="Green"
-                        BorderThickness="{Binding CPUDifficulty, Converter={StaticResource CPUDifficultyToBorderThicknessConverter}, ConverterParameter='hard'}"
+                        BorderThickness="{x:Bind _viewModel.CPUDifficulty, Mode=TwoWay, Converter={StaticResource CPUDifficultyToBorderThicknessConverter}, ConverterParameter='hard'}"
                         Click="HardDifficultyButton_Click"
                         Content="Hard" />
                 </StackPanel>
