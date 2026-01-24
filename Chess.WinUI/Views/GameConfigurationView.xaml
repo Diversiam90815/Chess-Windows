@@ -12,171 +12,58 @@
 
     <Grid Name="Rootgrid">
         <Grid.RowDefinitions>
-            <RowDefinition Height="40" />
-            <RowDefinition Height="Auto" />
             <RowDefinition Height="*" />
-
+            <RowDefinition Height="Auto" />
         </Grid.RowDefinitions>
-        <!--  Select the game configuration : CPU vs Coop  -->
-        <StackPanel
-            Name="GameTypeSelection"
+
+        <NavigationView
+            x:Name="GameModeNavigationView"
+            Grid.Row="0"
+            Width="600"
+            Height="400"
+            AlwaysShowHeader="True"
+            Background="Transparent"
+            CornerRadius="8"
+            Header="Select Game Mode"
+            IsBackButtonVisible="Collapsed"
+            IsBackEnabled="False"
+            IsPaneToggleButtonVisible="False"
+            IsSettingsVisible="False"
+            OpenPaneLength="180"
+            PaneDisplayMode="Left"
+            SelectionChanged="OnNavigationSelectionChanged">
+
+            <NavigationView.MenuItems>
+                <NavigationViewItem Content="Local Co-op" Tag="LocalCoop">
+                    <NavigationViewItem.Icon>
+                        <FontIcon Glyph="&#xE716;" />
+                    </NavigationViewItem.Icon>
+                </NavigationViewItem>
+
+                <NavigationViewItem Content="Single Player" Tag="SinglePlayer">
+                    <NavigationViewItem.Icon>
+                        <FontIcon Glyph="&#xE77B;" />
+                    </NavigationViewItem.Icon>
+                </NavigationViewItem>
+
+                <NavigationViewItem Content="Multiplayer" Tag="Multiplayer">
+                    <NavigationViewItem.Icon>
+                        <FontIcon Glyph="&#xE8F4;" />
+                    </NavigationViewItem.Icon>
+                </NavigationViewItem>
+            </NavigationView.MenuItems>
+
+            <Frame x:Name="ContentFrame" CornerRadius="8" />
+        </NavigationView>
+
+        <Button
             Grid.Row="1"
             Margin="12"
-            HorizontalAlignment="Stretch"
-            VerticalAlignment="Center"
-            Orientation="Vertical"
-            Visibility="{x:Bind converter:Converter.BoolToVisibility(_viewModel.PlayerConfigVisible), Mode=OneWay}">
-
-            <StackPanel
-                HorizontalAlignment="Center"
-                VerticalAlignment="Center"
-                Orientation="Horizontal"
-                Spacing="16">
-                <Button
-                    Name="CPUGame"
-                    Height="40"
-                    Margin="12"
-                    Click="OnSinglePlayerClicked"
-                    Content="Single Player" />
-                <Button
-                    Name="CoopGame"
-                    Height="40"
-                    Margin="12"
-                    Click="OnLocalCoopClicked"
-                    Content="Local COOP" />
-            </StackPanel>
-
-            <Border Height="110" />
-
-            <Button
-                Name="PlayerReturnButton"
-                Grid.Row="2"
-                HorizontalAlignment="Right"
-                Click="PlayerReturnButton_Click"
-                Style="{ThemeResource PreferencesButtonStyle}">
-                <FontIcon Glyph="&#xEB97;" />
-            </Button>
-
-        </StackPanel>
-
-
-        <!--  Adjust the cpu configuration : Your player color and CPU Difficulty  -->
-        <StackPanel
-            Name="CPUConfiguration"
-            Grid.Row="1"
-            Margin="12"
-            HorizontalAlignment="Stretch"
-            VerticalAlignment="Center"
-            Orientation="Vertical"
-            Spacing="8"
-            Visibility="{x:Bind converter:Converter.BoolToVisibility(_viewModel.CPUConfigVisible), Mode=OneWay}">
-
-            <StackPanel
-                Name="PlayerSelection"
-                HorizontalAlignment="Center"
-                Orientation="Vertical"
-                Spacing="12">
-                <TextBlock HorizontalAlignment="Center" Text="Play as" />
-
-                <StackPanel
-                    Name="PlayerColorSelectionButtons"
-                    Orientation="Horizontal"
-                    Spacing="16">
-
-                    <!--  White King Button  -->
-                    <StackPanel>
-                        <Button
-                            Name="SelectWhiteButton"
-                            Width="70"
-                            Height="70"
-                            BorderBrush="Green"
-                            BorderThickness="{x:Bind converter:Converter.PlayerToWhiteBorderThickness(_viewModel.PlayerColor), Mode=OneWay}"
-                            Click="SelectWhiteButton_Click">
-                            <Image Source="ms-appx:///Assets/Pieces/Basic/KingW.png" Stretch="Uniform" />
-                        </Button>
-
-                    </StackPanel>
-
-                    <!--  Black King Button  -->
-                    <StackPanel>
-
-                        <Button
-                            Name="SelectBlackButton"
-                            Width="70"
-                            Height="70"
-                            BorderBrush="Green"
-                            BorderThickness="{x:Bind converter:Converter.PlayerToBlackBorderThickness(_viewModel.PlayerColor), Mode=OneWay}"
-                            Click="SelectBlackButton_Click">
-                            <Image Source="ms-appx:///Assets/Pieces/Basic/KingB.png" Stretch="Uniform" />
-                        </Button>
-                    </StackPanel>
-
-                </StackPanel>
-            </StackPanel>
-
-            <StackPanel
-                Name="DifficultySelection"
-                Margin="16"
-                HorizontalAlignment="Stretch"
-                VerticalAlignment="Center"
-                Orientation="Vertical"
-                Spacing="12">
-                <TextBlock HorizontalAlignment="Center" Text="Choose CPU Difficulty" />
-
-                <StackPanel
-                    Name="DifficultySelectionButtons"
-                    HorizontalAlignment="Center"
-                    Orientation="Horizontal"
-                    Spacing="12">
-                    <Button
-                        Name="EasyDifficultyButton"
-                        BorderBrush="Green"
-                        BorderThickness="{x:Bind converter:Converter.CpuDifficultyToEasyBorderThickness(_viewModel.CPUDifficulty), Mode=OneWay}"
-                        Click="EasyDifficultyButton_Click"
-                        Content="Easy" />
-                    <Button
-                        Name="MediumDifficultyButton"
-                        BorderBrush="Green"
-                        BorderThickness="{x:Bind converter:Converter.CpuDifficultyToMediumBorderThickness(_viewModel.CPUDifficulty), Mode=OneWay}"
-                        Click="MediumDifficultyButton_Click"
-                        Content="Medium" />
-                    <Button
-                        Name="HardDifficultyButton"
-                        BorderBrush="Green"
-                        BorderThickness="{x:Bind converter:Converter.CpuDifficultyToHardBorderThickness(_viewModel.CPUDifficulty), Mode=OneWay}"
-                        Click="HardDifficultyButton_Click"
-                        Content="Hard" />
-                </StackPanel>
-
-            </StackPanel>
-
-            <Grid Name="Buttons">
-                <Grid.ColumnDefinitions>
-                    <ColumnDefinition Width="*" />
-                    <ColumnDefinition Width="Auto" />
-                </Grid.ColumnDefinitions>
-
-                <!--TODO: Implement clicked -> start game -->
-                <Button
-                    Name="StartCPUGameButton"
-                    Grid.Column="0"
-                    Width="200"
-                    HorizontalAlignment="Center"
-                    VerticalAlignment="Top"
-                    Content="Start Game"
-                    Visibility="{x:Bind converter:Converter.BoolToVisibility(_viewModel.PlayerConfigVisible), Mode=OneWay}" />
-
-                <Button
-                    Name="DifficultyReturnButton"
-                    Grid.Column="1"
-                    HorizontalAlignment="Right"
-                    Click="DifficultyReturnButton_Click"
-                    Style="{ThemeResource PreferencesButtonStyle}">
-                    <FontIcon Glyph="&#xEB97;" />
-                </Button>
-
-            </Grid>
-
-        </StackPanel>
+            HorizontalAlignment="Right"
+            Click="ReturnButton_Click"
+            Style="{ThemeResource PreferencesButtonStyle}">
+            <FontIcon Glyph="&#xEB97;" />
+        </Button>
     </Grid>
+
 </Window>

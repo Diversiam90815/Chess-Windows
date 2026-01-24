@@ -79,6 +79,11 @@
 		</None>
 	</ItemGroup>
 	<ItemGroup>
+	  <None Remove="Views\LocalCoopConfigPage.xaml" />
+	  <None Remove="Views\MultiplayerConfigPage.xaml" />
+	  <None Remove="Views\SinglePlayerConfigPage.xaml" />
+	</ItemGroup>
+	<ItemGroup>
 	  <ProjectReference Include="..\..\Chess.Engine\build\x64\src\Chess.Engine.API\Chess.Engine.API.vcxproj" />
 	</ItemGroup>
 	<ItemGroup>
@@ -93,6 +98,21 @@
 	    <Generator>ResXFileCodeGenerator</Generator>
 	    <LastGenOutput>Resources.Designer.cs</LastGenOutput>
 	  </EmbeddedResource>
+	</ItemGroup>
+	<ItemGroup>
+	  <Page Update="Views\MultiplayerConfigPage.xaml">
+	    <Generator>MSBuild:Compile</Generator>
+	  </Page>
+	</ItemGroup>
+	<ItemGroup>
+	  <Page Update="Views\SinglePlayerConfigPage.xaml">
+	    <Generator>MSBuild:Compile</Generator>
+	  </Page>
+	</ItemGroup>
+	<ItemGroup>
+	  <Page Update="Views\LocalCoopConfigPage.xaml">
+	    <Generator>MSBuild:Compile</Generator>
+	  </Page>
 	</ItemGroup>
 
 

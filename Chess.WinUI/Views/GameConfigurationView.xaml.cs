@@ -13,136 +13,55 @@ namespace Chess.UI.Views
         private readonly IWindowSizeService _windowSizeService;
         private readonly GameSetupViewModel _viewModel;
 
-
         public GameConfigurationView()
         {
             InitializeComponent();
 
             _windowSizeService = App.Current.Services.GetService<IWindowSizeService>();
-            _windowSizeService.SetWindowSize(this, 500, 350);
+            _windowSizeService.SetWindowSize(this, 650, 500);
             _windowSizeService.SetWindowNonResizable(this);
 
             _viewModel = App.Current.Services.GetService<GameSetupViewModel>();
-        }
+            Rootgrid.DataContext = _viewModel;
 
-
-        private async void OnSinglePlayerClicked(object sender, RoutedEventArgs e)
-        {
-            try
+            // Set default navigation item
+            if (GameModeNavigationView.MenuItems.Count > 0)
             {
-                bool success = await _viewModel.StartSinglePlayerWithCurrentStateAsync();
-
-                if (!success)
-                    await ShowErrorDialogAsync("Failed to start single player game! Please try again!");
-            }
-            catch(Exception ex)
-            {
-                Logger.LogError($"Error starting single-player game: {ex.Message}");
-                await ShowErrorDialogAsync($"An error occured: {ex.Message}");
+                GameModeNavigationView.SelectedItem = GameModeNavigationView.MenuItems[0];
             }
         }
 
 
-        private async void OnMultiPlayerClicked(object sender, RoutedEventArgs e)
+        private void OnNavigationSelectionChanged(NavigationView sender, NavigationViewSelectionChangedEventArgs args)
         {
-            try
+            if (args.SelectedItemContainer != null)
             {
-                if (_viewModel.PlayerColor == EngineAPI.Side.None)
+                var tag = args.SelectedItemContainer.Tag?.ToString();
+
+                switch (tag)
                 {
-                    await ShowErrorDialogAsync("Please select your player color first.");
-                    return;
-                }
+                    case "LocalCoop":
+                        ContentFrame.Navigate(typeof(LocalCoopConfigPage), _viewModel);
+                        break;
 
-                bool success = await _viewModel.StartMultiplayerGameAsync(_viewModel.PlayerColor);
+                    case "SinglePlayer":
+                        ContentFrame.Navigate(typeof(SinglePlayerConfigPage), _viewModel);
+                        break;
 
-                if (!success)
-                    await ShowErrorDialogAsync("Failed to start multiplayer game. Please try again.");
-            }
-            catch (Exception ex)
-            {
-                Logger.LogError($"Error starting multiplayer game: {ex.Message}");
-                await ShowErrorDialogAsync($"An error occurred: {ex.Message}");
-            }
-        }
-
-
-        private async void OnLocalCoopClicked(object sender, RoutedEventArgs e)
-        {
-            try
-            {
-                bool success = await _viewModel.StartLocalCoopGameAsync();
-
-                if (!success)
-                {
-                    await ShowErrorDialogAsync("Failed to start local co-op game. Please try again.");
+                    case "Multiplayer":
+                        ContentFrame.Navigate(typeof(MultiplayerConfigPage), _viewModel);
+                        break;
                 }
             }
-            catch (Exception ex)
-            {
-                Logger.LogError($"Error starting local co-op game: {ex.Message}");
-                await ShowErrorDialogAsync($"An error occurred: {ex.Message}");
-            }
         }
 
 
-        #region Navigation Handlers
-
-        private void PlayerReturnButton_Click(object sender, RoutedEventArgs e)
+        private void ReturnButton_Click(object sender, RoutedEventArgs e)
         {
             _viewModel.Reset();
             this.Close();
         }
 
-
-        private void DifficultyReturnButton_Click(object sender, RoutedEventArgs e)
-        {
-            _viewModel.Reset();
-        }
-
-        #endregion
-
-
-        #region Player Color Selection Handlers
-
-        private void SelectWhiteButton_Click(object sender, RoutedEventArgs e)
-        {
-            _viewModel.PlayerColor = EngineAPI.Side.White;
-            Logger.LogInfo("Player selected White");
-        }
-
-
-        private void SelectBlackButton_Click(object sender, RoutedEventArgs e)
-        {
-            _viewModel.PlayerColor = EngineAPI.Side.Black;
-            Logger.LogInfo("Player selected Black");
-        }
-
-        #endregion
-
-
-        #region CPU Difficulty Selection Handlers
-
-        private void EasyDifficultyButton_Click(object sender, RoutedEventArgs e)
-        {
-            _viewModel.CPUDifficulty = EngineAPI.CPUDifficulty.Easy;
-            Logger.LogInfo("Easy difficulty selected");
-        }
-
-
-        private void MediumDifficultyButton_Click(object sender, RoutedEventArgs e)
-        {
-            _viewModel.CPUDifficulty = EngineAPI.CPUDifficulty.Medium;
-            Logger.LogInfo("Medium difficulty selected");
-        }
-
-
-        private void HardDifficultyButton_Click(object sender, RoutedEventArgs e)
-        {
-            _viewModel.CPUDifficulty = EngineAPI.CPUDifficulty.Hard;
-            Logger.LogInfo("Hard difficulty selected");
-        }
-
-        #endregion
 
 
         #region Helper Methods
