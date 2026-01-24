@@ -18,8 +18,6 @@ namespace Chess.UI.ViewModels
         
         // UI state
         void Reset();
-        bool PlayerConfigVisible { get; set; }
-        bool CPUConfigVisible { get; set; }
         Side PlayerColor { get; set; }
         CPUDifficulty CPUDifficulty { get; set; }
 
@@ -133,35 +131,6 @@ namespace Chess.UI.ViewModels
 
         #region UI State Properties
 
-        private bool _playerConfigVisible;
-        public bool PlayerConfigVisible
-        {
-            get => _playerConfigVisible;
-            set
-            {
-                if (_playerConfigVisible != value)
-                {
-                    _playerConfigVisible = value;
-                    OnPropertyChanged();
-                }
-            }
-        }
-
-
-        private bool _cpuConfigVisible;
-        public bool CPUConfigVisible
-        {
-            get => _cpuConfigVisible;
-            set
-            {
-                if (_cpuConfigVisible != value)
-                {
-                    _cpuConfigVisible = value;
-                    OnPropertyChanged();
-                }
-            }
-        }
-
 
         private Side _playerColor;
         public Side PlayerColor
@@ -173,13 +142,6 @@ namespace Chess.UI.ViewModels
                 {
                     _playerColor = value;
                     OnPropertyChanged();
-
-                    // When player selects a color, show CPU difficulty selection
-                    if (value != Side.None)
-                    {
-                        PlayerConfigVisible = false;
-                        CPUConfigVisible = true;
-                    }
                 }
             }
         }
@@ -205,8 +167,6 @@ namespace Chess.UI.ViewModels
         /// </summary>
         public void Reset()
         {
-            PlayerConfigVisible = true;
-            CPUConfigVisible = false;
             PlayerColor = Side.None;
             CPUDifficulty = CPUDifficulty.None;
         }

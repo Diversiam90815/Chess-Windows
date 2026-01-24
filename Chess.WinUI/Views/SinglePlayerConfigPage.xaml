@@ -5,10 +5,91 @@
     xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
     xmlns:local="using:Chess.UI.Views"
     xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
-    xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+    xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006" xmlns:converter="using:Chess.UI.UI"
     mc:Ignorable="d">
+    
+    <Page.Resources>
+        <converter:SideToBorderThicknessConverter x:Key="SideToBorderThicknessConverter"/>
+        <converter:CPUDifficultyToBorderThicknessConverter x:Key="CPUDifficultyToBorderThicknessConverter"/>
+    </Page.Resources>
+    
+    <Grid Padding="24">
+        <StackPanel
+            HorizontalAlignment="Center"
+            VerticalAlignment="Center"
+            Spacing="24">
 
-    <Grid>
+            <TextBlock
+                HorizontalAlignment="Center"
+                Style="{ThemeResource SubtitleTextBlockStyle}"
+                Text="Single Player Mode" />
 
+            <!--  Player Color Selection  -->
+            <StackPanel Spacing="12">
+                <TextBlock HorizontalAlignment="Center" Text="Play as" />
+
+                <StackPanel
+                    HorizontalAlignment="Center"
+                    Orientation="Horizontal"
+                    Spacing="16">
+
+                    <Button
+                        Name="SelectWhiteButton"
+                        Width="70"
+                        Height="70"
+                        BorderBrush="Green"
+                        BorderThickness="{Binding PlayerColor, Converter={StaticResource SideToBorderThicknessConverter}, ConverterParameter='white'}"
+                        Click="SelectWhiteButton_Click">
+                        <Image Source="ms-appx:///Assets/Pieces/Basic/WKing.png" Stretch="Uniform" />
+                    </Button>
+
+                    <Button
+                        Name="SelectBlackButton"
+                        Width="70"
+                        Height="70"
+                        BorderBrush="Green"
+                        BorderThickness="{Binding PlayerColor, Converter={StaticResource SideToBorderThicknessConverter}, ConverterParameter='black'}"
+                        Click="SelectBlackButton_Click">
+                        <Image Source="ms-appx:///Assets/Pieces/Basic/BKing.png" Stretch="Uniform" />
+                    </Button>
+                </StackPanel>
+            </StackPanel>
+
+            <!--  Difficulty Selection  -->
+            <StackPanel Spacing="12">
+                <TextBlock HorizontalAlignment="Center" Text="CPU Difficulty" />
+
+                <StackPanel
+                    HorizontalAlignment="Center"
+                    Orientation="Horizontal"
+                    Spacing="12">
+                    <Button
+                        Name="EasyDifficultyButton"
+                        BorderBrush="Green"
+                        BorderThickness="{Binding CPUDifficulty, Converter={StaticResource CPUDifficultyToBorderThicknessConverter}, ConverterParameter='easy'}"
+                        Click="EasyDifficultyButton_Click"
+                        Content="Easy" />
+                    <Button
+                        Name="MediumDifficultyButton"
+                        BorderBrush="Green"
+                        BorderThickness="{Binding CPUDifficulty, Converter={StaticResource CPUDifficultyToBorderThicknessConverter}, ConverterParameter='medium'}"
+                        Click="MediumDifficultyButton_Click"
+                        Content="Medium" />
+                    <Button
+                        Name="HardDifficultyButton"
+                        BorderBrush="Green"
+                        BorderThickness="{Binding CPUDifficulty, Converter={StaticResource CPUDifficultyToBorderThicknessConverter}, ConverterParameter='hard'}"
+                        Click="HardDifficultyButton_Click"
+                        Content="Hard" />
+                </StackPanel>
+            </StackPanel>
+
+            <Button
+                Name="StartSinglePlayerButton"
+                Width="200"
+                HorizontalAlignment="Center"
+                Click="StartSinglePlayerButton_Click"
+                Content="Start Game" />
+        </StackPanel>
     </Grid>
 </Page>

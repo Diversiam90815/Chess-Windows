@@ -5,10 +5,271 @@
     xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
     xmlns:local="using:Chess.UI.Views"
     xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
-    xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+    xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006" xmlns:converter="using:Chess.UI.UI"
     mc:Ignorable="d">
 
-    <Grid>
+    
+    <Grid Name="Rootgrid">
+
+        <StackPanel
+            Name="InitView"
+            Orientation="Vertical"
+            Spacing="8"
+            Visibility="{x:Bind _viewModel.InitView, Mode=OneWay}">
+
+            <!--  Title  -->
+            <TextBlock Style="{ThemeResource MPTitle}" Text="Multiplayer" />
+
+            <!--  Settings  -->
+            <StackPanel Margin="20,0" Orientation="Vertical">
+                <TextBlock Style="{ThemeResource MPSubTitle}" Text="Your local name has been set to " />
+                <TextBlock
+                    Margin="0,20"
+                    Style="{ThemeResource MPSubTitle}"
+                    Text="{x:Bind _viewModel.LocalPlayerName, Mode=OneWay}" />
+                <TextBlock
+                    Margin="20"
+                    HorizontalAlignment="Center"
+                    Style="{ThemeResource MPDesc}"
+                    Text="You can change your name and network in the Multiplayer tab in the settings" />
+            </StackPanel>
+
+            <ProgressRing Margin="16" IsActive="{x:Bind _viewModel.Processing, Mode=TwoWay}" />
+
+            <StackPanel
+                Height="40"
+                HorizontalAlignment="Center"
+                Orientation="Horizontal"
+                Spacing="12">
+                <Button
+                    Name="HostGameButton"
+                    Click="HostGameButton_Click"
+                    Content="Host a game"
+                    IsEnabled="{x:Bind _viewModel.HostGameButtonEnabled, Mode=TwoWay}"
+                    Style="{ThemeResource MPStartButtonStyle}" />
+                <Button
+                    Name="JoinGameButton"
+                    Click="JoinGameButton_Click"
+                    Content="Join a game"
+                    IsEnabled="{x:Bind _viewModel.ClientGameButtonEnabled, Mode=TwoWay}"
+                    Style="{ThemeResource MPStartButtonStyle}" />
+
+                <Button
+                    Name="ReturnButton"
+                    HorizontalAlignment="Center"
+                    Click="ReturnButton_Click"
+                    Style="{ThemeResource FontIconButtonStyle}">
+                    <FontIcon Glyph="&#xEB97;" />
+                </Button>
+
+            </StackPanel>
+
+        </StackPanel>
+
+
+        <StackPanel
+            Name="ClientRequestedConnectionView"
+            VerticalAlignment="Center"
+            Orientation="Vertical"
+            Spacing="32"
+            Visibility="{x:Bind _viewModel.ClientRequestedConnectionView, Mode=OneWay}">
+
+            <TextBlock
+                HorizontalAlignment="Center"
+                Style="{ThemeResource MPTitle}"
+                Text="{x:Bind _viewModel.RemotePlayerName, Mode=OneWay}" />
+            <TextBlock
+                HorizontalAlignment="Center"
+                Style="{ThemeResource MPSubTitle}"
+                Text="wants to join." />
+            <TextBlock
+                HorizontalAlignment="Center"
+                Style="{ThemeResource MPSubTitle}"
+                Text="Accept this request?" />
+
+            <StackPanel
+                HorizontalAlignment="Center"
+                Orientation="Horizontal"
+                Spacing="16">
+                <Button
+                    Name="HostAcceptButton"
+                    Click="HostAcceptButton_Click"
+                    Style="{ThemeResource FontIconButtonStyle}">
+                    <FontIcon Glyph="&#xE8FB;" />
+                </Button>
+                <Button
+                    Name="HostDeclineButton"
+                    Click="HostDeclineButton_Click"
+                    Style="{ThemeResource FontIconButtonStyle}">
+                    <FontIcon Glyph="&#xE711;" />
+                </Button>
+            </StackPanel>
+        </StackPanel>
+
+
+        <StackPanel
+            Name="ClientFoundHostView"
+            VerticalAlignment="Center"
+            Orientation="Vertical"
+            Spacing="32"
+            Visibility="{x:Bind _viewModel.ClientFoundHostView, Mode=TwoWay}">
+
+            <TextBlock
+                HorizontalAlignment="Center"
+                Style="{ThemeResource MPSubTitle}"
+                Text="Found" />
+            <TextBlock
+                HorizontalAlignment="Center"
+                Style="{ThemeResource MPTitle}"
+                Text="{x:Bind _viewModel.RemotePlayerName, Mode=OneWay}" />
+            <TextBlock
+                HorizontalAlignment="Center"
+                Style="{ThemeResource MPSubTitle}"
+                Text="on the network" />
+
+            <TextBlock
+                HorizontalAlignment="Center"
+                Style="{ThemeResource MPSubTitle}"
+                Text="Do you want to join?" />
+
+            <StackPanel
+                HorizontalAlignment="Center"
+                Orientation="Horizontal"
+                Spacing="16">
+                <Button
+                    Name="JoinAcceptButton"
+                    Click="JoinAcceptButton_Click"
+                    Style="{ThemeResource FontIconButtonStyle}">
+                    <FontIcon Glyph="&#xE8FB;" />
+                </Button>
+
+                <Button
+                    Name="JoinDiscardButton"
+                    Click="JoinDiscardButton_Click"
+                    Style="{ThemeResource FontIconButtonStyle}">
+                    <FontIcon Glyph="&#xE711;" />
+                </Button>
+            </StackPanel>
+
+        </StackPanel>
+
+
+        <StackPanel
+            Name="ClientWaitingForResponeView"
+            HorizontalAlignment="Center"
+            Orientation="Vertical"
+            Visibility="{x:Bind _viewModel.ClientWaitingForResponseView, Mode=TwoWay}">
+
+            <TextBlock
+                Margin="20,50,20,10"
+                FontSize="22"
+                Text="Waiting for a response from" />
+            <TextBlock
+                Margin="20,10,20,10"
+                Style="{ThemeResource MPSubTitle}"
+                Text="{x:Bind _viewModel.RemotePlayerName}" />
+            <ProgressRing
+                Width="50"
+                Height="50"
+                Margin="20,20,20,0" />
+
+            <Button
+                Name="AbortWaitButton"
+                Margin="20,70,20,10"
+                HorizontalAlignment="Center"
+                Click="AbortWaitButton_Click"
+                Style="{ThemeResource FontIconButtonStyle}">
+                <FontIcon Glyph="&#xE711;" />
+            </Button>
+        </StackPanel>
+
+
+        <StackPanel
+            Name="SettingPlayerColorView"
+            HorizontalAlignment="Center"
+            VerticalAlignment="Center"
+            Orientation="Vertical"
+            Visibility="{x:Bind _viewModel.SettingLocalPlayerView, Mode=TwoWay}">
+
+            <TextBlock
+                Margin="20,24"
+                HorizontalAlignment="Center"
+                VerticalAlignment="Center"
+                FontSize="24"
+                Text="Select your player color" />
+
+            <StackPanel
+                HorizontalAlignment="Center"
+                Orientation="Horizontal"
+                Spacing="40">
+
+                <!--  White King Button  -->
+                <StackPanel>
+                    <Button
+                        Name="SelectWhiteButton"
+                        Width="100"
+                        Height="100"
+                        BorderBrush="Green"
+                        BorderThickness="{x:Bind converter:Converter.PlayerToWhiteBorderThickness(_viewModel.LocalPlayer), Mode=OneWay}"
+                        Click="SelectWhiteButton_Click">
+                        <Image Source="ms-appx:///Assets/Pieces/Basic/WKing.png" Stretch="Uniform" />
+                    </Button>
+                    <TextBlock
+                        Margin="12,8"
+                        HorizontalAlignment="Center"
+                        FontSize="18"
+                        Text="White" />
+                </StackPanel>
+
+                <!--  Black King Button  -->
+                <StackPanel>
+
+                    <Button
+                        Name="SelectBlackButton"
+                        Width="100"
+                        Height="100"
+                        BorderBrush="Green"
+                        BorderThickness="{x:Bind converter:Converter.PlayerToBlackBorderThickness(_viewModel.LocalPlayer), Mode=OneWay}"
+                        Click="SelectBlackButton_Click">
+                        <Image Source="ms-appx:///Assets/Pieces/Basic/BKing.png" Stretch="Uniform" />
+                    </Button>
+                    <TextBlock
+                        Margin="12,8"
+                        HorizontalAlignment="Center"
+                        FontSize="18"
+                        Text="Black" />
+                </StackPanel>
+
+            </StackPanel>
+
+            <!--  Ready Button  -->
+            <Button
+                Name="ReadyButton"
+                Margin="0,12"
+                HorizontalAlignment="Center"
+                Click="ReadyButton_Click"
+                Content="I'm Ready!"
+                IsEnabled="{x:Bind _viewModel.ReadyButtonEnabled, Mode=OneWay}"
+                Style="{ThemeResource MPStartButtonStyle}" />
+
+            <!--  Waiting for other player  -->
+            <StackPanel
+                Margin="0,20,0,0"
+                HorizontalAlignment="Center"
+                Orientation="Vertical"
+                Visibility="{x:Bind converter:Converter.BoolToVisibility(_viewModel.IsReady), Mode=OneWay}">
+                <TextBlock
+                    HorizontalAlignment="Center"
+                    FontSize="16"
+                    Text="Waiting for other player..." />
+                <ProgressRing
+                    Width="30"
+                    Height="30"
+                    Margin="0,10,0,0"
+                    IsActive="True" />
+            </StackPanel>
+
+        </StackPanel>
 
     </Grid>
 </Page>

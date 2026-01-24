@@ -3,7 +3,6 @@ using Chess.UI.ViewModels;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.UI.Xaml;
 using Microsoft.UI.Xaml.Controls;
-using System;
 
 
 namespace Chess.UI.Views
@@ -18,7 +17,7 @@ namespace Chess.UI.Views
             InitializeComponent();
 
             _windowSizeService = App.Current.Services.GetService<IWindowSizeService>();
-            _windowSizeService.SetWindowSize(this, 650, 500);
+            _windowSizeService.SetWindowSize(this, 650, 550);
             _windowSizeService.SetWindowNonResizable(this);
 
             _viewModel = App.Current.Services.GetService<GameSetupViewModel>();
@@ -62,23 +61,5 @@ namespace Chess.UI.Views
             this.Close();
         }
 
-
-
-        #region Helper Methods
-
-        private async System.Threading.Tasks.Task ShowErrorDialogAsync(string message)
-        {
-            var dialog = new ContentDialog
-            {
-                Title = "Error",
-                Content = message,
-                CloseButtonText = "OK",
-                XamlRoot = this.Content.XamlRoot
-            };
-
-            await dialog.ShowAsync();
-        }
-
-        #endregion
     }
 }

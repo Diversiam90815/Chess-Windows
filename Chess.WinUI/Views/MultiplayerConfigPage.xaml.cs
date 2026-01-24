@@ -1,30 +1,137 @@
-using System;
-using System.Collections.Generic;
-using System.IO;
-using System.Linq;
-using System.Runtime.InteropServices.WindowsRuntime;
-using Windows.Foundation;
-using Windows.Foundation.Collections;
+using Chess.UI.Services;
+using Chess.UI.ViewModels;
+using Microsoft.Extensions.DependencyInjection;
 using Microsoft.UI.Xaml;
 using Microsoft.UI.Xaml.Controls;
-using Microsoft.UI.Xaml.Controls.Primitives;
-using Microsoft.UI.Xaml.Data;
-using Microsoft.UI.Xaml.Input;
-using Microsoft.UI.Xaml.Media;
-using Microsoft.UI.Xaml.Navigation;
 
-// To learn more about WinUI, the WinUI project structure,
-// and more about our project templates, see: http://aka.ms/winui-project-info.
 
-namespace Chess.UI.Views;
-
-/// <summary>
-/// An empty page that can be used on its own or navigated to within a Frame.
-/// </summary>
-public sealed partial class MultiplayerConfigPage : Page
+namespace Chess.UI.Views
 {
-    public MultiplayerConfigPage()
+
+
+    public sealed partial class MultiplayerConfigPage : Page
     {
-        InitializeComponent();
+        private readonly MultiplayerViewModel _viewModel;
+
+        private readonly IWindowSizeService _windowSizeService;
+
+
+        public MultiplayerConfigPage()
+        {
+            this.InitializeComponent();
+            //AppWindow.SetIcon(Project.IconPath);
+
+            _viewModel = App.Current.Services.GetService<MultiplayerViewModel>();
+            _windowSizeService = App.Current.Services.GetService<IWindowSizeService>();
+
+            this.Rootgrid.DataContext = _viewModel;
+
+            Init();
+            //_windowSizeService.SetWindowSize(this, 600, 400);
+            //_windowSizeService.SetWindowNonResizable(this);
+        }
+
+
+        private void Init()
+        {
+            _viewModel.ResetViewState();
+            _viewModel.StartMultiplayerSetup();
+        }
+
+
+        private void HostGameButton_Click(object sender, RoutedEventArgs e)
+        {
+            _viewModel.OnButtonClicked();
+            _viewModel.EnterServerMultiplayerMode();
+        }
+
+
+        private void JoinGameButton_Click(object sender, RoutedEventArgs e)
+        {
+            _viewModel.OnButtonClicked();
+            _viewModel.EnterClientMultiplayerMode();
+        }
+
+
+        private void ReturnButton_Click(object sender, RoutedEventArgs e)
+        {
+            _viewModel.OnButtonClicked();
+
+            if (_viewModel.Processing)
+            {
+                _viewModel.EnterInitMode();
+            }
+
+            //else
+            //{
+            //    this.Close();
+            //}
+        }
+
+
+        private void HostAcceptButton_Click(object sender, RoutedEventArgs e)
+        {
+            _viewModel.OnButtonClicked();
+
+            _viewModel.AcceptClientConnection();
+        }
+
+
+        private void HostDeclineButton_Click(object sender, RoutedEventArgs e)
+        {
+            _viewModel.OnButtonClicked();
+
+            _viewModel.DeclineClientConnection();
+        }
+
+
+        private void JoinAcceptButton_Click(object sender, RoutedEventArgs e)
+        {
+            _viewModel.OnButtonClicked();
+
+            _viewModel.AcceptConnectingToHost();
+        }
+
+
+        private void JoinDiscardButton_Click(object sender, RoutedEventArgs e)
+        {
+            _viewModel.OnButtonClicked();
+
+            _viewModel.DeclineConnectingToHost();
+        }
+
+
+        private void AbortWaitButton_Click(object sender, RoutedEventArgs e)
+        {
+            _viewModel.OnButtonClicked();
+
+            _viewModel.DisplayClientView();
+        }
+
+
+        private void SelectWhiteButton_Click(object sender, RoutedEventArgs e)
+        {
+            _viewModel.OnButtonClicked();
+
+            _viewModel.SelectPlayerColor(EngineAPI.Side.White);
+        }
+
+
+        private void SelectBlackButton_Click(object sender, RoutedEventArgs e)
+        {
+            _viewModel.OnButtonClicked();
+
+            _viewModel.SelectPlayerColor(EngineAPI.Side.Black);
+        }
+
+
+        private void ReadyButton_Click(object sender, RoutedEventArgs e)
+        {
+            _viewModel.OnButtonClicked();
+
+            _viewModel.SetPlayerReady();
+        }
     }
+
 }
+

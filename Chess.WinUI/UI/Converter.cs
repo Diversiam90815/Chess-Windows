@@ -84,6 +84,49 @@ namespace Chess.UI.UI
     }
 
 
+    public class SideToBorderThicknessConverter : IValueConverter
+    {
+        public object Convert(object value, Type targetType, object parameter, string language)
+        {
+            if (value is Side side && parameter is string targetSide)
+            {
+                bool isMatch = targetSide.ToLower() switch
+                {
+                    "white" => side == Side.White,
+                    "black" => side == Side.Black,
+                    _ => false
+                };
+                return new Thickness(isMatch ? 3 : 0);
+            }
+            return new Thickness(0);
+        }
+
+        public object ConvertBack(object value, Type targetType, object parameter, string language) => throw new NotSupportedException();
+    }
+
+    public class CPUDifficultyToBorderThicknessConverter : IValueConverter
+    {
+        public object Convert(object value, Type targetType, object parameter, string language)
+        {
+            if (value is CPUDifficulty difficulty && parameter is string targetDifficulty)
+            {
+                bool isMatch = targetDifficulty.ToLower() switch
+                {
+                    "easy" => difficulty == CPUDifficulty.Easy,
+                    "medium" => difficulty == CPUDifficulty.Medium,
+                    "hard" => difficulty == CPUDifficulty.Hard,
+                    _ => false
+                };
+                return new Thickness(isMatch ? 3 : 0);
+            }
+            return new Thickness(0);
+        }
+
+        public object ConvertBack(object value, Type targetType, object parameter, string language) => throw new NotSupportedException();
+    }
+
+
+
     public class Converter
     {
         public static ImageSource PlayerToPawnImage(Side player)
