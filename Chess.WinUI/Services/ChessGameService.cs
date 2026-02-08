@@ -53,31 +53,28 @@ namespace Chess.UI.Services
 
         public async Task<bool> StartGameAsync(GameConfiguration config)
         {
-            return await Task.Run(() =>
+            try
             {
-                try
+                _currentConfiguration = config;
+
+                await _dispatcherQueue.EnqueueAsync(() =>
                 {
-                    _currentConfiguration = config;
+                    EngineAPI.StartGame(config);
+                    _isGameActive = true;
 
-                    _dispatcherQueue.TryEnqueue(() =>
-                    {
-                        EngineAPI.StartGame(config);
-                        _isGameActive = true;
+                    Logger.LogInfo($"Game started: Mode={config.Mode}, Player={config.PlayerColor}");
 
-                        Logger.LogInfo($"Game started: Mode={config.Mode}, Player={config.PlayerColor}");
+                    ConfigurationChanged?.Invoke(config);
+                    GameStarted?.Invoke();
+                });
 
-                        ConfigurationChanged?.Invoke(config);
-                        GameStarted?.Invoke();
-                    });
-
-                    return true;
-                }
-                catch (Exception ex)
-                {
-                    Logger.LogError($"Failed to start game: {ex.Message}");
-                    return false;
-                }
-            });
+                return true;
+            }
+            catch (Exception ex)
+            {
+                Logger.LogError($"Failed to start game: {ex.Message}");
+                return false;
+            }
         }
 
 

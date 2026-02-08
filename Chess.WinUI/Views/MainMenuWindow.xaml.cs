@@ -119,6 +119,7 @@ namespace Chess.UI
 
         private void HandleQuitAction()
         {
+            // Exit the application
             var app = Application.Current;
             app.Exit();
         }
