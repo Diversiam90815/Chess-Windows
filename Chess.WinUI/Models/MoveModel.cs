@@ -106,6 +106,9 @@ namespace Chess.UI.Models
             logicCommunication.GameStateChanged += HandleGameStateChanged;
             logicCommunication.PlayerChanged += HandlePlayerChanged;
             logicCommunication.EndGameStateEvent += HandleEndGameState;
+            logicCommunication.LegalMovesCalculated += HandleLegalMovesCalculated;
+            logicCommunication.PawnPromotionRequired += HandlePawnPromotionDialogRequired;
+            logicCommunication.BoardStateChanged += HandleBoardStateChanged;
         }
 
 
@@ -115,69 +118,54 @@ namespace Chess.UI.Models
             {
                 case GamePhase.Initializing:
                     {
-                        //GameStateInitSucceeded?.Invoke();
+                        GameStateInitSucceeded?.Invoke();
                         break;
                     }
                 case GamePhase.PlayerTurn:
-                    {
-                        break;
-                    }
                 case GamePhase.OpponentTurn:
                     {
+                        // Board will be updated via BoardStateChanged
                         break;
                     }
                 case GamePhase.PromotionDialog:
                     {
+                        // Handled via PawnPromotionRequired
                         break;
                     }
                 case GamePhase.GameEnded:
                     {
+                        // Handled via EndGameStateEvent
                         break;
                     }
-
-
-                //case GameState.WaitingForInput:
-                //    {
-                //        //NewBoardFromBackendEvent?.Invoke();
-                //        break;
-                //    }
-                //case GameState.WaitingForTarget:
-                //    {
-                //        //HandleWaitingForTarget();
-                //        break;
-                //    }
-                //case GameState.ValidatingMove:
-                //    {
-                //        break;
-                //    }
-                //case GameState.ExecutingMove:
-                //    {
-                //        //NewBoardFromBackendEvent?.Invoke();
-                //        break;
-                //    }
-                //case GameState.WaitingForCPUMove:
-                //    {
-                //        //NewBoardFromBackendEvent?.Invoke();
-                //        break;
-                //    }
-                //case GameState.GameOver:
-                //    {
-                //        break;
-                //    }
-                //case GameState.PawnPromotion:
-                //    {
-                //        //PawnPromotionEvent?.Invoke();
-                //        break;
-                //    }
-                //case GameState.WaitingForRemoteMove:
-                //    {
-                //        //NewBoardFromBackendEvent?.Invoke();
-                //        //RemotePlayersTurn?.Invoke();
-                //        break;
-                //    }
                 default:
                     break;
             }
+        }
+
+
+        private void HandleLegalMovesCalculated()
+        {
+            Logger.LogDebug("Legal moves calculated. Fetching from Engine");
+
+            ChesspieceSelected?.Invoke();
+            GetLegalMoves();
+
+            Logger.LogInfo($"Retrieved {LegalMoves.Count} legal moves");
+            LegalMovesCalculated?.Invoke();
+        }
+
+
+        private void HandlePawnPromotionDialogRequired()
+        {
+            Logger.LogInfo("Pawn promotion required");
+            PawnPromotionEvent?.Invoke();
+        }
+
+
+        private void HandleBoardStateChanged()
+        {
+            Logger.LogDebug("Board state changed");
+            NewBoardFromBackendEvent?.Invoke();
         }
 
 
@@ -205,19 +193,6 @@ namespace Chess.UI.Models
                 }
             }
             return LegalMoves;
-        }
-
-
-        private void HandleWaitingForTarget()
-        {
-            Logger.LogInfo("Due to delegate message WaitingForTarget we start getting the moves!");
-
-            // We have selected a chesspiece and started the move cycle
-            ChesspieceSelected?.Invoke();
-
-            GetLegalMoves();
-
-            LegalMovesCalculated?.Invoke();
         }
 
 
