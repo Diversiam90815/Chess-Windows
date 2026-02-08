@@ -11,6 +11,7 @@ namespace Chess.UI.Wrappers
     {
         bool TryEnqueue(DispatcherQueueHandler callback);
         bool TryDequeue(DispatcherQueuePriority priority, DispatcherQueueHandler callback);
+        Task EnqueueAsync(Action callback);
     }
 
 
@@ -33,6 +34,26 @@ namespace Chess.UI.Wrappers
         public bool TryEnqueue(DispatcherQueueHandler callback)
         {
             return _dispatcherQueue.TryEnqueue(callback);
+        }
+
+        public Task EnqueueAsync(Action callback)
+        {
+            var tcs = new TaskCompletionSource<bool>();
+
+            _dispatcherQueue.TryEnqueue(() =>
+            {
+                try
+                {
+                    callback();
+                    tcs.SetResult(true);
+                }
+                catch (Exception ex)
+                {
+                    tcs.SetException(ex);
+                }
+            });
+
+            return tcs.Task;
         }
     }
 }

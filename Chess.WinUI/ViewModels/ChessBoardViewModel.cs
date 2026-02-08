@@ -88,8 +88,7 @@ namespace Chess.UI.ViewModels
 
         public void InitializeBoardFromNative()
         {
-            var boardState = _boardModel.GetBoardStateFromNative();
-            var allSquares = _boardModel.GetAllSquares();
+            _boardModel.SyncBoardStateFromNative();
 
             _dispatcherQueue.TryEnqueue(() =>
             {
@@ -101,7 +100,7 @@ namespace Chess.UI.ViewModels
 
                     if (displayIndex >= 0 && displayIndex < Board.Count)
                     {
-                        Board[displayIndex] = allSquares[i];
+                        Board[displayIndex] = _boardModel.GetSquare(square);
                     }
                 }
                 OnPropertyChanged(nameof(Board));
@@ -162,6 +161,7 @@ namespace Chess.UI.ViewModels
         private void OnGameStarted()
         {
             Logger.LogInfo("ChessBoardViewModel: Game started");
+            InitializeBoardFromNative();
         }
 
 

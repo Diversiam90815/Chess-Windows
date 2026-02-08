@@ -12,8 +12,9 @@ namespace Chess.UI.Models
         BoardSquare GetSquare(Square square);
         Dictionary<Square, PieceType> UpdateBoardState();
         BoardSquare[] GetAllSquares();
-
+        void SyncBoardStateFromNative();
     }
+
 
     public class BoardModel : IBoardModel
     {
@@ -96,5 +97,18 @@ namespace Chess.UI.Models
             var boardSquare = _squares[(int)square];
             boardSquare.Piece = piece;
         }
+
+
+        public void SyncBoardStateFromNative()
+        {
+            PieceType[] freshState = GetBoardStateFromNative();
+
+            for (int i = 0; i < 64; ++i)
+            {
+                _currentBoardState[i] = freshState[i];
+                _squares[i].Piece = freshState[i];
+            }
+        }
+
     }
 }
