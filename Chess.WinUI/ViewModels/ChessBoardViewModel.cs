@@ -119,7 +119,7 @@ namespace Chess.UI.ViewModels
                 return -1;
 
             int file = square.File();
-            int displayRank = square.DisplayRank();
+            int displayRank = square.Rank();
 
             // Board is organized as rank 8->1, files a->h
             return displayRank * 8 + file;

@@ -112,7 +112,7 @@ namespace Chess.UI.Board
 
         // Display coordinates for UI grid positioning
         public int DisplayX => Position.File();
-        public int DisplayY => Position.DisplayRank();
+        public int DisplayY => Position.Rank();
 
 
         private bool isHighlighted;

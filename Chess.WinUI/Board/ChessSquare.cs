@@ -44,13 +44,13 @@ namespace Chess.UI.Board
         }
 
 
-        /// <summary>
-        /// Converts engine rank to display rank (flip vertically)
-        /// </summary>
-        public static int DisplayRank(this Square square)
-        {
-            return 7 - square.Rank();
-        }
+        ///// <summary>
+        ///// Converts engine rank to display rank (flip vertically)
+        ///// </summary>
+        //public static int DisplayRank(this Square square)
+        //{
+        //    return 7 - square.Rank();
+        //}
 
 
         /// <summary>
@@ -85,8 +85,7 @@ namespace Chess.UI.Board
             if (x < 0 || x > 7 || y < 0 || y > 7)
                 return Square.None;
 
-            int engineRank = 7 - y; // Convert display rank to engine rank
-            return (Square)(engineRank * 8 + x);
+            return (Square)(y * 8 + x);
         }
     }
 }
