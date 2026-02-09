@@ -4,17 +4,17 @@
 
 This is a chess game developed in C++ and C# with the goal of creating a fully-featured chess application. The project is currently in development and aims to provide a seamless chess-playing experience with a modern user interface.
 
+## Disclaimer:
+**Currently the project goes through a restructuring of the engine in order to support bitboards.**
 
 ## Features
 
 -   **Modern User Interface**:
     -   A clean and intuitive interface built with the latest WinUI 3 framework for Windows.
-    -   **High-DPI Support**: The UI automatically scales for a crisp and clear viewing experience on any display.
 
 -   **Enhanced Gameplay Experience**:
     -   **Captured Pieces Display**: The UI keeps a visual tally of all captured pieces for both players.
     -   **Game Controls**: Easily undo your last move or reset the board to start a new game.
-    -   **Immersive Audio**: A dynamic audio engine provides sound effects for moves and captures, along with ambient background tracks to enhance the atmosphere.
 
 -   **Intelligent CPU Opponent**:
     -   **Play Against the AI**: Challenge yourself in a single-player mode against a computer-controlled opponent.
@@ -48,7 +48,7 @@ This is a chess game developed in C++ and C# with the goal of creating a fully-f
    - **Clang-Format** for automatic source formatting
 
 ## Future Plans
-
+- **Currently the project goes through a restructuring of the engine in order to support bitboards**
 - **CPU Evaluation Algorithms** 
    - Refine and improve positional and move evaluation algorithms for different CPU difficulties
 - **Onboarding** 
