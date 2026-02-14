@@ -59,7 +59,7 @@ namespace Chess.UI.Audio.Services
             moveModel.GameOverEvent += (EndGameState state, Side player) => _ = Task.Run(async () => await HandleEndGameStateAsync(state));
             moveModel.ChesspieceSelected += () => _ = Task.Run(async () => await HandleUIInteractionAsync(UIInteraction.PieceSelect));
 
-            var backendCom = App.Current.ChessLogicCommunication;
+            var backendCom = App.Current.Services.GetService<ICommunicationLayer>();
             backendCom.MoveExecuted += (Move move, string notation) => _ = Task.Run(async () => await HandleMoveAsync(move));
 
             var themePreferences = App.Current.Services.GetService<StylesPreferencesViewModel>();

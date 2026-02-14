@@ -2,7 +2,6 @@
 using Chess.UI.Services;
 using Chess.UI.Settings;
 using Chess.UI.Wrappers;
-using Microsoft.Extensions.DependencyInjection;
 using Microsoft.UI.Xaml;
 using System;
 using System.ComponentModel;
@@ -33,14 +32,12 @@ namespace Chess.UI.ViewModels
         public event Action ChatMessageReceived;    // TODO: Not yet implemented
 #pragma warning restore CS0067
 
-        public MultiplayerViewModel(IDispatcherQueueWrapper dispatcher)
+        public MultiplayerViewModel(IDispatcherQueueWrapper dispatcher, IMultiplayerModel multiplayerModel, IMultiplayerPreferencesModel preferencesModel)
         {
             _dispatcherQueue = dispatcher;
+            _model = multiplayerModel;
+            _preferencesModel = preferencesModel;
 
-            _model = App.Current.Services.GetService<IMultiplayerModel>();
-            _model.Init();
-
-            _preferencesModel = App.Current.Services.GetService<IMultiplayerPreferencesModel>();
             _preferencesModel.PlayerNameChanged += HandlePlayerNameChanged; // Subscribe to player name changes
             LocalPlayerName = _preferencesModel.GetLocalPlayerName();       // and also initialize the value at first
 

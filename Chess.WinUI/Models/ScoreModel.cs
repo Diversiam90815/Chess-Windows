@@ -18,25 +18,27 @@ namespace Chess.UI.Models
 
     public class ScoreModel : IScoreModel
     {
+        private readonly ICommunicationLayer _backendCommunication;
+
         public Dictionary<PieceType, int> CapturedPieces { get; } = new Dictionary<PieceType, int>
-    {
-        { PieceType.WPawn, 0 },
-        { PieceType.WBishop, 0 },
-        { PieceType.WKnight, 0 },
-        { PieceType.WRook, 0 },
-        { PieceType.WQueen, 0 },
-        { PieceType.BPawn, 0 },
-        { PieceType.BBishop, 0 },
-        { PieceType.BKnight, 0 },
-        { PieceType.BRook, 0 },
-        { PieceType.BQueen, 0 }
-    };
-
-
-        public ScoreModel()
         {
-            var logicCommunication = App.Current.ChessLogicCommunication as CommunicationLayer;
-            logicCommunication.PlayerCapturedPieceEvent += OnPlayerCapturedPiece;
+            { PieceType.WPawn, 0 },
+            { PieceType.WBishop, 0 },
+            { PieceType.WKnight, 0 },
+            { PieceType.WRook, 0 },
+            { PieceType.WQueen, 0 },
+            { PieceType.BPawn, 0 },
+            { PieceType.BBishop, 0 },
+            { PieceType.BKnight, 0 },
+            { PieceType.BRook, 0 },
+            { PieceType.BQueen, 0 }
+        };
+
+
+        public ScoreModel(ICommunicationLayer backendCommunication)
+        {
+            _backendCommunication = backendCommunication;
+            _backendCommunication.PlayerCapturedPieceEvent += OnPlayerCapturedPiece;
         }
 
 

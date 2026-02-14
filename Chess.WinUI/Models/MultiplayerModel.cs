@@ -7,8 +7,6 @@ namespace Chess.UI.Models
 {
     public interface IMultiplayerModel
     {
-        void Init();
-
         void ResetToInit();
 
         void StartGameServer();
@@ -53,12 +51,15 @@ namespace Chess.UI.Models
 
     public class MultiplayerModel : IMultiplayerModel
     {
-        public void Init()
+        private readonly ICommunicationLayer _backendCommunication;
+
+
+        public MultiplayerModel(ICommunicationLayer backendCommunication)
         {
-            var logicCommunication = App.Current.ChessLogicCommunication as CommunicationLayer;
-            logicCommunication.ConnectionStatusEvent += HandleConnectionStatusUpdates;
-            logicCommunication.PlayerChanged += HandlePlayerChanged;
-            logicCommunication.MultiPlayerChosenByRemote += HandleLocalPlayerChosenByRemote;
+            _backendCommunication = backendCommunication;
+            _backendCommunication.ConnectionStatusEvent += HandleConnectionStatusUpdates;
+            _backendCommunication.PlayerChanged += HandlePlayerChanged;
+            _backendCommunication.MultiPlayerChosenByRemote += HandleLocalPlayerChosenByRemote;
         }
 
 

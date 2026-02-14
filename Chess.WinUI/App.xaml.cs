@@ -18,8 +18,6 @@ namespace Chess.UI
     {
         private Window MainMenu;
 
-        public CommunicationLayer ChessLogicCommunication { get; set; }
-
         public static new App Current { get; private set; }
 
         public IServiceProvider Services { get; }
@@ -29,7 +27,6 @@ namespace Chess.UI
         {
             Services = ConfigureServices();
 
-            ChessLogicCommunication = new CommunicationLayer();
             Current = this;
             this.InitializeComponent();
         }
@@ -37,7 +34,8 @@ namespace Chess.UI
 
         protected override void OnLaunched(Microsoft.UI.Xaml.LaunchActivatedEventArgs args)
         {
-            ChessLogicCommunication.Init();
+            var engineCommuniction = Services.GetService<ICommunicationLayer>();
+            engineCommuniction.Init();
 
             var audioService = Services.GetService<IChessAudioService>();
             audioService.InitializeAsync();
@@ -46,7 +44,7 @@ namespace Chess.UI
 
             MainMenu.Closed += (sender, args) =>
             {
-                ChessLogicCommunication.Deinit();
+                engineCommuniction.Deinit();
             };
 
             MainMenu.Activate();
@@ -61,6 +59,7 @@ namespace Chess.UI
 
             services.AddSingleton<IDispatcherQueueWrapper, DispatcherQueueWrapper>();
 
+            services.AddSingleton<ICommunicationLayer, CommunicationLayer>();
             services.AddSingleton<IStyleManager, StyleManager>();
             services.AddSingleton<IImageService, ImageServices>();
             services.AddSingleton<INavigationService, NavigationService>();
@@ -85,7 +84,7 @@ namespace Chess.UI
             services.AddSingleton<MultiplayerPreferencesViewModel>();
             services.AddSingleton<AudioPreferencesViewModel>();
             services.AddSingleton<GameSetupViewModel>();
-            
+
             services.AddTransient<MainMenuWindow>();
             services.AddTransient<ChessBoardWindow>();
             services.AddTransient<MultiplayerWindow>();

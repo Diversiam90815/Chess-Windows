@@ -9,7 +9,6 @@ using System.Threading.Tasks;
 using Chess.UI.Styles;
 using Chess.UI.Board;
 using Chess.UI.Wrappers;
-using Microsoft.Extensions.DependencyInjection;
 using Chess.UI.Models;
 
 
@@ -25,6 +24,7 @@ namespace Chess.UI.ViewModels
         private readonly IBoardModel _boardModel;
         private readonly IImageService _imageServices;
         private readonly IChessGameService _gameService;
+        private readonly ICommunicationLayer _commLayer;
 
         public event Action ButtonClicked;
         public event Action SquareClicked;
@@ -36,7 +36,7 @@ namespace Chess.UI.ViewModels
         public BoardStyle CurrentBoardStyle;
 
 
-        public ChessBoardViewModel(IDispatcherQueueWrapper dispatcherQueue, IChessGameService gameService, IStyleManager styleManager, IMoveModel moveModel, IBoardModel boardModel, IImageService imageServices)
+        public ChessBoardViewModel(IDispatcherQueueWrapper dispatcherQueue, IChessGameService gameService, IStyleManager styleManager, IMoveModel moveModel, IBoardModel boardModel, IImageService imageServices, ICommunicationLayer commLayer)
         {
             _dispatcherQueue = dispatcherQueue;
             _gameService = gameService;
@@ -44,6 +44,7 @@ namespace Chess.UI.ViewModels
             _moveModel = moveModel;
             _boardModel = boardModel;
             _imageServices = imageServices;
+            _commLayer = commLayer;
 
             // Subscribe to game service events
             _gameService.GameStarted += OnGameStarted;
@@ -57,6 +58,8 @@ namespace Chess.UI.ViewModels
             _moveModel.GameOverEvent += OnEndGameState;
             _moveModel.NewBoardFromBackendEvent += OnBoardFromBackendUpdated;
             _moveModel.PawnPromotionEvent += OnPromotionPiece;
+
+            _commLayer.PlayerChanged += OnCurrentSideChanged;
 
             // Subscribe to style manager events
             _styleManager.PropertyChanged += OnThemeManagerPropertyChanged;
@@ -190,6 +193,13 @@ namespace Chess.UI.ViewModels
         {
             Logger.LogInfo("ChessBoardViewModel: Board updated from backend");
             UpdateBoardFromNative();
+        }
+
+
+        private void OnCurrentSideChanged(Side currentSide)
+        {
+            Logger.LogInfo($"Current side changed to {currentSide}");
+            CurrentPlayer = currentSide;
         }
 
 

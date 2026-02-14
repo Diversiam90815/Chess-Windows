@@ -95,20 +95,22 @@ namespace Chess.UI.Models
 
     public class MoveModel : IMoveModel
     {
+        private readonly ICommunicationLayer _backendCommunication;
+
         private List<Move> legalMoves = [];
 
         public List<Move> LegalMoves => legalMoves;
 
 
-        public MoveModel()
+        public MoveModel(ICommunicationLayer backendCommunication)
         {
-            var logicCommunication = App.Current.ChessLogicCommunication as CommunicationLayer;
-            logicCommunication.GameStateChanged += HandleGameStateChanged;
-            logicCommunication.PlayerChanged += HandlePlayerChanged;
-            logicCommunication.EndGameStateEvent += HandleEndGameState;
-            logicCommunication.LegalMovesCalculated += HandleLegalMovesCalculated;
-            logicCommunication.PawnPromotionRequired += HandlePawnPromotionDialogRequired;
-            logicCommunication.BoardStateChanged += HandleBoardStateChanged;
+            _backendCommunication = backendCommunication;
+            _backendCommunication.GameStateChanged += HandleGameStateChanged;
+            _backendCommunication.PlayerChanged += HandlePlayerChanged;
+            _backendCommunication.EndGameStateEvent += HandleEndGameState;
+            _backendCommunication.LegalMovesCalculated += HandleLegalMovesCalculated;
+            _backendCommunication.PawnPromotionRequired += HandlePawnPromotionDialogRequired;
+            _backendCommunication.BoardStateChanged += HandleBoardStateChanged;
         }
 
 

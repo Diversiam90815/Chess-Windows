@@ -22,16 +22,19 @@ namespace Chess.UI.Models
 
     public class MoveHistoryModel : IMoveHistoryModel
     {
+        private readonly ICommunicationLayer _backendCommunication;
+
         private static readonly List<string> list = new();
 
         public List<string> MoveHistory { get; } = list;
 
 
-        public MoveHistoryModel()
+        public MoveHistoryModel(ICommunicationLayer communicationLayer)
         {
-            var logicCommunication = App.Current.ChessLogicCommunication as CommunicationLayer;
-            logicCommunication.MoveExecuted += OnMoveExecuted;
-            logicCommunication.MoveUndone += OnMoveUndone;
+            _backendCommunication = communicationLayer;
+
+            _backendCommunication.MoveExecuted += OnMoveExecuted;
+            _backendCommunication.MoveUndone += OnMoveUndone;
         }
 
 
