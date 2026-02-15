@@ -137,7 +137,7 @@ namespace Chess.UI.UI
             else if (player == Side.Black)
                 return imageService.GetCapturedPieceImage(PieceType.BPawn);
             else
-                return imageService.GetCapturedPieceImage(PieceType.WPawn); // falback
+                return imageService.GetCapturedPieceImage(PieceType.WPawn); // fallback
         }
 
         public static Visibility BoolToVisibility(bool value)

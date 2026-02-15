@@ -45,39 +45,39 @@ namespace Chess.UI.Services
         private void Init()
         {
             BoardBackgroundImages = new()
-        {
-            { BoardStyle.Wood, LoadImage("/Assets/Board/Wood.png") },
-            { BoardStyle.Wood2, LoadImage("/Assets/Board/Wood2.png") },
-            { BoardStyle.Plain, LoadImage("/Assets/Board/Plain.png") },
-            { BoardStyle.Plastic, LoadImage("/Assets/Board/Plastic.png") },
-            { BoardStyle.Marble, LoadImage("/Assets/Board/Marble.png") },
-            { BoardStyle.Marble2, LoadImage("/Assets/Board/Marble2.png") },
-            { BoardStyle.Glass, LoadImage("/Assets/Board/Glass.png") }
-        };
+            {
+                { BoardStyle.Wood, LoadImage("/Assets/Board/Wood.png") },
+                { BoardStyle.Wood2, LoadImage("/Assets/Board/Wood2.png") },
+                { BoardStyle.Plain, LoadImage("/Assets/Board/Plain.png") },
+                { BoardStyle.Plastic, LoadImage("/Assets/Board/Plastic.png") },
+                { BoardStyle.Marble, LoadImage("/Assets/Board/Marble.png") },
+                { BoardStyle.Marble2, LoadImage("/Assets/Board/Marble2.png") },
+                { BoardStyle.Glass, LoadImage("/Assets/Board/Glass.png") }
+            };
 
             MainMenuImages = new()
-        {
-        {MainMenuButton.StartGame, LoadImage("/Assets/Buttons/pawn.png") },
-        {MainMenuButton.Settings, LoadImage("/Assets/Buttons/rook.png") },
-        {MainMenuButton.Multiplayer, LoadImage("/Assets/Buttons/queen.png") },
-        {MainMenuButton.EndGame, LoadImage("/Assets/Buttons/horse.png") }
-        };
+            {
+                {MainMenuButton.StartGame, LoadImage("/Assets/Buttons/pawn.png") },
+                {MainMenuButton.Settings, LoadImage("/Assets/Buttons/rook.png") },
+                {MainMenuButton.Multiplayer, LoadImage("/Assets/Buttons/queen.png") },
+                {MainMenuButton.EndGame, LoadImage("/Assets/Buttons/horse.png") }
+            };
 
             CapturedPiecesImages = new()
-        {
-        {PieceType.WPawn, LoadImage("/Assets/Pieces/Standard/PawnW.png") },
-        {PieceType.WBishop, LoadImage("/Assets/Pieces/Standard/BishopW.png") },
-        {PieceType.WQueen, LoadImage("/Assets/Pieces/Standard/QueenW.png") },
-        {PieceType.WRook, LoadImage("/Assets/Pieces/Standard/RookW.png") },
-        {PieceType.WKnight, LoadImage("/Assets/Pieces/Standard/KnightW.png") },
-        {PieceType.WKing, LoadImage("/Assets/Pieces/Standard/KingW.png") },
-        {PieceType.BPawn, LoadImage("/Assets/Pieces/Standard/PawnB.png") },
-        {PieceType.BBishop, LoadImage("/Assets/Pieces/Standard/BishopB.png") },
-        {PieceType.BQueen, LoadImage("/Assets/Pieces/Standard/QueenB.png") },
-        {PieceType.BRook, LoadImage("/Assets/Pieces/Standard/RookB.png") },
-        {PieceType.BKnight, LoadImage("/Assets/Pieces/Standard/KnightB.png") },
-        {PieceType.BKing, LoadImage("/Assets/Pieces/Standard/KingB.png") }
-        };
+            {
+                {PieceType.WPawn, LoadImage("/Assets/Pieces/Standard/WPawn.png") },
+                {PieceType.WBishop, LoadImage("/Assets/Pieces/Standard/WBishop.png") },
+                {PieceType.WQueen, LoadImage("/Assets/Pieces/Standard/WQueen.png") },
+                {PieceType.WRook, LoadImage("/Assets/Pieces/Standard/WRook.png") },
+                {PieceType.WKnight, LoadImage("/Assets/Pieces/Standard/WKnight.png") },
+                {PieceType.WKing, LoadImage("/Assets/Pieces/Standard/WKing.png") },
+                {PieceType.BPawn, LoadImage("/Assets/Pieces/Standard/BPawn.png") },
+                {PieceType.BBishop, LoadImage("/Assets/Pieces/Standard/BBishop.png") },
+                {PieceType.BQueen, LoadImage("/Assets/Pieces/Standard/BQueen.png") },
+                {PieceType.BRook, LoadImage("/Assets/Pieces/Standard/BRook.png") },
+                {PieceType.BKnight, LoadImage("/Assets/Pieces/Standard/BKnight.png") },
+                {PieceType.BKing, LoadImage("/Assets/Pieces/Standard/BKing.png") }
+            };
         }
 
 

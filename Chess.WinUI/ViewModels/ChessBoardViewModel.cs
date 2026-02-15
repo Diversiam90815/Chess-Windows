@@ -31,6 +31,8 @@ namespace Chess.UI.ViewModels
         public event Func<EndGameState, Side, Task> ShowEndGameDialog;
         public event Func<Task<PieceType?>> ShowPawnPromotionDialogRequested;
 
+        public bool IsMultiplayerGame => _gameService.IsMultiplayerGame;
+
         public ObservableCollection<BoardSquare> Board { get; set; }
 
         public BoardStyle CurrentBoardStyle;
