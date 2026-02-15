@@ -67,7 +67,7 @@ namespace Chess.UI
             services.AddSingleton<IWindowSizeService, WindowSizeService>();
 
             services.AddSingleton<IMoveModel, MoveModel>();
-            services.AddSingleton<IScoreModel, ScoreModel>();
+            services.AddSingleton<ICapturedPiecesModel, CapturedPiecesModel>();
             services.AddSingleton<IMoveHistoryModel, MoveHistoryModel>();
             services.AddSingleton<IBoardModel, BoardModel>();
             services.AddSingleton<IMultiplayerModel, MultiplayerModel>();
@@ -75,8 +75,8 @@ namespace Chess.UI
 
             // Register view models            
             services.AddSingleton<GameWindowViewModel>();
+            services.AddSingleton<CapturedPiecesViewModel>();
             services.AddSingleton<ChessBoardViewModel>();
-            services.AddSingleton<ScoreViewModel>();
             services.AddSingleton<MoveHistoryViewModel>();
             services.AddSingleton<MainMenuViewModel>();
             services.AddSingleton<MultiplayerViewModel>();

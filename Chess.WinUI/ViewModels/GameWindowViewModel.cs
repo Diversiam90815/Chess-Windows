@@ -18,13 +18,15 @@ namespace Chess.UI.ViewModels
         private readonly IChessGameService _gameService;
 
         public ChessBoardViewModel ChessBoardViewModel { get; }
-        public ScoreViewModel ScoreViewModel { get; }
         public MoveHistoryViewModel MoveHistoryViewModel { get; }
+        public CapturedPiecesViewModel CapturedPiecesViewModel { get; }
         public MultiplayerInfoViewModel MultiplayerInfoViewModel { get; }
+
 
         public event Func<EndGameState, Side, Task> ShowEndGameDialog;
         public event Func<Task<PieceType?>> ShowPawnPromotionDialogRequested;
         public event Action ButtonClicked;
+
 
         public GameWindowViewModel(IDispatcherQueueWrapper dispatcherQueue, IChessGameService gameService)
         {
@@ -33,7 +35,7 @@ namespace Chess.UI.ViewModels
 
             // Initialize child ViewModels from DI
             ChessBoardViewModel = App.Current.Services.GetService<ChessBoardViewModel>();
-            ScoreViewModel = App.Current.Services.GetService<ScoreViewModel>();
+            CapturedPiecesViewModel = App.Current.Services.GetService<CapturedPiecesViewModel>();
             MoveHistoryViewModel = App.Current.Services.GetService<MoveHistoryViewModel>();
             MultiplayerInfoViewModel = App.Current.Services.GetService<MultiplayerInfoViewModel>();
 
@@ -110,14 +112,14 @@ namespace Chess.UI.ViewModels
 
         public void UndoLastMove()
         {
-            Logger.LogInfo("GameWindowViewModel: Undo move requested");
+            Logger.LogInfo("Undo move requested");
             ChessBoardViewModel.UndoLastMove();
         }
 
 
         public async Task ResetCurrentGameAsync()
         {
-            Logger.LogInfo("GameWindowViewModel: Reset game requested");
+            Logger.LogInfo("Reset game requested");
 
             await _gameService.ResetGameAsync();
 
@@ -131,7 +133,7 @@ namespace Chess.UI.ViewModels
 
         public void EndGame()
         {
-            Logger.LogInfo("GameWindowViewModel: End game requested");
+            Logger.LogInfo("End game requested");
             // Navigation service will handle window closing and game ending
         }
 

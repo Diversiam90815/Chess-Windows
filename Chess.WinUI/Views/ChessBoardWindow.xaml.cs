@@ -232,17 +232,17 @@ namespace Chess.UI.Views
 
             AddStatRow(statsGrid, 0, "Total Moves:", totalMoves.ToString());
 
-            var whiteCaptured = _viewModel.ScoreViewModel.WhiteCapturedPawn +
-                               _viewModel.ScoreViewModel.WhiteCapturedBishop +
-                               _viewModel.ScoreViewModel.WhiteCapturedKnight +
-                               _viewModel.ScoreViewModel.WhiteCapturedRook +
-                               _viewModel.ScoreViewModel.WhiteCapturedQueen;
+            var whiteCaptured = _viewModel.CapturedPiecesViewModel.WhiteCapturedPawn +
+                               _viewModel.CapturedPiecesViewModel.WhiteCapturedBishop +
+                               _viewModel.CapturedPiecesViewModel.WhiteCapturedKnight +
+                               _viewModel.CapturedPiecesViewModel.WhiteCapturedRook +
+                               _viewModel.CapturedPiecesViewModel.WhiteCapturedQueen;
 
-            var blackCaptured = _viewModel.ScoreViewModel.BlackCapturedPawn +
-                               _viewModel.ScoreViewModel.BlackCapturedBishop +
-                               _viewModel.ScoreViewModel.BlackCapturedKnight +
-                               _viewModel.ScoreViewModel.BlackCapturedRook +
-                               _viewModel.ScoreViewModel.BlackCapturedQueen;
+            var blackCaptured = _viewModel.CapturedPiecesViewModel.BlackCapturedPawn +
+                               _viewModel.CapturedPiecesViewModel.BlackCapturedBishop +
+                               _viewModel.CapturedPiecesViewModel.BlackCapturedKnight +
+                               _viewModel.CapturedPiecesViewModel.BlackCapturedRook +
+                               _viewModel.CapturedPiecesViewModel.BlackCapturedQueen;
 
             AddStatRow(statsGrid, 3, "White Captured:", $"{whiteCaptured} pieces");
             AddStatRow(statsGrid, 4, "Black Captured:", $"{blackCaptured} pieces");
@@ -361,11 +361,11 @@ namespace Chess.UI.Views
             // Add captured piece counts
             var pieces = new[]
             {
-                ("♟", player == Side.White ? _viewModel.ScoreViewModel.WhiteCapturedPawn : _viewModel.ScoreViewModel.BlackCapturedPawn),
-                ("♞", player == Side.White ? _viewModel.ScoreViewModel.WhiteCapturedKnight : _viewModel.ScoreViewModel.BlackCapturedKnight),
-                ("♝", player == Side.White ? _viewModel.ScoreViewModel.WhiteCapturedBishop : _viewModel.ScoreViewModel.BlackCapturedBishop),
-                ("♜", player == Side.White ? _viewModel.ScoreViewModel.WhiteCapturedRook : _viewModel.ScoreViewModel.BlackCapturedRook),
-                ("♛", player == Side.White ? _viewModel.ScoreViewModel.WhiteCapturedQueen : _viewModel.ScoreViewModel.BlackCapturedQueen)
+                ("♟", player == Side.White ? _viewModel.CapturedPiecesViewModel.WhiteCapturedPawn : _viewModel.CapturedPiecesViewModel.BlackCapturedPawn),
+                ("♞", player == Side.White ? _viewModel.CapturedPiecesViewModel.WhiteCapturedKnight : _viewModel.CapturedPiecesViewModel.BlackCapturedKnight),
+                ("♝", player == Side.White ? _viewModel.CapturedPiecesViewModel.WhiteCapturedBishop : _viewModel.CapturedPiecesViewModel.BlackCapturedBishop),
+                ("♜", player == Side.White ? _viewModel.CapturedPiecesViewModel.WhiteCapturedRook : _viewModel.CapturedPiecesViewModel.BlackCapturedRook),
+                ("♛", player == Side.White ? _viewModel.CapturedPiecesViewModel.WhiteCapturedQueen : _viewModel.CapturedPiecesViewModel.BlackCapturedQueen)
             };
 
             foreach (var (symbol, count) in pieces)

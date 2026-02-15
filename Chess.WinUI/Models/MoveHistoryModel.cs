@@ -24,7 +24,9 @@ namespace Chess.UI.Models
     {
         private readonly ICommunicationLayer _backendCommunication;
 
-        private static readonly List<string> list = new();
+        public event Action MoveHistoryUpdated;
+
+        private static readonly List<string> list = [];
 
         public List<string> MoveHistory { get; } = list;
 
@@ -47,11 +49,11 @@ namespace Chess.UI.Models
 
         public void OnMoveUndone()
         {
+            if (MoveHistory.Count <= 0)
+                return;
+
             MoveHistory.Remove(MoveHistory.LastOrDefault());
             MoveHistoryUpdated?.Invoke();
         }
-
-
-        public event Action MoveHistoryUpdated;
     }
 }

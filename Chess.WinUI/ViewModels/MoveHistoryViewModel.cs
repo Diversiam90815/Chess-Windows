@@ -12,21 +12,21 @@ namespace Chess.UI.ViewModels
 
         public ObservableCollection<ObservableCollection<string>> MoveHistoryColumns { get; } = [];
 
-        private IMoveHistoryModel Model { get; }
-
+        private readonly IMoveHistoryModel _model;
         private readonly IDispatcherQueueWrapper _dispatcherQueue;
 
 
         public MoveHistoryViewModel(IDispatcherQueueWrapper dispatcher, IMoveHistoryModel model)
         {
             _dispatcherQueue = dispatcher;
-            Model = model;
+            _model = model;
 
             for (int i = 0; i < MovesMaxColumns; i++)
             {
                 MoveHistoryColumns.Add(new ObservableCollection<string>());
             }
-            Model.MoveHistoryUpdated += OnHandleMoveHistoryUpdated;
+            
+            _model.MoveHistoryUpdated += OnHandleMoveHistoryUpdated;
         }
 
 
@@ -48,19 +48,13 @@ namespace Chess.UI.ViewModels
         }
 
 
-        public void RemoveLastMove()
-        {
-            OnHandleMoveHistoryUpdated();
-        }
-
-
         private void OnHandleMoveHistoryUpdated()
         {
             _dispatcherQueue.TryEnqueue(() =>
             {
                 ClearMoveHistory();
 
-                foreach (var moveNotation in Model.MoveHistory)
+                foreach (var moveNotation in _model.MoveHistory)
                 {
                     AddMove(moveNotation);
                 }
