@@ -53,11 +53,12 @@ namespace Chess.UI.ViewModels
 
         #region Game Service Event Handlers
 
-        private void OnGameReset()
+        private async void OnGameReset()
         {
             Logger.LogInfo("Resetting all components");
 
-            // TODO
+            MoveHistoryViewModel.OnReset();
+            CapturedPiecesViewModel.ClearCaptures();
         }
 
 
@@ -131,9 +132,11 @@ namespace Chess.UI.ViewModels
         }
 
 
-        public void EndGame()
+        public async void EndGame()
         {
             Logger.LogInfo("End game requested");
+
+            await _gameService.ResetGameAsync();
             // Navigation service will handle window closing and game ending
         }
 

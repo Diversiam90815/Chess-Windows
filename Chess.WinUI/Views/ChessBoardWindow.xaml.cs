@@ -73,6 +73,7 @@ namespace Chess.UI.Views
 
         private void EndGame_Click(object sender, RoutedEventArgs e)
         {
+            _viewModel.EndGame();
             _viewModel.OnButtonClicked();
             this.Close();
         }

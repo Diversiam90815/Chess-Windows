@@ -49,7 +49,6 @@ namespace Chess.UI.ViewModels
             CapturedBlackQueenImage = _images.GetCapturedPieceImage(PieceType.BQueen);
 
             _model.PieceCaptured += OnPieceCaptured;
-            _model.CapturedPiecesCleared += OnCapturedPiecesCleared;
         }
 
 
@@ -64,8 +63,10 @@ namespace Chess.UI.ViewModels
         }
 
 
-        private void OnCapturedPiecesCleared()
+        public void ClearCaptures()
         {
+            _model.Clear();
+
             _dispatcherQueue.TryEnqueue(() =>
             {
                 // Notify all piece count properties changed

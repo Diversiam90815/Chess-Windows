@@ -14,6 +14,7 @@ namespace Chess.UI.Models
         // Methods
         void OnMoveExecuted(Move move, string notation);
         void OnMoveUndone();
+        void ClearHistory();
 
         // Events
         event Action MoveHistoryUpdated;
@@ -44,6 +45,12 @@ namespace Chess.UI.Models
         {
             MoveHistory.Add(notation);
             MoveHistoryUpdated?.Invoke();
+        }
+
+
+        public void ClearHistory()
+        {
+            MoveHistory.Clear();
         }
 
 

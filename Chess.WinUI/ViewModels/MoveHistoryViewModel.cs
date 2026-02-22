@@ -25,7 +25,7 @@ namespace Chess.UI.ViewModels
             {
                 MoveHistoryColumns.Add(new ObservableCollection<string>());
             }
-            
+
             _model.MoveHistoryUpdated += OnHandleMoveHistoryUpdated;
         }
 
@@ -36,6 +36,12 @@ namespace Chess.UI.ViewModels
             var minColumn = MoveHistoryColumns.OrderBy(col => col.Count).First();
 
             minColumn.Add(move);
+        }
+
+        public void OnReset()
+        {
+            _model.ClearHistory();
+            ClearMoveHistory();
         }
 
 

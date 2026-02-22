@@ -1,10 +1,6 @@
 ﻿using Chess.UI.Services;
 using System;
 using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
-using WinRT.ChessVtableClasses;
 using static Chess.UI.Services.EngineAPI;
 
 
@@ -14,7 +10,7 @@ namespace Chess.UI.Models
     {
         Dictionary<PieceType, int> CapturedPieces { get; }
         event Action<PlayerCapturedPiece> PieceCaptured;
-        event Action CapturedPiecesCleared;
+        void Clear();
     }
 
     public class CapturedPiecesModel : ICapturedPiecesModel
@@ -36,7 +32,6 @@ namespace Chess.UI.Models
         };
 
         public event Action<PlayerCapturedPiece> PieceCaptured;
-        public event Action CapturedPiecesCleared;
 
 
         public CapturedPiecesModel(ICommunicationLayer communicationLayer)
@@ -65,7 +60,6 @@ namespace Chess.UI.Models
             {
                 CapturedPieces[key] = 0;
             }
-            CapturedPiecesCleared?.Invoke();
         }
 
 
