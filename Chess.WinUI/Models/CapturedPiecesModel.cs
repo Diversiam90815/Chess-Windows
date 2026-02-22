@@ -42,8 +42,7 @@ namespace Chess.UI.Models
         public CapturedPiecesModel(ICommunicationLayer communicationLayer)
         {
             _backendCommunication = communicationLayer;
-            // TODO:
-            //_backendCommunication.PieceCaptured += OnPieceCaptured;
+            _backendCommunication.PlayerCapturedPieceEvent += OnPieceCaptured;
         }
 
         private void OnPieceCaptured(PlayerCapturedPiece piece)
