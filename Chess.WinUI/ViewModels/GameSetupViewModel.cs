@@ -8,7 +8,7 @@ using static Chess.UI.Services.EngineAPI;
 
 namespace Chess.UI.ViewModels
 {
-    public interface IGameSetupViewModel
+    public interface IGameSetupViewModel :INotifyPropertyChanged
     {
         Task<bool> StartGameAsync(GameConfiguration config);
         Task<bool> StartLocalCoopGameAsync();
@@ -20,8 +20,6 @@ namespace Chess.UI.ViewModels
         void Reset();
         Side PlayerColor { get; set; }
         CPUDifficulty CPUDifficulty { get; set; }
-
-        event PropertyChangedEventHandler PropertyChanged;
     }
 
 
