@@ -7,7 +7,8 @@
     xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
     xmlns:local="using:Chess.UI.Views"
     xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
-    xmlns:vm="using:Chess.UI.Board"
+    xmlns:board="using:Chess.UI.Board" 
+    xmlns:viewmodel="using:Chess.UI.ViewModels"
     Title="Chess"
     mc:Ignorable="d">
 
@@ -39,7 +40,7 @@
                     </ItemsRepeater.Layout>
 
                     <ItemsRepeater.ItemTemplate>
-                        <DataTemplate x:DataType="vm:BoardSquare">
+                        <DataTemplate x:DataType="board:BoardSquare">
                             <Grid
                                 Background="{x:Bind BackgroundBrush, Mode=OneWay}"
                                 DataContext="{x:Bind}"
@@ -213,7 +214,8 @@
                         CornerRadius="8">
                         <Grid.RowDefinitions>
                             <RowDefinition x:Name="TitleRow" Height="40" />
-                            <RowDefinition x:Name="Moves" Height="165" />
+                            <RowDefinition Height="Auto" />
+                            <RowDefinition x:Name="Moves" Height="*" />
                         </Grid.RowDefinitions>
 
                         <TextBlock
@@ -223,42 +225,109 @@
                             FontSize="24"
                             Text="Move History" />
 
-                        <!--  Moves with Wrapping Columns  -->
+                        <!--  Column Headers  -->
+                        <Grid Grid.Row="1" Margin="4,0">
+                            <Grid.ColumnDefinitions>
+                                <ColumnDefinition Width="36" />
+                                <ColumnDefinition Width="*" />
+                                <ColumnDefinition Width="*" />
+                            </Grid.ColumnDefinitions>
+
+                            <Border
+                                Grid.Column="0"
+                                BorderBrush="{ThemeResource DividerStrokeColorDefaultBrush}"
+                                BorderThickness="0,0,1,1"
+                                Padding="2,4">
+                                <TextBlock
+                                    FontSize="13"
+                                    FontWeight="SemiBold"
+                                    HorizontalAlignment="Center"
+                                    Text="#" />
+                            </Border>
+                            <Border
+                                Grid.Column="1"
+                                BorderBrush="{ThemeResource DividerStrokeColorDefaultBrush}"
+                                BorderThickness="0,0,1,1"
+                                Padding="2,4">
+                                <TextBlock
+                                    FontSize="13"
+                                    FontWeight="SemiBold"
+                                    HorizontalAlignment="Center"
+                                    Text="White" />
+                            </Border>
+                            <Border
+                                Grid.Column="2"
+                                BorderBrush="{ThemeResource DividerStrokeColorDefaultBrush}"
+                                BorderThickness="0,0,0,1"
+                                Padding="2,4">
+                                <TextBlock
+                                    FontSize="13"
+                                    FontWeight="SemiBold"
+                                    HorizontalAlignment="Center"
+                                    Text="Black" />
+                            </Border>
+                        </Grid>
+
+                        <!--  Move Rows  -->
                         <ScrollViewer
-                            Grid.Row="1"
+                            Grid.Row="2"
                             HorizontalScrollBarVisibility="Disabled"
                             VerticalScrollBarVisibility="Auto">
-                            <ItemsControl
-                                x:Name="MovesColumns"
-                                HorizontalAlignment="Stretch"
-                                VerticalAlignment="Stretch"
-                                ItemsSource="{x:Bind _viewModel.MoveHistoryViewModel.MoveHistoryColumns, Mode=OneWay}">
-                                <ItemsControl.ItemsPanel>
-                                    <ItemsPanelTemplate>
-                                        <StackPanel Orientation="Horizontal" />
-                                    </ItemsPanelTemplate>
-                                </ItemsControl.ItemsPanel>
-                                <ItemsControl.ItemTemplate>
-                                    <DataTemplate>
-                                        <StackPanel Margin="14,0" Orientation="Vertical">
-                                            <!--  Each Column  -->
-                                            <ItemsControl ItemsSource="{Binding}">
-                                                <ItemsControl.ItemTemplate>
-                                                    <DataTemplate>
-                                                        <TextBlock
-                                                            Width="40"
-                                                            Margin="2"
-                                                            HorizontalAlignment="Left"
-                                                            FontSize="14"
-                                                            Text="{Binding}"
-                                                            TextAlignment="Center" />
-                                                    </DataTemplate>
-                                                </ItemsControl.ItemTemplate>
-                                            </ItemsControl>
-                                        </StackPanel>
+                            <ItemsRepeater
+                                x:Name="MoveHistoryRepeater"
+                                Margin="4,0"
+                                ItemsSource="{x:Bind _viewModel.MoveHistoryViewModel.MoveEntries, Mode=OneWay}">
+                                <ItemsRepeater.Layout>
+                                    <StackLayout />
+                                </ItemsRepeater.Layout>
+                                <ItemsRepeater.ItemTemplate>
+                                    <DataTemplate x:DataType="viewmodel:MoveHistoryEntry">
+                                        <Grid MinHeight="24">
+                                            <Grid.ColumnDefinitions>
+                                                <ColumnDefinition Width="36" />
+                                                <ColumnDefinition Width="*" />
+                                                <ColumnDefinition Width="*" />
+                                            </Grid.ColumnDefinitions>
+
+                                            <Border
+                                                Grid.Column="0"
+                                                BorderBrush="{ThemeResource DividerStrokeColorDefaultBrush}"
+                                                BorderThickness="0,0,1,0.5"
+                                                Padding="2">
+                                                <TextBlock
+                                                    FontSize="12"
+                                                    Foreground="{ThemeResource TextFillColorSecondaryBrush}"
+                                                    HorizontalAlignment="Center"
+                                                    VerticalAlignment="Center"
+                                                    Text="{x:Bind MoveNumber}" />
+                                            </Border>
+                                            <Border
+                                                Grid.Column="1"
+                                                Background="{ThemeResource CardBackgroundFillColorDefaultBrush}"
+                                                BorderBrush="{ThemeResource DividerStrokeColorDefaultBrush}"
+                                                BorderThickness="0,0,1,0.5"
+                                                Padding="2">
+                                                <TextBlock
+                                                    FontSize="13"
+                                                    HorizontalAlignment="Center"
+                                                    VerticalAlignment="Center"
+                                                    Text="{x:Bind WhiteMove, Mode=OneWay}" />
+                                            </Border>
+                                            <Border
+                                                Grid.Column="2"
+                                                BorderBrush="{ThemeResource DividerStrokeColorDefaultBrush}"
+                                                BorderThickness="0,0,0,0.5"
+                                                Padding="2">
+                                                <TextBlock
+                                                    FontSize="13"
+                                                    HorizontalAlignment="Center"
+                                                    VerticalAlignment="Center"
+                                                    Text="{x:Bind BlackMove, Mode=OneWay}" />
+                                            </Border>
+                                        </Grid>
                                     </DataTemplate>
-                                </ItemsControl.ItemTemplate>
-                            </ItemsControl>
+                                </ItemsRepeater.ItemTemplate>
+                            </ItemsRepeater>
                         </ScrollViewer>
                     </Grid>
 

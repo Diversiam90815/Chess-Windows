@@ -59,7 +59,7 @@ namespace Chess.UI.Models
             if (MoveHistory.Count <= 0)
                 return;
 
-            MoveHistory.Remove(MoveHistory.LastOrDefault());
+            MoveHistory.RemoveAt(MoveHistory.Count - 1);
             MoveHistoryUpdated?.Invoke();
         }
     }

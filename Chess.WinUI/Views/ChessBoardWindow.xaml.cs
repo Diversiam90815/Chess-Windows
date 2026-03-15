@@ -227,9 +227,9 @@ namespace Chess.UI.Views
             };
 
             // Add statistics
-            var totalMoves = _viewModel.MoveHistoryViewModel.MoveHistoryColumns
-                .SelectMany(col => col)
-                .Count();
+            var totalMoves = _viewModel.MoveHistoryViewModel.MoveEntries
+                .Sum(e => (!string.IsNullOrEmpty(e.WhiteMove) ? 1 : 0) +
+                          (!string.IsNullOrEmpty(e.BlackMove) ? 1 : 0));
 
             AddStatRow(statsGrid, 0, "Total Moves:", totalMoves.ToString());
 

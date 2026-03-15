@@ -1,16 +1,51 @@
 ﻿using Chess.UI.Models;
 using Chess.UI.Wrappers;
 using System.Collections.ObjectModel;
+using System.ComponentModel;
 using System.Linq;
 
 
 namespace Chess.UI.ViewModels
 {
+    public class MoveHistoryEntry : INotifyPropertyChanged
+    {
+        public event PropertyChangedEventHandler PropertyChanged;
+
+        public int MoveNumber { get; set; }
+
+        private string _whiteMove = string.Empty;
+        public string WhiteMove
+        {
+            get => _whiteMove;
+            set
+            {
+                if (_whiteMove != value)
+                {
+                    _whiteMove = value;
+                    PropertyChanged?.Invoke(this, new PropertyChangedEventArgs(nameof(WhiteMove)));
+                }
+            }
+        }
+
+        private string _blackMove = string.Empty;
+        public string BlackMove
+        {
+            get => _blackMove;
+            set
+            {
+                if (_blackMove != value)
+                {
+                    _blackMove = value;
+                    PropertyChanged?.Invoke(this, new PropertyChangedEventArgs(nameof(BlackMove)));
+                }
+            }
+        }
+    }
+
+
     public class MoveHistoryViewModel
     {
-        private const int MovesMaxColumns = 3;
-
-        public ObservableCollection<ObservableCollection<string>> MoveHistoryColumns { get; } = [];
+        public ObservableCollection<MoveHistoryEntry> MoveEntries { get; } = [];
 
         private readonly IMoveHistoryModel _model;
         private readonly IDispatcherQueueWrapper _dispatcherQueue;
@@ -21,50 +56,38 @@ namespace Chess.UI.ViewModels
             _dispatcherQueue = dispatcher;
             _model = model;
 
-            for (int i = 0; i < MovesMaxColumns; i++)
-            {
-                MoveHistoryColumns.Add(new ObservableCollection<string>());
-            }
-
             _model.MoveHistoryUpdated += OnHandleMoveHistoryUpdated;
         }
 
 
-        public void AddMove(string move)
-        {
-            // Find the column with the least number of moves
-            var minColumn = MoveHistoryColumns.OrderBy(col => col.Count).First();
-
-            minColumn.Add(move);
-        }
-
         public void OnReset()
         {
             _model.ClearHistory();
-            ClearMoveHistory();
+            MoveEntries.Clear();
         }
 
 
-        public void ClearMoveHistory()
+        private void RebuildFromModel()
         {
-            foreach (var column in MoveHistoryColumns)
+            MoveEntries.Clear();
+
+            var moves = _model.MoveHistory;
+
+            for (int i = 0; i < moves.Count; i += 2)
             {
-                column.Clear();
+                MoveEntries.Add(new MoveHistoryEntry
+                {
+                    MoveNumber = (i / 2) + 1,
+                    WhiteMove = moves[i],
+                    BlackMove = (i + 1 < moves.Count) ? moves[i + 1] : string.Empty
+                });
             }
         }
 
 
         private void OnHandleMoveHistoryUpdated()
         {
-            _dispatcherQueue.TryEnqueue(() =>
-            {
-                ClearMoveHistory();
-
-                foreach (var moveNotation in _model.MoveHistory)
-                {
-                    AddMove(moveNotation);
-                }
-            });
+            _dispatcherQueue.TryEnqueue(RebuildFromModel);
         }
     }
 }
