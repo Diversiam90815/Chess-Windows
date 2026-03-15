@@ -47,6 +47,10 @@ namespace Chess.UI.ViewModels
             // Subscribe to game service events
             _gameService.GameReset += OnGameReset;
             _gameService.ConfigurationChanged += OnConfigurationChanged;
+
+            // Apply current configuration if the game was already started before this VM was created
+            if (_gameService.CurrentConfiguration.HasValue)
+                OnConfigurationChanged(_gameService.CurrentConfiguration.Value);
         }
 
 
