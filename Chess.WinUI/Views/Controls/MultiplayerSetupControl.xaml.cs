@@ -5,34 +5,26 @@ using Microsoft.UI.Xaml;
 using Microsoft.UI.Xaml.Controls;
 
 
-namespace Chess.UI.Views
+namespace Chess.UI.Views.Controls
 {
-
-
-    public sealed partial class MultiplayerConfigPage : Page
+    public sealed partial class MultiplayerSetupControl : UserControl
     {
         private readonly MultiplayerViewModel _viewModel;
 
-        private readonly IWindowSizeService _windowSizeService;
 
-
-        public MultiplayerConfigPage()
+        public MultiplayerSetupControl()
         {
             this.InitializeComponent();
-            //AppWindow.SetIcon(Project.IconPath);
 
             _viewModel = App.Current.Services.GetService<MultiplayerViewModel>();
-            _windowSizeService = App.Current.Services.GetService<IWindowSizeService>();
-
             this.Rootgrid.DataContext = _viewModel;
-
-            Init();
-            //_windowSizeService.SetWindowSize(this, 600, 400);
-            //_windowSizeService.SetWindowNonResizable(this);
         }
 
 
-        private void Init()
+        /// <summary>
+        /// Called when the control becomes visible to initialize the multiplayer session.
+        /// </summary>
+        public void Initialize()
         {
             _viewModel.ResetViewState();
             _viewModel.StartMultiplayerSetup();
@@ -53,26 +45,9 @@ namespace Chess.UI.Views
         }
 
 
-        private void ReturnButton_Click(object sender, RoutedEventArgs e)
-        {
-            _viewModel.OnButtonClicked();
-
-            if (_viewModel.Processing)
-            {
-                _viewModel.EnterInitMode();
-            }
-
-            //else
-            //{
-            //    this.Close();
-            //}
-        }
-
-
         private void HostAcceptButton_Click(object sender, RoutedEventArgs e)
         {
             _viewModel.OnButtonClicked();
-
             _viewModel.AcceptClientConnection();
         }
 
@@ -80,7 +55,6 @@ namespace Chess.UI.Views
         private void HostDeclineButton_Click(object sender, RoutedEventArgs e)
         {
             _viewModel.OnButtonClicked();
-
             _viewModel.DeclineClientConnection();
         }
 
@@ -88,7 +62,6 @@ namespace Chess.UI.Views
         private void JoinAcceptButton_Click(object sender, RoutedEventArgs e)
         {
             _viewModel.OnButtonClicked();
-
             _viewModel.AcceptConnectingToHost();
         }
 
@@ -96,7 +69,6 @@ namespace Chess.UI.Views
         private void JoinDiscardButton_Click(object sender, RoutedEventArgs e)
         {
             _viewModel.OnButtonClicked();
-
             _viewModel.DeclineConnectingToHost();
         }
 
@@ -104,7 +76,6 @@ namespace Chess.UI.Views
         private void AbortWaitButton_Click(object sender, RoutedEventArgs e)
         {
             _viewModel.OnButtonClicked();
-
             _viewModel.DisplayClientView();
         }
 
@@ -112,7 +83,6 @@ namespace Chess.UI.Views
         private void SelectWhiteButton_Click(object sender, RoutedEventArgs e)
         {
             _viewModel.OnButtonClicked();
-
             _viewModel.SelectPlayerColor(EngineAPI.Side.White);
         }
 
@@ -120,7 +90,6 @@ namespace Chess.UI.Views
         private void SelectBlackButton_Click(object sender, RoutedEventArgs e)
         {
             _viewModel.OnButtonClicked();
-
             _viewModel.SelectPlayerColor(EngineAPI.Side.Black);
         }
 
@@ -128,10 +97,7 @@ namespace Chess.UI.Views
         private void ReadyButton_Click(object sender, RoutedEventArgs e)
         {
             _viewModel.OnButtonClicked();
-
             _viewModel.SetPlayerReady();
         }
     }
-
 }
-

@@ -1,0 +1,226 @@
+<?xml version="1.0" encoding="utf-8" ?>
+<Page
+    x:Class="Chess.UI.Views.GameSetupPage"
+    xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+    xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+    xmlns:controls="using:Chess.UI.Views.Controls"
+    xmlns:converter="using:Chess.UI.UI"
+    xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+    xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+    mc:Ignorable="d">
+
+    <Page.Resources>
+        <converter:SideToBorderThicknessConverter x:Key="SideToBorderThicknessConverter" />
+        <converter:CPUDifficultyToBorderThicknessConverter x:Key="CPUDifficultyToBorderThicknessConverter" />
+    </Page.Resources>
+
+    <Grid Padding="32" RowSpacing="24">
+        <Grid.RowDefinitions>
+            <RowDefinition Height="Auto" />
+            <!-- Header -->
+            <RowDefinition Height="Auto" />
+            <!-- Mode selector -->
+            <RowDefinition Height="*" />
+            <!-- Config content -->
+            <RowDefinition Height="Auto" />
+            <!-- Start button -->
+        </Grid.RowDefinitions>
+
+        <!-- Header with back button -->
+        <StackPanel
+            Grid.Row="0"
+            Orientation="Horizontal"
+            Spacing="12">
+            <Button
+                Click="BackButton_Click"
+                Style="{ThemeResource NavigationBackButtonNormalStyle}" />
+            <TextBlock
+                VerticalAlignment="Center"
+                FontSize="28"
+                FontWeight="SemiBold"
+                Text="New Game" />
+        </StackPanel>
+
+        <!-- Mode selector (segmented control) -->
+        <StackPanel
+            Grid.Row="1"
+            HorizontalAlignment="Center"
+            Orientation="Horizontal"
+            Spacing="4">
+            <RadioButton
+                x:Name="CoopRadio"
+                Checked="ModeChanged"
+                Content="Local Co-op"
+                GroupName="GameMode"
+                IsChecked="True" />
+            <RadioButton
+                x:Name="SinglePlayerRadio"
+                Checked="ModeChanged"
+                Content="vs Computer"
+                GroupName="GameMode" />
+            <RadioButton
+                x:Name="OnlineRadio"
+                Checked="ModeChanged"
+                Content="Online"
+                GroupName="GameMode" />
+        </StackPanel>
+
+        <!-- Config content area -->
+        <Border
+            Grid.Row="2"
+            MaxWidth="600"
+            HorizontalAlignment="Center"
+            VerticalAlignment="Center"
+            Background="{ThemeResource CardBackgroundFillColorDefaultBrush}"
+            BorderBrush="{ThemeResource CardStrokeColorDefaultBrush}"
+            BorderThickness="1"
+            CornerRadius="12"
+            Padding="32">
+
+            <Grid>
+                <!-- Local Co-op Config -->
+                <StackPanel
+                    x:Name="CoopPanel"
+                    HorizontalAlignment="Center"
+                    VerticalAlignment="Center"
+                    Spacing="16">
+                    <TextBlock
+                        HorizontalAlignment="Center"
+                        FontSize="20"
+                        FontWeight="SemiBold"
+                        Text="Local Co-op" />
+                    <TextBlock
+                        HorizontalAlignment="Center"
+                        Foreground="{ThemeResource TextFillColorSecondaryBrush}"
+                        Text="Two players take turns on the same device. White moves first."
+                        TextAlignment="Center"
+                        TextWrapping="Wrap" />
+                    <StackPanel
+                        HorizontalAlignment="Center"
+                        Orientation="Horizontal"
+                        Spacing="16">
+                        <Image
+                            Width="48"
+                            Height="48"
+                            Source="ms-appx:///Assets/Pieces/Standard/WKing.png"
+                            Stretch="Uniform" />
+                        <TextBlock
+                            VerticalAlignment="Center"
+                            FontSize="20"
+                            Foreground="{ThemeResource TextFillColorTertiaryBrush}"
+                            Text="vs" />
+                        <Image
+                            Width="48"
+                            Height="48"
+                            Source="ms-appx:///Assets/Pieces/Standard/BKing.png"
+                            Stretch="Uniform" />
+                    </StackPanel>
+                </StackPanel>
+
+                <!-- Single Player Config -->
+                <StackPanel
+                    x:Name="SinglePlayerPanel"
+                    HorizontalAlignment="Center"
+                    VerticalAlignment="Center"
+                    Spacing="24"
+                    Visibility="Collapsed">
+
+                    <TextBlock
+                        HorizontalAlignment="Center"
+                        FontSize="20"
+                        FontWeight="SemiBold"
+                        Text="vs Computer" />
+
+                    <!-- Color selection -->
+                    <StackPanel Spacing="8">
+                        <TextBlock
+                            HorizontalAlignment="Center"
+                            FontSize="13"
+                            FontWeight="SemiBold"
+                            Foreground="{ThemeResource TextFillColorSecondaryBrush}"
+                            Text="PLAY AS" />
+                        <StackPanel
+                            HorizontalAlignment="Center"
+                            Orientation="Horizontal"
+                            Spacing="16">
+                            <Button
+                                x:Name="SelectWhiteButton"
+                                Width="80"
+                                Height="80"
+                                BorderBrush="{ThemeResource AccentFillColorDefaultBrush}"
+                                BorderThickness="{x:Bind _setupViewModel.PlayerColor, Converter={StaticResource SideToBorderThicknessConverter}, ConverterParameter='white', Mode=OneWay}"
+                                Click="SelectWhiteButton_Click"
+                                CornerRadius="8">
+                                <Image Source="ms-appx:///Assets/Pieces/Standard/WKing.png" Stretch="Uniform" />
+                            </Button>
+                            <Button
+                                x:Name="SelectBlackButton"
+                                Width="80"
+                                Height="80"
+                                BorderBrush="{ThemeResource AccentFillColorDefaultBrush}"
+                                BorderThickness="{x:Bind _setupViewModel.PlayerColor, Converter={StaticResource SideToBorderThicknessConverter}, ConverterParameter='black', Mode=OneWay}"
+                                Click="SelectBlackButton_Click"
+                                CornerRadius="8">
+                                <Image Source="ms-appx:///Assets/Pieces/Standard/BKing.png" Stretch="Uniform" />
+                            </Button>
+                        </StackPanel>
+                    </StackPanel>
+
+                    <!-- Difficulty selection -->
+                    <StackPanel Spacing="8">
+                        <TextBlock
+                            HorizontalAlignment="Center"
+                            FontSize="13"
+                            FontWeight="SemiBold"
+                            Foreground="{ThemeResource TextFillColorSecondaryBrush}"
+                            Text="DIFFICULTY" />
+                        <StackPanel
+                            HorizontalAlignment="Center"
+                            Orientation="Horizontal"
+                            Spacing="8">
+                            <Button
+                                BorderBrush="{ThemeResource AccentFillColorDefaultBrush}"
+                                BorderThickness="{x:Bind _setupViewModel.CPUDifficulty, Mode=OneWay, Converter={StaticResource CPUDifficultyToBorderThicknessConverter}, ConverterParameter='easy'}"
+                                Click="EasyDifficultyButton_Click"
+                                Content="Easy"
+                                CornerRadius="8" />
+                            <Button
+                                BorderBrush="{ThemeResource AccentFillColorDefaultBrush}"
+                                BorderThickness="{x:Bind _setupViewModel.CPUDifficulty, Mode=OneWay, Converter={StaticResource CPUDifficultyToBorderThicknessConverter}, ConverterParameter='medium'}"
+                                Click="MediumDifficultyButton_Click"
+                                Content="Medium"
+                                CornerRadius="8" />
+                            <Button
+                                BorderBrush="{ThemeResource AccentFillColorDefaultBrush}"
+                                BorderThickness="{x:Bind _setupViewModel.CPUDifficulty, Mode=OneWay, Converter={StaticResource CPUDifficultyToBorderThicknessConverter}, ConverterParameter='hard'}"
+                                Click="HardDifficultyButton_Click"
+                                Content="Hard"
+                                CornerRadius="8" />
+                        </StackPanel>
+                    </StackPanel>
+                </StackPanel>
+
+                <!-- Online / Multiplayer Config -->
+                <controls:MultiplayerSetupControl
+                    x:Name="MultiplayerControl"
+                    Visibility="Collapsed" />
+            </Grid>
+        </Border>
+
+        <!-- Start Game button (hidden during multiplayer flow) -->
+        <Button
+            x:Name="StartGameButton"
+            Grid.Row="3"
+            MinWidth="200"
+            Height="44"
+            HorizontalAlignment="Center"
+            Click="StartGameButton_Click"
+            FontSize="15"
+            Style="{ThemeResource AccentButtonStyle}">
+            <StackPanel Orientation="Horizontal" Spacing="8">
+                <FontIcon FontSize="14" Glyph="&#xE768;" />
+                <TextBlock FontWeight="SemiBold" Text="Start Game" />
+            </StackPanel>
+        </Button>
+    </Grid>
+</Page>

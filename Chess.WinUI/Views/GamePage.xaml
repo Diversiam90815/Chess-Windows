@@ -1,0 +1,495 @@
+<?xml version="1.0" encoding="utf-8" ?>
+<Page
+    x:Class="Chess.UI.Views.GamePage"
+    xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+    xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+    xmlns:board="using:Chess.UI.Board"
+    xmlns:converter="using:Chess.UI.UI"
+    xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+    xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+    xmlns:viewmodel="using:Chess.UI.ViewModels"
+    mc:Ignorable="d">
+
+    <Grid
+        x:Name="RootGrid"
+        Padding="16"
+        ColumnSpacing="16">
+        <Grid.ColumnDefinitions>
+            <ColumnDefinition Width="*" />
+            <!-- Board area -->
+            <ColumnDefinition Width="280" />
+            <!-- Info panel -->
+        </Grid.ColumnDefinitions>
+
+        <!-- Board area with rank/file labels -->
+        <Viewbox
+            Grid.Column="0"
+            HorizontalAlignment="Center"
+            VerticalAlignment="Center"
+            Stretch="Uniform">
+            <Grid>
+                <Grid.RowDefinitions>
+                    <RowDefinition Height="Auto" />
+                    <!-- Board -->
+                    <RowDefinition Height="Auto" />
+                    <!-- File labels -->
+                </Grid.RowDefinitions>
+                <Grid.ColumnDefinitions>
+                    <ColumnDefinition Width="Auto" />
+                    <!-- Rank labels -->
+                    <ColumnDefinition Width="Auto" />
+                    <!-- Board -->
+                </Grid.ColumnDefinitions>
+
+                <!-- Rank labels (8,7,6,5,4,3,2,1) -->
+                <StackPanel
+                    Grid.Row="0"
+                    Grid.Column="0"
+                    VerticalAlignment="Stretch">
+                    <TextBlock
+                        Width="24"
+                        Height="75"
+                        FontSize="14"
+                        FontWeight="SemiBold"
+                        Foreground="{ThemeResource TextFillColorSecondaryBrush}"
+                        Text="8"
+                        TextAlignment="Center"
+                        VerticalAlignment="Center"
+                        Padding="0,28,0,0" />
+                    <TextBlock
+                        Width="24"
+                        Height="75"
+                        FontSize="14"
+                        FontWeight="SemiBold"
+                        Foreground="{ThemeResource TextFillColorSecondaryBrush}"
+                        Text="7"
+                        TextAlignment="Center"
+                        Padding="0,28,0,0" />
+                    <TextBlock
+                        Width="24"
+                        Height="75"
+                        FontSize="14"
+                        FontWeight="SemiBold"
+                        Foreground="{ThemeResource TextFillColorSecondaryBrush}"
+                        Text="6"
+                        TextAlignment="Center"
+                        Padding="0,28,0,0" />
+                    <TextBlock
+                        Width="24"
+                        Height="75"
+                        FontSize="14"
+                        FontWeight="SemiBold"
+                        Foreground="{ThemeResource TextFillColorSecondaryBrush}"
+                        Text="5"
+                        TextAlignment="Center"
+                        Padding="0,28,0,0" />
+                    <TextBlock
+                        Width="24"
+                        Height="75"
+                        FontSize="14"
+                        FontWeight="SemiBold"
+                        Foreground="{ThemeResource TextFillColorSecondaryBrush}"
+                        Text="4"
+                        TextAlignment="Center"
+                        Padding="0,28,0,0" />
+                    <TextBlock
+                        Width="24"
+                        Height="75"
+                        FontSize="14"
+                        FontWeight="SemiBold"
+                        Foreground="{ThemeResource TextFillColorSecondaryBrush}"
+                        Text="3"
+                        TextAlignment="Center"
+                        Padding="0,28,0,0" />
+                    <TextBlock
+                        Width="24"
+                        Height="75"
+                        FontSize="14"
+                        FontWeight="SemiBold"
+                        Foreground="{ThemeResource TextFillColorSecondaryBrush}"
+                        Text="2"
+                        TextAlignment="Center"
+                        Padding="0,28,0,0" />
+                    <TextBlock
+                        Width="24"
+                        Height="75"
+                        FontSize="14"
+                        FontWeight="SemiBold"
+                        Foreground="{ThemeResource TextFillColorSecondaryBrush}"
+                        Text="1"
+                        TextAlignment="Center"
+                        Padding="0,28,0,0" />
+                </StackPanel>
+
+                <!-- The board -->
+                <Border
+                    Grid.Row="0"
+                    Grid.Column="1"
+                    BorderBrush="{ThemeResource CardStrokeColorDefaultBrush}"
+                    BorderThickness="1"
+                    CornerRadius="8">
+                    <Grid
+                        x:Name="BoardGrid"
+                        Width="600"
+                        Height="600">
+                        <Grid.Background>
+                            <ImageBrush ImageSource="{x:Bind _viewModel.ChessBoardViewModel.BoardBackgroundImage, Mode=OneWay}" />
+                        </Grid.Background>
+
+                        <ItemsRepeater
+                            x:Name="ChessBoardRepeater"
+                            ItemsSource="{x:Bind _viewModel.ChessBoardViewModel.Board, Mode=TwoWay}">
+                            <ItemsRepeater.Layout>
+                                <UniformGridLayout
+                                    MaximumRowsOrColumns="8"
+                                    MinItemHeight="75"
+                                    MinItemWidth="75" />
+                            </ItemsRepeater.Layout>
+                            <ItemsRepeater.ItemTemplate>
+                                <DataTemplate x:DataType="board:BoardSquare">
+                                    <Grid
+                                        Background="{x:Bind BackgroundBrush, Mode=OneWay}"
+                                        DataContext="{x:Bind}"
+                                        Tapped="ChessPiece_Clicked">
+                                        <Image Source="{x:Bind PieceImage, Mode=OneWay}" Stretch="Uniform" />
+                                    </Grid>
+                                </DataTemplate>
+                            </ItemsRepeater.ItemTemplate>
+                        </ItemsRepeater>
+                    </Grid>
+                </Border>
+
+                <!-- File labels (a through h) -->
+                <StackPanel
+                    Grid.Row="1"
+                    Grid.Column="1"
+                    Orientation="Horizontal">
+                    <TextBlock Width="75" FontSize="14" FontWeight="SemiBold" Foreground="{ThemeResource TextFillColorSecondaryBrush}" Text="a" TextAlignment="Center" Padding="0,4,0,0" />
+                    <TextBlock Width="75" FontSize="14" FontWeight="SemiBold" Foreground="{ThemeResource TextFillColorSecondaryBrush}" Text="b" TextAlignment="Center" Padding="0,4,0,0" />
+                    <TextBlock Width="75" FontSize="14" FontWeight="SemiBold" Foreground="{ThemeResource TextFillColorSecondaryBrush}" Text="c" TextAlignment="Center" Padding="0,4,0,0" />
+                    <TextBlock Width="75" FontSize="14" FontWeight="SemiBold" Foreground="{ThemeResource TextFillColorSecondaryBrush}" Text="d" TextAlignment="Center" Padding="0,4,0,0" />
+                    <TextBlock Width="75" FontSize="14" FontWeight="SemiBold" Foreground="{ThemeResource TextFillColorSecondaryBrush}" Text="e" TextAlignment="Center" Padding="0,4,0,0" />
+                    <TextBlock Width="75" FontSize="14" FontWeight="SemiBold" Foreground="{ThemeResource TextFillColorSecondaryBrush}" Text="f" TextAlignment="Center" Padding="0,4,0,0" />
+                    <TextBlock Width="75" FontSize="14" FontWeight="SemiBold" Foreground="{ThemeResource TextFillColorSecondaryBrush}" Text="g" TextAlignment="Center" Padding="0,4,0,0" />
+                    <TextBlock Width="75" FontSize="14" FontWeight="SemiBold" Foreground="{ThemeResource TextFillColorSecondaryBrush}" Text="h" TextAlignment="Center" Padding="0,4,0,0" />
+                </StackPanel>
+            </Grid>
+        </Viewbox>
+
+        <!-- Info Panel -->
+        <Grid
+            Grid.Column="1"
+            RowSpacing="12">
+            <Grid.RowDefinitions>
+                <RowDefinition Height="Auto" />
+                <!-- Turn indicator -->
+                <RowDefinition Height="Auto" />
+                <!-- Captured pieces -->
+                <RowDefinition Height="*" />
+                <!-- Move history -->
+                <RowDefinition Height="Auto" />
+                <!-- Actions -->
+            </Grid.RowDefinitions>
+
+            <!-- Unified Turn Indicator -->
+            <Border
+                Grid.Row="0"
+                Background="{ThemeResource CardBackgroundFillColorSecondaryBrush}"
+                BorderBrush="{ThemeResource CardStrokeColorDefaultBrush}"
+                BorderThickness="1"
+                CornerRadius="8"
+                Padding="12">
+                <StackPanel Orientation="Horizontal" Spacing="10">
+                    <Image
+                        Width="32"
+                        Height="32"
+                        Source="{x:Bind converter:Converter.PlayerToPawnImage(_viewModel.ChessBoardViewModel.CurrentPlayer), Mode=OneWay}"
+                        Stretch="Uniform" />
+                    <StackPanel VerticalAlignment="Center">
+                        <TextBlock
+                            FontSize="16"
+                            FontWeight="SemiBold"
+                            Text="{x:Bind _viewModel.ChessBoardViewModel.CurrentPlayerText, Mode=OneWay}" />
+                        <TextBlock
+                            FontSize="12"
+                            Foreground="{ThemeResource TextFillColorTertiaryBrush}"
+                            Text="{x:Bind _viewModel.GameModeText, Mode=OneWay}" />
+                    </StackPanel>
+                    <!-- Multiplayer turn dot -->
+                    <Ellipse
+                        Width="10"
+                        Height="10"
+                        Margin="8,0,0,0"
+                        VerticalAlignment="Center"
+                        Fill="{x:Bind converter:Converter.BoolToColor(_viewModel.MultiplayerInfoViewModel.IsLocalPlayersTurn), Mode=OneWay}"
+                        Visibility="{x:Bind converter:Converter.BoolToVisibility(_viewModel.IsMultiplayerGame), Mode=OneWay}" />
+                </StackPanel>
+            </Border>
+
+            <!-- Captured Pieces -->
+            <Border
+                Grid.Row="1"
+                Background="{ThemeResource CardBackgroundFillColorSecondaryBrush}"
+                BorderBrush="{ThemeResource CardStrokeColorDefaultBrush}"
+                BorderThickness="1"
+                CornerRadius="8"
+                Padding="12">
+                <StackPanel Spacing="4">
+                    <TextBlock
+                        FontSize="12"
+                        FontWeight="SemiBold"
+                        Foreground="{ThemeResource TextFillColorSecondaryBrush}"
+                        Text="CAPTURED PIECES" />
+
+                    <!-- White's captures -->
+                    <StackPanel Orientation="Horizontal" Spacing="4">
+                        <TextBlock
+                            Width="44"
+                            FontSize="12"
+                            FontWeight="SemiBold"
+                            Foreground="{ThemeResource TextFillColorSecondaryBrush}"
+                            Text="White" />
+                        <StackPanel Orientation="Horizontal" Spacing="2">
+                            <Image Source="{x:Bind _viewModel.CapturedPiecesViewModel.CapturedBlackPawnImage}" Style="{StaticResource CapturedPieceImageStyle}" />
+                            <TextBlock
+                                VerticalAlignment="Center"
+                                FontSize="12"
+                                Text="{x:Bind _viewModel.CapturedPiecesViewModel.WhiteCapturedPawn, Mode=OneWay}" />
+                            <Image Source="{x:Bind _viewModel.CapturedPiecesViewModel.CapturedBlackBishopImage}" Style="{StaticResource CapturedPieceImageStyle}" />
+                            <TextBlock
+                                VerticalAlignment="Center"
+                                FontSize="12"
+                                Text="{x:Bind _viewModel.CapturedPiecesViewModel.WhiteCapturedBishop, Mode=OneWay}" />
+                            <Image Source="{x:Bind _viewModel.CapturedPiecesViewModel.CapturedBlackKnightImage}" Style="{StaticResource CapturedPieceImageStyle}" />
+                            <TextBlock
+                                VerticalAlignment="Center"
+                                FontSize="12"
+                                Text="{x:Bind _viewModel.CapturedPiecesViewModel.WhiteCapturedKnight, Mode=OneWay}" />
+                            <Image Source="{x:Bind _viewModel.CapturedPiecesViewModel.CapturedBlackRookImage}" Style="{StaticResource CapturedPieceImageStyle}" />
+                            <TextBlock
+                                VerticalAlignment="Center"
+                                FontSize="12"
+                                Text="{x:Bind _viewModel.CapturedPiecesViewModel.WhiteCapturedRook, Mode=OneWay}" />
+                            <Image Source="{x:Bind _viewModel.CapturedPiecesViewModel.CapturedBlackQueenImage}" Style="{StaticResource CapturedPieceImageStyle}" />
+                            <TextBlock
+                                VerticalAlignment="Center"
+                                FontSize="12"
+                                Text="{x:Bind _viewModel.CapturedPiecesViewModel.WhiteCapturedQueen, Mode=OneWay}" />
+                        </StackPanel>
+                    </StackPanel>
+
+                    <!-- Black's captures -->
+                    <StackPanel Orientation="Horizontal" Spacing="4">
+                        <TextBlock
+                            Width="44"
+                            FontSize="12"
+                            FontWeight="SemiBold"
+                            Foreground="{ThemeResource TextFillColorSecondaryBrush}"
+                            Text="Black" />
+                        <StackPanel Orientation="Horizontal" Spacing="2">
+                            <Image Source="{x:Bind _viewModel.CapturedPiecesViewModel.CapturedWhitePawnImage}" Style="{StaticResource CapturedPieceImageStyle}" />
+                            <TextBlock
+                                VerticalAlignment="Center"
+                                FontSize="12"
+                                Text="{x:Bind _viewModel.CapturedPiecesViewModel.BlackCapturedPawn, Mode=OneWay}" />
+                            <Image Source="{x:Bind _viewModel.CapturedPiecesViewModel.CapturedWhiteBishopImage}" Style="{StaticResource CapturedPieceImageStyle}" />
+                            <TextBlock
+                                VerticalAlignment="Center"
+                                FontSize="12"
+                                Text="{x:Bind _viewModel.CapturedPiecesViewModel.BlackCapturedBishop, Mode=OneWay}" />
+                            <Image Source="{x:Bind _viewModel.CapturedPiecesViewModel.CapturedWhiteKnightImage}" Style="{StaticResource CapturedPieceImageStyle}" />
+                            <TextBlock
+                                VerticalAlignment="Center"
+                                FontSize="12"
+                                Text="{x:Bind _viewModel.CapturedPiecesViewModel.BlackCapturedKnight, Mode=OneWay}" />
+                            <Image Source="{x:Bind _viewModel.CapturedPiecesViewModel.CapturedWhiteRookImage}" Style="{StaticResource CapturedPieceImageStyle}" />
+                            <TextBlock
+                                VerticalAlignment="Center"
+                                FontSize="12"
+                                Text="{x:Bind _viewModel.CapturedPiecesViewModel.BlackCapturedRook, Mode=OneWay}" />
+                            <Image Source="{x:Bind _viewModel.CapturedPiecesViewModel.CapturedWhiteQueenImage}" Style="{StaticResource CapturedPieceImageStyle}" />
+                            <TextBlock
+                                VerticalAlignment="Center"
+                                FontSize="12"
+                                Text="{x:Bind _viewModel.CapturedPiecesViewModel.BlackCapturedQueen, Mode=OneWay}" />
+                        </StackPanel>
+                    </StackPanel>
+                </StackPanel>
+            </Border>
+
+            <!-- Move History (fills remaining space) -->
+            <Border
+                Grid.Row="2"
+                Background="{ThemeResource CardBackgroundFillColorSecondaryBrush}"
+                BorderBrush="{ThemeResource CardStrokeColorDefaultBrush}"
+                BorderThickness="1"
+                CornerRadius="8"
+                Padding="12">
+                <Grid>
+                    <Grid.RowDefinitions>
+                        <RowDefinition Height="Auto" />
+                        <RowDefinition Height="Auto" />
+                        <RowDefinition Height="*" />
+                    </Grid.RowDefinitions>
+
+                    <TextBlock
+                        Grid.Row="0"
+                        FontSize="12"
+                        FontWeight="SemiBold"
+                        Foreground="{ThemeResource TextFillColorSecondaryBrush}"
+                        Margin="0,0,0,8"
+                        Text="MOVE HISTORY" />
+
+                    <!-- Column Headers -->
+                    <Grid Grid.Row="1" Margin="0,0,0,4">
+                        <Grid.ColumnDefinitions>
+                            <ColumnDefinition Width="36" />
+                            <ColumnDefinition Width="*" />
+                            <ColumnDefinition Width="*" />
+                        </Grid.ColumnDefinitions>
+
+                        <Border
+                            Grid.Column="0"
+                            BorderBrush="{ThemeResource DividerStrokeColorDefaultBrush}"
+                            BorderThickness="0,0,1,1"
+                            Padding="2,4">
+                            <TextBlock
+                                FontSize="12"
+                                FontWeight="SemiBold"
+                                Foreground="{ThemeResource TextFillColorSecondaryBrush}"
+                                HorizontalAlignment="Center"
+                                Text="#" />
+                        </Border>
+                        <Border
+                            Grid.Column="1"
+                            BorderBrush="{ThemeResource DividerStrokeColorDefaultBrush}"
+                            BorderThickness="0,0,1,1"
+                            Padding="2,4">
+                            <TextBlock
+                                FontSize="12"
+                                FontWeight="SemiBold"
+                                Foreground="{ThemeResource TextFillColorSecondaryBrush}"
+                                HorizontalAlignment="Center"
+                                Text="White" />
+                        </Border>
+                        <Border
+                            Grid.Column="2"
+                            BorderBrush="{ThemeResource DividerStrokeColorDefaultBrush}"
+                            BorderThickness="0,0,0,1"
+                            Padding="2,4">
+                            <TextBlock
+                                FontSize="12"
+                                FontWeight="SemiBold"
+                                Foreground="{ThemeResource TextFillColorSecondaryBrush}"
+                                HorizontalAlignment="Center"
+                                Text="Black" />
+                        </Border>
+                    </Grid>
+
+                    <!-- Move Rows -->
+                    <ScrollViewer
+                        Grid.Row="2"
+                        HorizontalScrollBarVisibility="Disabled"
+                        VerticalScrollBarVisibility="Auto">
+                        <ItemsRepeater
+                            x:Name="MoveHistoryRepeater"
+                            ItemsSource="{x:Bind _viewModel.MoveHistoryViewModel.MoveEntries, Mode=OneWay}">
+                            <ItemsRepeater.Layout>
+                                <StackLayout />
+                            </ItemsRepeater.Layout>
+                            <ItemsRepeater.ItemTemplate>
+                                <DataTemplate x:DataType="viewmodel:MoveHistoryEntry">
+                                    <Grid MinHeight="24">
+                                        <Grid.ColumnDefinitions>
+                                            <ColumnDefinition Width="36" />
+                                            <ColumnDefinition Width="*" />
+                                            <ColumnDefinition Width="*" />
+                                        </Grid.ColumnDefinitions>
+
+                                        <Border
+                                            Grid.Column="0"
+                                            BorderBrush="{ThemeResource DividerStrokeColorDefaultBrush}"
+                                            BorderThickness="0,0,1,0.5"
+                                            Padding="2">
+                                            <TextBlock
+                                                FontSize="12"
+                                                Foreground="{ThemeResource TextFillColorTertiaryBrush}"
+                                                HorizontalAlignment="Center"
+                                                VerticalAlignment="Center"
+                                                Text="{x:Bind MoveNumber}" />
+                                        </Border>
+                                        <Border
+                                            Grid.Column="1"
+                                            Background="{ThemeResource CardBackgroundFillColorDefaultBrush}"
+                                            BorderBrush="{ThemeResource DividerStrokeColorDefaultBrush}"
+                                            BorderThickness="0,0,1,0.5"
+                                            Padding="2">
+                                            <TextBlock
+                                                FontSize="13"
+                                                HorizontalAlignment="Center"
+                                                VerticalAlignment="Center"
+                                                Text="{x:Bind WhiteMove, Mode=OneWay}" />
+                                        </Border>
+                                        <Border
+                                            Grid.Column="2"
+                                            BorderBrush="{ThemeResource DividerStrokeColorDefaultBrush}"
+                                            BorderThickness="0,0,0,0.5"
+                                            Padding="2">
+                                            <TextBlock
+                                                FontSize="13"
+                                                HorizontalAlignment="Center"
+                                                VerticalAlignment="Center"
+                                                Text="{x:Bind BlackMove, Mode=OneWay}" />
+                                        </Border>
+                                    </Grid>
+                                </DataTemplate>
+                            </ItemsRepeater.ItemTemplate>
+                        </ItemsRepeater>
+                    </ScrollViewer>
+                </Grid>
+            </Border>
+
+            <!-- Action Buttons -->
+            <Border
+                Grid.Row="3"
+                Background="{ThemeResource CardBackgroundFillColorSecondaryBrush}"
+                BorderBrush="{ThemeResource CardStrokeColorDefaultBrush}"
+                BorderThickness="1"
+                CornerRadius="8"
+                Padding="8">
+                <StackPanel
+                    HorizontalAlignment="Center"
+                    Orientation="Horizontal"
+                    Spacing="8">
+                    <Button
+                        Click="UndoMove_Click"
+                        CornerRadius="8"
+                        Visibility="{x:Bind converter:Converter.BoolToVisibility(_viewModel.IsKoopGame), Mode=OneWay}">
+                        <StackPanel Orientation="Horizontal" Spacing="6">
+                            <FontIcon FontSize="14" Glyph="&#xE7A7;" />
+                            <TextBlock Text="Undo" />
+                        </StackPanel>
+                    </Button>
+                    <Button
+                        Click="ResetGame_Click"
+                        CornerRadius="8"
+                        Visibility="{x:Bind converter:Converter.BoolToVisibility(_viewModel.IsKoopGame), Mode=OneWay}">
+                        <StackPanel Orientation="Horizontal" Spacing="6">
+                            <FontIcon FontSize="14" Glyph="&#xE72C;" />
+                            <TextBlock Text="Reset" />
+                        </StackPanel>
+                    </Button>
+                    <Button
+                        Click="EndGame_Click"
+                        CornerRadius="8"
+                        Foreground="#D13438">
+                        <StackPanel Orientation="Horizontal" Spacing="6">
+                            <FontIcon FontSize="14" Foreground="#D13438" Glyph="&#xEA3A;" />
+                            <TextBlock Foreground="#D13438" Text="Resign" />
+                        </StackPanel>
+                    </Button>
+                </StackPanel>
+            </Border>
+        </Grid>
+    </Grid>
+</Page>

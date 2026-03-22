@@ -1,56 +1,50 @@
-﻿using Chess.UI.Board;
+using Chess.UI.Board;
 using Chess.UI.Services;
 using Chess.UI.Styles;
 using Chess.UI.ViewModels;
 using Chess.UI.Wrappers;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.UI;
-using Microsoft.UI.Dispatching;
 using Microsoft.UI.Text;
-using Microsoft.UI.Windowing;
 using Microsoft.UI.Xaml;
 using Microsoft.UI.Xaml.Controls;
 using Microsoft.UI.Xaml.Input;
 using Microsoft.UI.Xaml.Media;
 using System;
-using System.ComponentModel.DataAnnotations;
 using System.Linq;
 using System.Threading.Tasks;
-using Windows.UI.Text;
 using static Chess.UI.Services.EngineAPI;
 
 
 namespace Chess.UI.Views
 {
-    public sealed partial class ChessBoardWindow : Window
+    public sealed partial class GamePage : Page
     {
         private readonly GameWindowViewModel _viewModel;
         private readonly IImageService _images;
         private readonly IDispatcherQueueWrapper _dispatcher;
-        private readonly IWindowSizeService _windowSizeService;
         private readonly IStyleManager _styleManager;
+        private readonly INavigationService _navigationService;
+        private readonly IChessGameService _gameService;
 
         private PieceType? _selectedPromotionPiece { get; set; }
 
 
-        public ChessBoardWindow()
+        public GamePage()
         {
             this.InitializeComponent();
-            AppWindow.SetIcon(Project.IconPath);
 
             _dispatcher = App.Current.Services.GetService<IDispatcherQueueWrapper>();
             _images = App.Current.Services.GetService<IImageService>();
             _viewModel = App.Current.Services.GetService<GameWindowViewModel>();
-            _windowSizeService = App.Current.Services.GetService<IWindowSizeService>();
             _styleManager = App.Current.Services.GetService<IStyleManager>();
+            _navigationService = App.Current.Services.GetService<INavigationService>();
+            _gameService = App.Current.Services.GetService<IChessGameService>();
 
-            RootPanel.DataContext = _viewModel;
+            RootGrid.DataContext = _viewModel;
 
             _viewModel.ShowPawnPromotionDialogRequested += OnShowPawnPromotionDialog;
             _viewModel.ShowEndGameDialog += OnGameOverState;
-
-            _windowSizeService.SetWindowSize(this, 1100, 800);
-            _windowSizeService.SetWindowNonResizable(this);
         }
 
 
@@ -71,11 +65,12 @@ namespace Chess.UI.Views
         }
 
 
-        private void EndGame_Click(object sender, RoutedEventArgs e)
+        private async void EndGame_Click(object sender, RoutedEventArgs e)
         {
             _viewModel.EndGame();
             _viewModel.OnButtonClicked();
-            this.Close();
+            await _gameService.EndGameAsync();
+            _navigationService.NavigateToHome();
         }
 
 
@@ -153,7 +148,7 @@ namespace Chess.UI.Views
             {
                 var winnerBlock = new TextBlock
                 {
-                    Text = $"🏆 Winner: {winner}",
+                    Text = $"Winner: {winner}",
                     FontSize = 18,
                     FontWeight = FontWeights.SemiBold,
                     HorizontalAlignment = HorizontalAlignment.Center,
@@ -168,7 +163,7 @@ namespace Chess.UI.Views
             {
                 var drawBlock = new TextBlock
                 {
-                    Text = "🤝 Game ends in a draw",
+                    Text = "Game ends in a draw",
                     FontSize = 18,
                     FontWeight = FontWeights.SemiBold,
                     HorizontalAlignment = HorizontalAlignment.Center,
@@ -194,7 +189,7 @@ namespace Chess.UI.Views
                 PrimaryButtonText = "New Game",
                 SecondaryButtonText = "View Board",
                 CloseButtonText = "Main Menu",
-                XamlRoot = this.Content.XamlRoot,
+                XamlRoot = this.XamlRoot,
                 DefaultButton = ContentDialogButton.Primary
             };
 
@@ -208,7 +203,7 @@ namespace Chess.UI.Views
         {
             var statsHeader = new TextBlock
             {
-                Text = "📊 Game Statistics",
+                Text = "Game Statistics",
                 FontSize = 16,
                 FontWeight = FontWeights.SemiBold,
                 Margin = new Thickness(0, 8, 0, 8)
@@ -226,7 +221,6 @@ namespace Chess.UI.Views
                 ColumnSpacing = 16
             };
 
-            // Add statistics
             var totalMoves = _viewModel.MoveHistoryViewModel.MoveEntries
                 .Sum(e => (!string.IsNullOrEmpty(e.WhiteMove) ? 1 : 0) +
                           (!string.IsNullOrEmpty(e.BlackMove) ? 1 : 0));
@@ -253,29 +247,11 @@ namespace Chess.UI.Views
             AddStatRow(statsGrid, 5, "Game Type:", gameType);
 
             stackPanel.Children.Add(statsGrid);
-
-            // Captured pieces details
-            if (whiteCaptured > 0 || blackCaptured > 0)
-            {
-                var capturedHeader = new TextBlock
-                {
-                    Text = "🎯 Captured Pieces",
-                    FontSize = 16,
-                    FontWeight = FontWeights.SemiBold,
-                    Margin = new Thickness(0, 16, 0, 8)
-                };
-                stackPanel.Children.Add(capturedHeader);
-
-                var capturedGrid = CreateCapturedPieceDisplay();
-                stackPanel.Children.Add(capturedGrid);
-            }
         }
 
 
         private void AddStatRow(Grid grid, int row, string label, string value)
-
         {
-            // Ensure we have enough row definitions
             while (grid.RowDefinitions.Count <= row)
             {
                 grid.RowDefinitions.Add(new RowDefinition { Height = GridLength.Auto });
@@ -300,103 +276,6 @@ namespace Chess.UI.Views
             Grid.SetRow(valueBlock, row);
             Grid.SetColumn(valueBlock, 1);
             grid.Children.Add(valueBlock);
-
-        }
-
-
-        private Grid CreateCapturedPieceDisplay()
-        {
-            var grid = new Grid
-            {
-                ColumnDefinitions =
-                {
-                    new ColumnDefinition { Width = new GridLength(1, GridUnitType.Star) },
-                    new ColumnDefinition { Width = new GridLength(1, GridUnitType.Star) }
-                },
-                RowDefinitions =
-                {
-                    new RowDefinition { Height = GridLength.Auto },
-                    new RowDefinition { Height = GridLength.Auto }
-                },
-                RowSpacing = 12,
-                ColumnSpacing = 16
-            };
-
-            // White captured pieces
-            var whitePanel = CreatePlayerCapturedPanel("White Captured:", Side.White);
-            Grid.SetRow(whitePanel, 0);
-            Grid.SetColumn(whitePanel, 0);
-            grid.Children.Add(whitePanel);
-
-            // Black captured pieces
-            var blackPanel = CreatePlayerCapturedPanel("Black Captured:", Side.Black);
-            Grid.SetRow(blackPanel, 0);
-            Grid.SetColumn(blackPanel, 1);
-            grid.Children.Add(blackPanel);
-
-            return grid;
-        }
-
-
-        private StackPanel CreatePlayerCapturedPanel(string title, Side player)
-        {
-            var panel = new StackPanel
-            {
-                Spacing = 4
-            };
-
-            var titleBlock = new TextBlock
-            {
-                Text = title,
-                FontWeight = FontWeights.SemiBold,
-                FontSize = 14
-            };
-            panel.Children.Add(titleBlock);
-
-            var piecesPanel = new StackPanel
-            {
-                Orientation = Orientation.Horizontal,
-                Spacing = 8
-            };
-
-            // Add captured piece counts
-            var pieces = new[]
-            {
-                ("♟", player == Side.White ? _viewModel.CapturedPiecesViewModel.WhiteCapturedPawn : _viewModel.CapturedPiecesViewModel.BlackCapturedPawn),
-                ("♞", player == Side.White ? _viewModel.CapturedPiecesViewModel.WhiteCapturedKnight : _viewModel.CapturedPiecesViewModel.BlackCapturedKnight),
-                ("♝", player == Side.White ? _viewModel.CapturedPiecesViewModel.WhiteCapturedBishop : _viewModel.CapturedPiecesViewModel.BlackCapturedBishop),
-                ("♜", player == Side.White ? _viewModel.CapturedPiecesViewModel.WhiteCapturedRook : _viewModel.CapturedPiecesViewModel.BlackCapturedRook),
-                ("♛", player == Side.White ? _viewModel.CapturedPiecesViewModel.WhiteCapturedQueen : _viewModel.CapturedPiecesViewModel.BlackCapturedQueen)
-            };
-
-            foreach (var (symbol, count) in pieces)
-            {
-                if (count > 0)
-                {
-                    var pieceBlock = new TextBlock
-                    {
-                        Text = $"{symbol}×{count}",
-                        FontSize = 12,
-                        VerticalAlignment = VerticalAlignment.Center
-                    };
-                    piecesPanel.Children.Add(pieceBlock);
-                }
-            }
-
-            if (piecesPanel.Children.Count == 0)
-            {
-                var noneBlock = new TextBlock
-                {
-                    Text = "None",
-                    FontStyle = FontStyle.Italic,
-                    Foreground = new SolidColorBrush(Colors.Gray),
-                    FontSize = 12
-                };
-                piecesPanel.Children.Add(noneBlock);
-            }
-
-            panel.Children.Add(piecesPanel);
-            return panel;
         }
 
 
@@ -439,7 +318,7 @@ namespace Chess.UI.Views
                     var dialog = new ContentDialog
                     {
                         Title = "Pawn Promotion",
-                        XamlRoot = this.Content.XamlRoot
+                        XamlRoot = this.XamlRoot
                     };
 
                     var stackPanel = new StackPanel
@@ -453,7 +332,6 @@ namespace Chess.UI.Views
                     Side currentPlayer = _viewModel.ChessBoardViewModel.CurrentPlayer;
                     _selectedPromotionPiece = null;
 
-                    // Create promotion piece buttons
                     AddPromotionButton(stackPanel, PieceType.WQueen, currentPlayer, dialog);
                     AddPromotionButton(stackPanel, PieceType.WRook, currentPlayer, dialog);
                     AddPromotionButton(stackPanel, PieceType.WBishop, currentPlayer, dialog);
@@ -490,7 +368,8 @@ namespace Chess.UI.Views
 
                 case ContentDialogResult.None: // Main Menu
                 default:
-                    this.Close();
+                    await _gameService.EndGameAsync();
+                    _navigationService.NavigateToHome();
                     break;
             }
         }
