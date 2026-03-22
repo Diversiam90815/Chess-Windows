@@ -1,4 +1,4 @@
-﻿using Chess.UI.Audio.Core;
+using Chess.UI.Audio.Core;
 using Chess.UI.Audio.Services;
 using Chess.UI.Models;
 using Chess.UI.Services;
@@ -16,7 +16,7 @@ namespace Chess.UI
 {
     public partial class App : Application
     {
-        private Window MainMenu;
+        private ShellWindow _shellWindow;
 
         public static new App Current { get; private set; }
 
@@ -34,20 +34,20 @@ namespace Chess.UI
 
         protected override void OnLaunched(Microsoft.UI.Xaml.LaunchActivatedEventArgs args)
         {
-            var engineCommuniction = Services.GetService<ICommunicationLayer>();
-            engineCommuniction.Init();
+            var engineCommunication = Services.GetService<ICommunicationLayer>();
+            engineCommunication.Init();
 
             var audioService = Services.GetService<IChessAudioService>();
             audioService.InitializeAsync();
 
-            MainMenu = new MainMenuWindow();
+            _shellWindow = new ShellWindow();
 
-            MainMenu.Closed += (sender, args) =>
+            _shellWindow.Closed += (sender, args) =>
             {
-                engineCommuniction.Deinit();
+                engineCommunication.Deinit();
             };
 
-            MainMenu.Activate();
+            _shellWindow.Activate();
 
             Logger.LogInfo("App initialized!");
         }
@@ -73,7 +73,7 @@ namespace Chess.UI
             services.AddSingleton<IMultiplayerModel, MultiplayerModel>();
             services.AddSingleton<IMultiplayerPreferencesModel, MultiplayerPreferencesModel>();
 
-            // Register view models            
+            // Register view models
             services.AddSingleton<GameWindowViewModel>();
             services.AddSingleton<CapturedPiecesViewModel>();
             services.AddSingleton<ChessBoardViewModel>();
@@ -85,19 +85,9 @@ namespace Chess.UI
             services.AddSingleton<AudioPreferencesViewModel>();
             services.AddSingleton<GameSetupViewModel>();
 
-            services.AddTransient<MainMenuWindow>();
-            services.AddTransient<ChessBoardWindow>();
-            services.AddTransient<MultiplayerWindow>();
-            services.AddTransient<StylePreferencesView>();
-            services.AddTransient<MultiplayerPreferencesView>();
-            services.AddTransient<AudioPreferencesView>();
-            services.AddTransient<GameConfigurationView>();
-
             // Audio Services
             services.AddSingleton<IAudioEngine, AudioEngine>();
             services.AddSingleton<IChessAudioService, ChessAudioService>();
-
-            services.AddTransient<PreferencesView>();
 
             return services.BuildServiceProvider();
         }

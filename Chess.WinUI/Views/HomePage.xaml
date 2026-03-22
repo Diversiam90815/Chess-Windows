@@ -1,0 +1,105 @@
+<?xml version="1.0" encoding="utf-8" ?>
+<Page
+    x:Class="Chess.UI.Views.HomePage"
+    xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+    xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+    xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+    xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+    mc:Ignorable="d"
+    NavigationCacheMode="Enabled">
+
+    <Grid>
+        <StackPanel
+            HorizontalAlignment="Center"
+            VerticalAlignment="Center"
+            Spacing="32">
+
+            <!-- Hero: Mini chess board preview -->
+            <Border
+                Width="200"
+                Height="200"
+                HorizontalAlignment="Center"
+                CornerRadius="16"
+                BorderBrush="{ThemeResource CardStrokeColorDefaultBrush}"
+                BorderThickness="1">
+                <Border.Background>
+                    <ImageBrush
+                        ImageSource="{x:Bind _viewModel.BoardPreviewImage, Mode=OneWay}"
+                        Stretch="UniformToFill" />
+                </Border.Background>
+
+                <!-- Overlay grid with some chess pieces -->
+                <Grid>
+                    <Grid.RowDefinitions>
+                        <RowDefinition Height="*" />
+                        <RowDefinition Height="*" />
+                        <RowDefinition Height="*" />
+                        <RowDefinition Height="*" />
+                    </Grid.RowDefinitions>
+                    <Grid.ColumnDefinitions>
+                        <ColumnDefinition Width="*" />
+                        <ColumnDefinition Width="*" />
+                        <ColumnDefinition Width="*" />
+                        <ColumnDefinition Width="*" />
+                    </Grid.ColumnDefinitions>
+
+                    <Image Grid.Row="0" Grid.Column="0" Source="ms-appx:///Assets/Pieces/Standard/WKing.png" Stretch="Uniform" Margin="4" Opacity="0.9" />
+                    <Image Grid.Row="0" Grid.Column="3" Source="ms-appx:///Assets/Pieces/Standard/BKing.png" Stretch="Uniform" Margin="4" Opacity="0.9" />
+                    <Image Grid.Row="3" Grid.Column="1" Source="ms-appx:///Assets/Pieces/Standard/WQueen.png" Stretch="Uniform" Margin="4" Opacity="0.7" />
+                    <Image Grid.Row="3" Grid.Column="2" Source="ms-appx:///Assets/Pieces/Standard/BQueen.png" Stretch="Uniform" Margin="4" Opacity="0.7" />
+                </Grid>
+            </Border>
+
+            <!-- Title -->
+            <TextBlock
+                HorizontalAlignment="Center"
+                FontSize="48"
+                FontWeight="Bold"
+                Text="Chess" />
+
+            <!-- Subtitle -->
+            <TextBlock
+                HorizontalAlignment="Center"
+                Margin="0,-16,0,0"
+                FontSize="14"
+                Foreground="{ThemeResource TextFillColorSecondaryBrush}"
+                Text="Bitboard Engine" />
+
+            <!-- Actions -->
+            <StackPanel
+                Width="280"
+                HorizontalAlignment="Center"
+                Spacing="12">
+
+                <!-- Primary: Play -->
+                <Button
+                    Height="48"
+                    HorizontalAlignment="Stretch"
+                    Click="PlayButton_Click"
+                    Style="{ThemeResource AccentButtonStyle}">
+                    <StackPanel Orientation="Horizontal" Spacing="8">
+                        <FontIcon FontSize="16" Glyph="&#xE768;" />
+                        <TextBlock FontSize="16" FontWeight="SemiBold" Text="Play" />
+                    </StackPanel>
+                </Button>
+
+                <!-- Secondary: Settings -->
+                <Button
+                    Height="40"
+                    HorizontalAlignment="Stretch"
+                    Click="SettingsButton_Click">
+                    <StackPanel Orientation="Horizontal" Spacing="8">
+                        <FontIcon FontSize="14" Glyph="&#xE713;" />
+                        <TextBlock Text="Settings" />
+                    </StackPanel>
+                </Button>
+
+                <!-- Tertiary: Quit -->
+                <HyperlinkButton
+                    HorizontalAlignment="Center"
+                    Click="QuitButton_Click"
+                    Content="Quit" />
+            </StackPanel>
+        </StackPanel>
+    </Grid>
+</Page>
