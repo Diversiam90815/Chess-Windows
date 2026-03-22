@@ -4,9 +4,6 @@
 
 This is a chess game developed in C++ and C# with the goal of creating a fully-featured chess application. The project is currently in development and aims to provide a seamless chess-playing experience with a modern user interface.
 
-## Disclaimer:
-**Currently the project goes through a restructuring of the engine in order to support bitboards.**
-
 ## Features
 
 -   **Modern User Interface**:
