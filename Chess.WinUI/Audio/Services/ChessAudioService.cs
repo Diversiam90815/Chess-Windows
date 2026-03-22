@@ -50,7 +50,6 @@ namespace Chess.UI.Audio.Services
         {
             var mainMenuViewModel = App.Current.Services.GetService<MainMenuViewModel>();
             mainMenuViewModel.ButtonClicked += () => _ = Task.Run(async () => await HandleUIInteractionAsync(UIInteraction.ButtonClick));
-            mainMenuViewModel.StartGameRequested += () => _ = Task.Run(async () => await HandleGameStartAsync());
 
             var chessboardVM = App.Current.Services.GetService<ChessBoardViewModel>();
             chessboardVM.ButtonClicked += () => _ = Task.Run(async () => await HandleUIInteractionAsync(UIInteraction.ButtonClick));
