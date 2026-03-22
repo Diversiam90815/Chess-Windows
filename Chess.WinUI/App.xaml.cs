@@ -85,16 +85,9 @@ namespace Chess.UI
             services.AddSingleton<AudioPreferencesViewModel>();
             services.AddSingleton<GameSetupViewModel>();
 
-            // Views that need DI resolution
-            services.AddTransient<StylePreferencesView>();
-            services.AddTransient<MultiplayerPreferencesView>();
-            services.AddTransient<AudioPreferencesView>();
-
             // Audio Services
             services.AddSingleton<IAudioEngine, AudioEngine>();
             services.AddSingleton<IChessAudioService, ChessAudioService>();
-
-            services.AddTransient<PreferencesView>();
 
             return services.BuildServiceProvider();
         }

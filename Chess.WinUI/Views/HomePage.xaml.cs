@@ -37,12 +37,12 @@ namespace Chess.UI.Views
         }
 
 
-        private async void SettingsButton_Click(object sender, RoutedEventArgs e)
+        private void SettingsButton_Click(object sender, RoutedEventArgs e)
         {
             var mainMenuVM = App.Current.Services.GetService<MainMenuViewModel>();
             mainMenuVM?.OnButtonClicked();
 
-            await _navigationService.ShowPreferencesAsync();
+            _navigationService.NavigateToSettings();
         }
 
 

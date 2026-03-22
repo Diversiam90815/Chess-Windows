@@ -17,7 +17,7 @@ namespace Chess.UI.Services
         void NavigateToGameSetup();
         Task NavigateToGameAsync();
         void NavigateToHome();
-        Task ShowPreferencesAsync();
+        void NavigateToSettings();
         void GoBack();
         Window ShellWindow { get; }
     }
@@ -111,24 +111,13 @@ namespace Chess.UI.Services
         }
 
 
-        public async Task ShowPreferencesAsync()
+        public void NavigateToSettings()
         {
-            await Task.Run(() =>
+            _dispatcherQueue.TryEnqueue(() =>
             {
-                _dispatcherQueue.TryEnqueue(async () =>
+                _rootFrame?.Navigate(typeof(SettingsPage), null, new SlideNavigationTransitionInfo
                 {
-                    var preferencesView = App.Current.Services.GetRequiredService<PreferencesView>();
-                    preferencesView.XamlRoot = _rootFrame.XamlRoot;
-                    preferencesView.Width = 700;
-                    preferencesView.Height = 550;
-                    preferencesView.AddPreferencesTab("Appearance", typeof(StylePreferencesView), "\uE790");
-                    preferencesView.AddPreferencesTab("Audio", typeof(AudioPreferencesView), "\uE8D6");
-                    preferencesView.AddPreferencesTab("Multiplayer", typeof(MultiplayerPreferencesView), "\uE774");
-
-                    var mainMenuViewModel = App.Current.Services.GetService<MainMenuViewModel>();
-                    preferencesView.ButtonClicked += mainMenuViewModel.OnButtonClicked;
-
-                    await preferencesView.ShowAsync();
+                    Effect = SlideNavigationTransitionEffect.FromRight
                 });
             });
         }
