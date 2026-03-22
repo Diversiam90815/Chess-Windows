@@ -333,9 +333,12 @@ namespace Chess.UI.ViewModels
                 {
                     _currentPlayer = value;
                     OnPropertyChanged();
+                    OnPropertyChanged(nameof(CurrentPlayerText));
                 }
             }
         }
+
+        public string CurrentPlayerText => CurrentPlayer == Side.White ? "White's Turn" : "Black's Turn";
 
 
         public ImageSource BoardBackgroundImage => _imageServices.GetImage(CurrentBoardStyle);

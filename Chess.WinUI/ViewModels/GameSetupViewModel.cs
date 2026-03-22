@@ -108,7 +108,7 @@ namespace Chess.UI.ViewModels
                     return false;
                 }
 
-                await _navigationService.NavigateToChessboardAsync();
+                await _navigationService.NavigateToGameAsync();
 
                 Logger.LogInfo("Successfully navigated to chessboard");
                 return true;

@@ -175,9 +175,14 @@ namespace Chess.UI.ViewModels
                 {
                     _isKoopGame = value;
                     OnPropertyChanged();
+                    OnPropertyChanged(nameof(GameModeText));
                 }
             }
         }
+
+        public string GameModeText =>
+            IsMultiplayerGame ? "Multiplayer" :
+            IsKoopGame ? "Local Co-op" : "vs Computer";
 
 
         #endregion
