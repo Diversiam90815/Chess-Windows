@@ -7,13 +7,13 @@ Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Chess.WinUI", "Chess.WinUI\
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Chess.UI.Test", "Chess.WinUI.Test\Chess.UI.Test.csproj", "{E538FBA7-ED89-71DA-B824-4EE0E2984851}"
 EndProject
-Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "Chess.Engine.API", "..\Chess.Engine\build\x64\src\Chess.Engine.API\Chess.Engine.API.vcxproj", "{244E97C8-FF17-3865-B26F-E4930C1516B5}"
+Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "Chess.Engine.API", "Chess.Engine\build\x64\src\Chess.Engine.API\Chess.Engine.API.vcxproj", "{244E97C8-FF17-3865-B26F-E4930C1516B5}"
 EndProject
-Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "Chess.Engine.Core", "..\Chess.Engine\build\x64\src\Chess.Engine.Core\Chess.Engine.Core.vcxproj", "{20009636-FFE8-3AFA-A0E4-006732FD3244}"
+Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "Chess.Engine.Core", "Chess.Engine\build\x64\src\Chess.Engine.Core\Chess.Engine.Core.vcxproj", "{20009636-FFE8-3AFA-A0E4-006732FD3244}"
 EndProject
-Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "Chess.Engine.ConsoleApp", "..\Chess.Engine\build\x64\src\Chess.Engine.ConsoleApp\Chess.Engine.ConsoleApp.vcxproj", "{3CB2047F-F5F6-342E-AEF8-85C2116FB5E9}"
+Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "Chess.Engine.ConsoleApp", "Chess.Engine\build\x64\src\Chess.Engine.ConsoleApp\Chess.Engine.ConsoleApp.vcxproj", "{3CB2047F-F5F6-342E-AEF8-85C2116FB5E9}"
 EndProject
-Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "Engine.Core.Tests", "..\Chess.Engine\build\x64\tests\Core.Tests\Engine.Core.Tests.vcxproj", "{04AD1B36-DCA1-3159-9A57-BE366845F97C}"
+Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "Engine.Core.Tests", "Chess.Engine\build\x64\tests\Core.Tests\Engine.Core.Tests.vcxproj", "{04AD1B36-DCA1-3159-9A57-BE366845F97C}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution

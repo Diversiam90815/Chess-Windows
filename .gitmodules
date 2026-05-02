@@ -1,0 +1,3 @@
+[submodule "Chess.Engine"]
+	path = Chess.Engine
+	url = git@github.com:Diversiam90815/Chess-Engine.git
