@@ -59,6 +59,8 @@ namespace Chess.UI
 
             services.AddSingleton<IDispatcherQueueWrapper, DispatcherQueueWrapper>();
 
+            services.AddSingleton<ISettingsService, UserSettingsCache>();
+
             services.AddSingleton<ICommunicationLayer, CommunicationLayer>();
             services.AddSingleton<IStyleManager, StyleManager>();
             services.AddSingleton<IImageService, ImageServices>();
