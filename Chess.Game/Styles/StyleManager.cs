@@ -1,4 +1,5 @@
-﻿using Chess.UI.Wrappers;
+﻿using Chess.UI.Settings;
+using Chess.UI.Wrappers;
 using System;
 using System.ComponentModel;
 using System.Runtime.CompilerServices;
@@ -21,11 +22,13 @@ namespace Chess.UI.Styles
         public event PropertyChangedEventHandler PropertyChanged;
 
         private readonly IDispatcherQueueWrapper _dispatcherQueue;
+        private readonly ISettingsService _settingsService;
 
 
-        public StyleManager(IDispatcherQueueWrapper dispatcher)
+        public StyleManager(IDispatcherQueueWrapper dispatcher, ISettingsService settingsService)
         {
             _dispatcherQueue = dispatcher;
+            _settingsService = settingsService;
 
             LoadStyles();
         }
@@ -66,8 +69,8 @@ namespace Chess.UI.Styles
         public void LoadStyles()
         {
             // Load from settings without triggering save
-            string configPieceStyle = Settings.Settings.CurrentPieceTheme;
-            string configBoardStyle = Settings.Settings.CurrentBoardTheme;
+            string configPieceStyle = _settingsService.ChessPieceStyle;
+            string configBoardStyle = _settingsService.BoardStyle;
 
             if (!Enum.TryParse<PieceStyle>(configPieceStyle, out var parsedPieceStyle))
             {
@@ -85,8 +88,8 @@ namespace Chess.UI.Styles
 
         public void SaveStyles()
         {
-            Settings.Settings.CurrentPieceTheme = _currentPieceStyle.ToString();
-            Settings.Settings.CurrentBoardTheme = _currentBoardStyle.ToString();
+            _settingsService.ChessPieceStyle = _currentPieceStyle.ToString();
+            _settingsService.BoardStyle = _currentBoardStyle.ToString();
         }
 
 

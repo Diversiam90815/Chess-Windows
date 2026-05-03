@@ -15,6 +15,7 @@ namespace Chess.UI.Audio.Services
     public class ChessAudioService : IChessAudioService
     {
         private readonly IAudioEngine _audioEngine;
+        private readonly ISettingsService _settingsService;
         private ISoundEffectsModule _soundEffectsModule;
         private IAtmosphereModule _atmosphereModule;
 
@@ -22,9 +23,10 @@ namespace Chess.UI.Audio.Services
         public IAtmosphereModule AtmosphereModule => _atmosphereModule;
 
 
-        public ChessAudioService(IAudioEngine engine)
+        public ChessAudioService(IAudioEngine engine, ISettingsService settingsService)
         {
             _audioEngine = engine;
+            _settingsService = settingsService;
         }
 
 
@@ -79,13 +81,12 @@ namespace Chess.UI.Audio.Services
         {
             try
             {
-                // Load settings from the backend/UserSettings via EngineAPI
-                float masterVolume = EngineAPI.GetMasterVolume();
-                float sfxVolume = EngineAPI.GetSFXVolume();
-                float atmosVolume = EngineAPI.GetAtmosVolume();
-                bool sfxEnabled = EngineAPI.GetSFXEnabled();
-                bool atmosEnabled = EngineAPI.GetAtmosEnabled();
-                string atmosScenario = EngineAPI.GetAtmosScenario();
+                float masterVolume = _settingsService.AudioMasterVolume;
+                float sfxVolume = _settingsService.AudioSFXVolume;
+                float atmosVolume = _settingsService.AudioAtmosVolume;
+                bool sfxEnabled = _settingsService.AudioSFXEnabled;
+                bool atmosEnabled = _settingsService.AudioAtmosEnabled;
+                string atmosScenario = _settingsService.AudioAtmosScenario;
 
                 // Apply master volume to audio engine
                 _audioEngine.SetMasterVolume(masterVolume);
@@ -181,7 +182,7 @@ namespace Chess.UI.Audio.Services
 
             _soundEffectsModule.IsEnabled = enabled;
 
-            EngineAPI.SetSFXEnabled(enabled);
+            _settingsService.AudioSFXEnabled = enabled;
         }
 
 
@@ -197,7 +198,7 @@ namespace Chess.UI.Audio.Services
             if (_soundEffectsModule.GetModuleVolume() == volume) return;
 
             _soundEffectsModule?.SetModuleVolume(volume);
-            EngineAPI.SetSFXVolume(volume);
+            _settingsService.AudioSFXVolume = volume;
         }
 
 
@@ -206,7 +207,7 @@ namespace Chess.UI.Audio.Services
             if (_atmosphereModule?.CurrentScenario == scenario) return;
 
             await _atmosphereModule?.SetAtmosphereAsync(scenario);
-            EngineAPI.SetAtmosScenario(scenario.ToString());
+            _settingsService.AudioAtmosScenario = scenario.ToString();
         }
 
 
@@ -241,7 +242,7 @@ namespace Chess.UI.Audio.Services
                 _ = Task.Run(async () => await _atmosphereModule.SetAtmosphereAsync(currentScrenario));
             }
 
-            EngineAPI.SetAtmosEnabled(enabled);
+            _settingsService.AudioAtmosEnabled = enabled;
         }
 
 
@@ -264,7 +265,7 @@ namespace Chess.UI.Audio.Services
             if (_atmosphereModule?.GetModuleVolume() == volume) return;
 
             _atmosphereModule?.SetModuleVolume(volume);
-            EngineAPI.SetAtmosVolume(volume);
+            _settingsService.AudioAtmosVolume = volume;
         }
 
 
@@ -273,7 +274,7 @@ namespace Chess.UI.Audio.Services
             if (_audioEngine.GetMasterVolume() == volume) return;
 
             _audioEngine.SetMasterVolume(volume);
-            EngineAPI.SetMasterVolume(volume);
+            _settingsService.AudioMasterVolume = volume;
         }
 
 

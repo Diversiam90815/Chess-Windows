@@ -21,6 +21,8 @@ namespace Chess.UI.Settings
 
         private readonly IStyleManager _styleManager;
 
+        private readonly ISettingsService _settingsService;
+
         public event Action ItemSelected;
 
         private bool _isInitialized = false;
@@ -32,11 +34,12 @@ namespace Chess.UI.Settings
         public ObservableCollection<PieceStyleInfo> PieceThemes { get; }
 
 
-        public StylesPreferencesViewModel(IDispatcherQueueWrapper dispatcherQueue, IStyleManager themeManager)
+        public StylesPreferencesViewModel(IDispatcherQueueWrapper dispatcherQueue, IStyleManager themeManager, ISettingsService settingsService)
         {
             _dispatcherQueueWrapper = dispatcherQueue;
             _styleLoader = new();
             _styleManager = themeManager;
+            _settingsService = settingsService;
 
             BoardThemes = [];
             PieceThemes = [];
@@ -83,7 +86,7 @@ namespace Chess.UI.Settings
 
         public BoardStyleInfo GetCurrentSelectedBoardTheme()
         {
-            string currentThemeName = Settings.CurrentBoardTheme;
+            string currentThemeName = _settingsService.BoardStyle;
             BoardStyleInfo theme = BoardThemes.FirstOrDefault(b => string.Equals(b.Name, currentThemeName, StringComparison.OrdinalIgnoreCase));
             return theme;
         }
@@ -91,7 +94,7 @@ namespace Chess.UI.Settings
 
         public PieceStyleInfo GetCurrentSelectedPieceTheme()
         {
-            string currentThemeName = Settings.CurrentPieceTheme;
+            string currentThemeName = _settingsService.ChessPieceStyle;
             PieceStyleInfo theme = PieceThemes.FirstOrDefault(p => string.Equals(p.Name, currentThemeName, StringComparison.OrdinalIgnoreCase));
             return theme;
         }
@@ -108,7 +111,7 @@ namespace Chess.UI.Settings
                     _selectedBoardTheme = value;
 
                     if (value != null)
-                        Settings.CurrentBoardTheme = value.Name;
+                        _settingsService.BoardStyle = value.Name;
 
                     OnPropertyChanged();
 
@@ -133,7 +136,7 @@ namespace Chess.UI.Settings
                 {
                     _selectedPieceTheme = value;
                     if (value != null)
-                        Settings.CurrentPieceTheme = value.Name;
+                        _settingsService.ChessPieceStyle = value.Name;
 
                     OnPropertyChanged();
 

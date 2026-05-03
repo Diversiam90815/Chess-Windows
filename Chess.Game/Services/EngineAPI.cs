@@ -8,19 +8,16 @@ namespace Chess.UI.Services
 {
     public class EngineAPI
     {
-        #region DLL Defines
-
-        #region Defines
-
         private const string LOGIC_API_PATH = @"Chess.Engine.API.dll";
-
-        #endregion // Defines
+        
+        
+        #region DLL Defines
 
 
         #region Core Lifecycle
 
         [DllImport(LOGIC_API_PATH, CallingConvention = CallingConvention.Cdecl)]
-        public static extern void Init();
+        public static extern void Init([In, MarshalAs(UnmanagedType.Struct)] UserSettingsInit settings);
 
         [DllImport(LOGIC_API_PATH, CallingConvention = CallingConvention.Cdecl)]
         public static extern void Deinit();
@@ -92,71 +89,6 @@ namespace Chess.UI.Services
         #endregion // Multiplayer
 
 
-        #region Settings
-
-        [DllImport(LOGIC_API_PATH, CallingConvention = CallingConvention.Cdecl)]
-        public static extern void SetCurrentBoardTheme([MarshalAs(UnmanagedType.LPStr)] string theme);
-
-        [DllImport(LOGIC_API_PATH, CallingConvention = CallingConvention.Cdecl)]
-        [return: MarshalAs(UnmanagedType.LPStr)]
-        public static extern string GetCurrentBoardTheme();
-
-        [DllImport(LOGIC_API_PATH, CallingConvention = CallingConvention.Cdecl)]
-        public static extern void SetCurrentPieceTheme([MarshalAs(UnmanagedType.LPStr)] string theme);
-
-        [DllImport(LOGIC_API_PATH, CallingConvention = CallingConvention.Cdecl)]
-        [return: MarshalAs(UnmanagedType.LPStr)]
-        public static extern string GetCurrentPieceTheme();
-
-        [DllImport(LOGIC_API_PATH, CallingConvention = CallingConvention.Cdecl)]
-        public static extern void SetLocalPlayerName([MarshalAs(UnmanagedType.LPStr)] string name);
-
-        [DllImport(LOGIC_API_PATH, CallingConvention = CallingConvention.Cdecl)]
-        [return: MarshalAs(UnmanagedType.LPStr)]
-        public static extern string GetLocalPlayerName();
-
-        [DllImport(LOGIC_API_PATH, CallingConvention = CallingConvention.Cdecl)]
-        [return: MarshalAs(UnmanagedType.I1)]
-        public static extern bool GetSFXEnabled();
-
-        [DllImport(LOGIC_API_PATH, CallingConvention = CallingConvention.Cdecl)]
-        public static extern void SetSFXEnabled([MarshalAs(UnmanagedType.I1)] bool enabled);
-
-        [DllImport(LOGIC_API_PATH, CallingConvention = CallingConvention.Cdecl)]
-        [return: MarshalAs(UnmanagedType.I1)]
-        public static extern bool GetAtmosEnabled();
-
-        [DllImport(LOGIC_API_PATH, CallingConvention = CallingConvention.Cdecl)]
-        public static extern void SetAtmosEnabled([MarshalAs(UnmanagedType.I1)] bool enabled);
-
-        [DllImport(LOGIC_API_PATH, CallingConvention = CallingConvention.Cdecl)]
-        public static extern void SetSFXVolume(float volume);
-
-        [DllImport(LOGIC_API_PATH, CallingConvention = CallingConvention.Cdecl)]
-        public static extern float GetSFXVolume();
-
-        [DllImport(LOGIC_API_PATH, CallingConvention = CallingConvention.Cdecl)]
-        public static extern void SetAtmosVolume(float volume);
-
-        [DllImport(LOGIC_API_PATH, CallingConvention = CallingConvention.Cdecl)]
-        public static extern float GetAtmosVolume();
-
-        [DllImport(LOGIC_API_PATH, CallingConvention = CallingConvention.Cdecl)]
-        public static extern void SetAtmosScenario([MarshalAs(UnmanagedType.LPStr)] string scenario);
-
-        [DllImport(LOGIC_API_PATH, CallingConvention = CallingConvention.Cdecl)]
-        [return: MarshalAs(UnmanagedType.LPStr)]
-        public static extern string GetAtmosScenario();
-
-        [DllImport(LOGIC_API_PATH, CallingConvention = CallingConvention.Cdecl)]
-        public static extern void SetMasterVolume(float volume);
-
-        [DllImport(LOGIC_API_PATH, CallingConvention = CallingConvention.Cdecl)]
-        public static extern float GetMasterVolume();
-
-        #endregion
-
-
         #region Network
 
         [DllImport(LOGIC_API_PATH, CallingConvention = CallingConvention.Cdecl)]
@@ -214,10 +146,19 @@ namespace Chess.UI.Services
         [DllImport(LOGIC_API_PATH, CallingConvention = CallingConvention.Cdecl, EntryPoint = "GetWindowScalingFactor", CharSet = CharSet.Unicode)]
         public static extern float GetWindowScalingFactor(nint hwnd);
 
-        [DllImport(LOGIC_API_PATH, CallingConvention = CallingConvention.Cdecl, EntryPoint = "SetUnvirtualizedAppDataPath", CharSet = CharSet.Unicode)]
-        public static extern void SetUnvirtualizedAppDataPath([In()][MarshalAs(UnmanagedType.LPStr)] string appDataPath);
-
         #endregion
+
+
+        #region Settings
+
+        [DllImport(LOGIC_API_PATH, CallingConvention = CallingConvention.Cdecl)]
+        public static extern void SetLocalPlayerName([MarshalAs(UnmanagedType.LPStr)] string name);
+
+        [DllImport(LOGIC_API_PATH, CallingConvention = CallingConvention.Cdecl)]
+        public static extern void SetDiscoveryPort(int port);
+
+        #endregion // Settings
+
 
         #endregion // DLL Defines
 
@@ -429,7 +370,6 @@ namespace Chess.UI.Services
             }
 
 
-            #endregion  // Structures and Enums
         }
 
 
@@ -442,5 +382,23 @@ namespace Chess.UI.Services
             public string moveNotation;
         }
 
+
+        [StructLayout(LayoutKind.Sequential, CharSet = CharSet.Ansi)]
+        public struct UserSettingsInit
+        {
+            // Player
+            [MarshalAs(UnmanagedType.ByValTStr, SizeConst = 250)]
+            public string PlayerName;
+
+            // Network
+            public int DiscoveryUDPPort;
+
+            // Paths
+            [MarshalAs(UnmanagedType.ByValTStr, SizeConst = 512)]
+            public string AppDataPath;
+        }
+
+
+        #endregion  // Structures and Enums
     }
 }

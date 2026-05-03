@@ -26,14 +26,9 @@ class BuildRunner:
     def update_app_version(self) -> None:
         self.version = self.version_manager.update_build_number_in_version()
 
+
     # ---- CMake / build ----
-    def create_build_generator(
-        self,
-        platform: Platform,
-        build: bool,
-        architecture: Architecture,
-        configuration: Configuration,
-    ) -> None:
+    def prepare_cmake_project(self, platform: Platform, architecture: Architecture) -> None:
         prepare_cmd = [
             "cmake",
             "-G", str(platform),
@@ -48,28 +43,50 @@ class BuildRunner:
             f"CMake: Generate {platform} project",
         )
 
-        if build:
-            # build
-            BuildUtils.execute_command(
-                [
-                    "cmake",
-                    "--build", str(self.build_dir),
-                    "--config", str(configuration),
-                    "--parallel", "8",
-                ],
-                f"CMake: Build {self.project_name} v{self.version or 'unknown'}",
-            )
+        # build backend in Release
+        BuildUtils.execute_command(
+            [
+                "cmake",
+                "--build", str(self.build_dir),
+                "--config", str(Configuration.Release),
+                "--parallel", "8",
+            ],
+            f"CMake: Build {self.project_name} v{self.version or 'unknown'} (Release)",
+        )
+        
+        # build backend in Debug
+        BuildUtils.execute_command(
+            [
+                "cmake",
+                "--build", str(self.build_dir),
+                "--config", str(Configuration.Debug),
+                "--parallel", "8",
+            ],
+            f"CMake: Build {self.project_name} v{self.version or 'unknown'} (Debug)",
+        )
 
-            # install
-            BuildUtils.execute_command(
-                [
-                    "cmake",
-                    "--install", str(self.build_dir),
-                    "--config", str(configuration),
-                    "--prefix", str(CMAKE_INSTALL_DIR),
-                ],
-                f"CMake: Install {self.project_name}",
-            )
+        # install Release
+        BuildUtils.execute_command(
+            [
+                "cmake",
+                "--install", str(self.build_dir),
+                "--config", str(Configuration.Release),
+                "--prefix", str(CMAKE_INSTALL_DIR),
+            ],
+            f"CMake: Install {self.project_name} (Release)",
+        )
+
+        # install Debug
+        BuildUtils.execute_command(
+            [
+                "cmake",
+                "--install", str(self.build_dir),
+                "--config", str(Configuration.Debug),
+                "--prefix", str(CMAKE_INSTALL_DIR),
+            ],
+            f"CMake: Install {self.project_name} (Debug)",
+        )
+
 
     def build_csharp_project(self, configuration: Configuration, architecture: Architecture) -> None:
         # MSBuild only supports Debug and Release; treat RelWithDebInfo as Release

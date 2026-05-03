@@ -69,7 +69,14 @@ namespace Chess.UI.Settings
 
     public class MultiplayerPreferencesModel : IMultiplayerPreferencesModel
     {
+        private readonly ISettingsService _settingsService;
         private readonly List<NetworkAdapter> _adapters = [];
+
+
+        public MultiplayerPreferencesModel(ISettingsService settingsService)
+        {
+            _settingsService = settingsService;
+        }
 
 
         public void Init()
@@ -134,6 +141,7 @@ namespace Chess.UI.Settings
 
         public void SetLocalPlayerName(string name)
         {
+            _settingsService.PlayerName = name;
             EngineAPI.SetLocalPlayerName(name);
             PlayerNameChanged?.Invoke(name);
         }
@@ -141,8 +149,7 @@ namespace Chess.UI.Settings
 
         public string GetLocalPlayerName()
         {
-            string localPlayerName = EngineAPI.GetLocalPlayerName();
-            return localPlayerName;
+            return _settingsService.PlayerName;
         }
 
         #endregion
