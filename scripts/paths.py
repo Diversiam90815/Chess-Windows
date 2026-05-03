@@ -10,6 +10,7 @@ TEST_BUILD_DIR              = BUILD_DIR / "tests"
 UI_DIR                      = ROOT_DIR / "Chess.Game"
 DIRECTORY_BUILD_PROPS_FILE  = UI_DIR / "Directory.Build.Props"
 PACKAGE_MANIFEST_FILE       = UI_DIR / "Package.appxmanifest"
+GAME_PROJECT_FILE           = UI_DIR / "Chess.Game.csproj"
 
 
 def get_build_dir(architecture: str) -> Path:
