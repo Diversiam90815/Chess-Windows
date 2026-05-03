@@ -4,7 +4,7 @@ from .enums import Architecture, Configuration, Platform
 
 def create_argument_parser() -> argparse.ArgumentParser:
     parser = argparse.ArgumentParser(
-        description="Build and deploy script for TheOrchestra"
+        description="Build script for the Chess Engine submodule"
     )
 
     parser.add_argument(
