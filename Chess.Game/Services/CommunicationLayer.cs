@@ -1,4 +1,5 @@
 ﻿using Chess.UI.Models;
+using Chess.UI.Settings;
 using System;
 using System.Runtime.InteropServices;
 using static Chess.UI.Services.EngineAPI;
@@ -32,10 +33,17 @@ namespace Chess.UI.Services
 
     public class CommunicationLayer : ICommunicationLayer
     {
+        private readonly ISettingsService _settingsService;
         private GCHandle _delegateHandle;
 
         [UnmanagedFunctionPointer(CallingConvention.Cdecl)]
         public delegate void APIDelegate(int message, nint data);
+
+
+        public CommunicationLayer(ISettingsService settingsService)
+        {
+            _settingsService = settingsService;
+        }
 
 
         public enum DelegateMessage
@@ -56,8 +64,8 @@ namespace Chess.UI.Services
 
         public void Init()
         {
-            EngineAPI.SetUnvirtualizedAppDataPath(Project.AppDataDirectory);
-            EngineAPI.Init();
+            EngineAPI.Init(Project.AppDataDirectory);
+            EngineAPI.SetLocalPlayerName(_settingsService.PlayerName);
             SetDelegate();
         }
 
