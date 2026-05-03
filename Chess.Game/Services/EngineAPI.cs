@@ -8,13 +8,10 @@ namespace Chess.UI.Services
 {
     public class EngineAPI
     {
-        #region DLL Defines
-
-        #region Defines
-
         private const string LOGIC_API_PATH = @"Chess.Engine.API.dll";
-
-        #endregion // Defines
+        
+        
+        #region DLL Defines
 
 
         #region Core Lifecycle
