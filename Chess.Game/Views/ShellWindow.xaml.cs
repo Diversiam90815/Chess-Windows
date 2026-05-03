@@ -33,6 +33,33 @@ namespace Chess.UI.Views
                 presenter.IsMaximizable = true;
             }
 
+            // Enforce minimum window size to prevent layout crash
+            this.SizeChanged += (s, e) =>
+            {
+                const int MinWidth = 800;
+                const int MinHeight = 600;
+
+                var size = AppWindow.Size;
+                bool changed = false;
+                int newWidth = size.Width;
+                int newHeight = size.Height;
+
+                if (size.Width < MinWidth)
+                {
+                    newWidth = MinWidth;
+                    changed = true;
+                }
+                if (size.Height < MinHeight)
+                {
+                    newHeight = MinHeight;
+                    changed = true;
+                }
+                if (changed)
+                {
+                    AppWindow.Resize(new Windows.Graphics.SizeInt32(newWidth, newHeight));
+                }
+            };
+
             // Apply Mica backdrop
             this.SystemBackdrop = new Microsoft.UI.Xaml.Media.MicaBackdrop();
 
