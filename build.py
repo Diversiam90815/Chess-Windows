@@ -29,30 +29,27 @@ def main():
     print(f"Build Directory:            {build_dir}")
     print(f"Test Build Directory:       {test_dir}")
     print(f"Architecture:               {args.architecture}")
-    print(f"Configuration:              {args.configuration}")
+
+    if not args.prepare:
+        print(f"Configuration:              {args.configuration}")
+    
     print(f"Environment:                {runner.env}")
     print(f"Version:                    {runner.version}")
     print("=====================================")
 
-    if(args.runtest):
-        runner.run_cpp_unit_tests(configuration=args.configuration, test_build_dir=test_dir, target="RUN_TESTS")
-        exit(0)
+    if args.prepare:
+        runner.prepare_cmake_project(platform=args.platform, architecture=args.architecture)
 
-    runner.create_build_generator(
-        platform=args.platform,
-        build=args.build,
-        architecture=args.architecture,
-        configuration=args.configuration,
-    )
+    if args.runtest:
+        runner.run_cpp_unit_tests(configuration=args.configuration, test_build_dir=test_dir, target="RUN_TESTS")
 
     if args.build:
-        runner.build_csharp_project(
-            configuration=args.configuration,
-            architecture=args.architecture,
-        )
+        runner.create_build_generator(platform=args.platform, architecture=args.architecture, configuration=args.configuration)
+        runner.build_csharp_project(configuration=args.configuration, architecture=args.architecture)
 
     if not args.prepare:
         runner.run_cpp_unit_tests(configuration=args.configuration, test_build_dir=test_dir, target="RUN_TESTS")
+
 
 
 if __name__ == "__main__":
