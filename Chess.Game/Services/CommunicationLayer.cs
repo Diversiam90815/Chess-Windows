@@ -64,8 +64,14 @@ namespace Chess.UI.Services
 
         public void Init()
         {
-            EngineAPI.Init(Project.AppDataDirectory);
-            EngineAPI.SetLocalPlayerName(_settingsService.PlayerName);
+            var settings = new UserSettingsInit
+            {
+                PlayerName = _settingsService.PlayerName ?? "",
+                DiscoveryUDPPort = _settingsService.DiscoveryUDPPort,
+                AppDataPath = Project.AppDataDirectory
+            };
+
+            EngineAPI.Init(settings);
             SetDelegate();
         }
 
