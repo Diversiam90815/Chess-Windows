@@ -51,8 +51,8 @@
 	</ItemGroup>
 
 	<PropertyGroup>
-		<LocalChessLogicFiles Condition="'$(Configuration)' == 'Release'">..\..\Chess.Engine\build\x64\src\Chess.Engine.API\Release</LocalChessLogicFiles>
-		<LocalChessLogicFiles Condition="'$(Configuration)' == 'Debug'">..\..\Chess.Engine\build\x64\src\Chess.Engine.API\Debug</LocalChessLogicFiles>
+		<LocalChessLogicFiles Condition="'$(Configuration)' == 'Release'">..\..\Chess.Engine\build\x64\src\capi\Release</LocalChessLogicFiles>
+		<LocalChessLogicFiles Condition="'$(Configuration)' == 'Debug'">..\..\Chess.Engine\build\x64\src\capi\Debug</LocalChessLogicFiles>
 		<GenerateAppInstallerFile>False</GenerateAppInstallerFile>
 		<AppxPackageSigningEnabled>True</AppxPackageSigningEnabled>
 		<AppxPackageSigningTimestampDigestAlgorithm>SHA256</AppxPackageSigningTimestampDigestAlgorithm>
@@ -84,7 +84,7 @@
 	  <None Remove="Views\SinglePlayerConfigPage.xaml" />
 	</ItemGroup>
 	<ItemGroup>
-	  <ProjectReference Include="..\..\Chess.Engine\build\x64\src\Chess.Engine.API\Chess.Engine.API.vcxproj" />
+	  <ProjectReference Include="..\..\Chess.Engine\build\x64\src\capi\Chess.Engine.API.vcxproj" />
 	</ItemGroup>
 	<ItemGroup>
 	  <Compile Update="Properties\Resources.Designer.cs">
