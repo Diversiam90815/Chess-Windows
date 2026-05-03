@@ -84,7 +84,7 @@
 	  <None Remove="Views\SinglePlayerConfigPage.xaml" />
 	</ItemGroup>
 	<ItemGroup>
-	  <ProjectReference Include="..\..\Chess.Engine\build\x64\src\capi\Chess.Engine.API.vcxproj" />
+	  <ProjectReference Include="..\Chess.Engine\build\x64\src\capi\Chess.Engine.API.vcxproj" />
 	</ItemGroup>
 	<ItemGroup>
 	  <Compile Update="Properties\Resources.Designer.cs">

@@ -7,6 +7,28 @@ using System.Text.Json.Serialization;
 
 namespace Chess.UI.Settings
 {
+    public interface ISettingsService
+    {
+        // Visual
+        string BoardStyle { get; set; }
+        string ChessPieceStyle { get; set; }
+
+        // Player
+        string PlayerName { get; set; }
+
+        // Audio
+        bool AudioSFXEnabled { get; set; }
+        float AudioSFXVolume { get; set; }
+        bool AudioAtmosEnabled { get; set; }
+        float AudioAtmosVolume { get; set; }
+        string AudioAtmosScenario { get; set; }
+        float AudioMasterVolume { get; set; }
+
+        // Network
+        int DiscoveryUDPPort { get; set; }
+    }
+
+
     internal class SettingsData
     {
         [JsonPropertyName("BoardStyle")]
@@ -41,7 +63,7 @@ namespace Chess.UI.Settings
     }
 
 
-    public class UserSettingsCache : ISettingsService
+    public class SettingsService : ISettingsService
     {
         private readonly string _configFilePath;
         private readonly object _fileLock = new();
@@ -53,7 +75,7 @@ namespace Chess.UI.Settings
         };
 
 
-        public UserSettingsCache()
+        public SettingsService()
         {
             string settingsFolder = Path.Combine(Project.AppDataDirectory, "Settings");
             _configFilePath = Path.Combine(settingsFolder, "Config.json");
@@ -79,7 +101,12 @@ namespace Chess.UI.Settings
         public string PlayerName
         {
             get => _data.PlayerName;
-            set { _data.PlayerName = value; Save(); }
+            set
+            {
+                _data.PlayerName = value;
+                Save();
+                EngineAPI.SetLocalPlayerName(value ?? "");
+            }
         }
 
         public bool AudioSFXEnabled
@@ -121,7 +148,12 @@ namespace Chess.UI.Settings
         public int DiscoveryUDPPort
         {
             get => _data.DiscoveryUDPPort;
-            set { _data.DiscoveryUDPPort = value; Save(); }
+            set
+            {
+                _data.DiscoveryUDPPort = value;
+                Save();
+                EngineAPI.SetDiscoveryPort(value);
+            }
         }
 
 

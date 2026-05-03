@@ -27,7 +27,7 @@
   </ItemGroup>
 
   <ItemGroup>
-    <ProjectReference Include="..\Chess.WinUI\Chess.WinUI.csproj" />
+    <ProjectReference Include="..\Chess.Game\Chess.Game.csproj" />
   </ItemGroup>
 
   <ItemGroup>
