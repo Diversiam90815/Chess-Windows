@@ -1,4 +1,4 @@
-﻿using Chess.UI.Services;
+using Chess.UI.Services;
 using Chess.UI.Styles;
 using Chess.UI.Wrappers;
 using Microsoft.Extensions.DependencyInjection;
@@ -13,15 +13,11 @@ namespace Chess.UI.Board
     public interface IBoardSquare : INotifyPropertyChanged
     {
         // Properties
-        PieceStyle _pieceStyle { get; }
         Square Position { get; set; }
         PieceType Piece { get; set; }
         bool IsHighlighted { get; set; }
         Brush BackgroundBrush { get; }
         ImageSource PieceImage { get; }
-
-        // For responding to theme changes
-        void UpdatePieceTheme(PieceStyle pieceTheme);
     }
 
 
@@ -31,52 +27,26 @@ namespace Chess.UI.Board
 
         public event PropertyChangedEventHandler PropertyChanged;
 
-        public PieceStyle _pieceStyle { get; private set; }
-
         private readonly IStyleManager _styleManager;
 
-        private IImageService _images;
+        private readonly IImageService _images;
 
-        public BoardSquare()
+
+        public BoardSquare() : this(Square.None, PieceType.None)
         {
-            Position = Square.None;
-            Piece = PieceType.None;
-
-            _dispatcherQueue = App.Current.Services.GetService<IDispatcherQueueWrapper>();
-            _styleManager = App.Current.Services.GetService<IStyleManager>();
-
-            _styleManager.PropertyChanged += OnThemeManagerPropertyChanged;
-
-            _pieceStyle = _styleManager.CurrentPieceStyle;
         }
 
 
         public BoardSquare(Square position, PieceType piece)
         {
-            Position = position;
-            Piece = piece;
+            // Squares only read from the shared services and never subscribe to them: a new set of squares is
+            // created with every game, and a subscription would keep each of them alive for the app's lifetime
+            _dispatcherQueue = App.Current?.Services.GetService<IDispatcherQueueWrapper>();
+            _styleManager = App.Current?.Services.GetService<IStyleManager>();
+            _images = App.Current?.Services.GetService<IImageService>();
 
-            _dispatcherQueue = App.Current.Services.GetService<IDispatcherQueueWrapper>();
-            _styleManager = App.Current.Services.GetService<IStyleManager>();
-
-            _styleManager.PropertyChanged += OnThemeManagerPropertyChanged;
-
-            _pieceStyle = _styleManager.CurrentPieceStyle;
-        }
-
-
-        private void OnThemeManagerPropertyChanged(object sender, PropertyChangedEventArgs e)
-        {
-            if (e.PropertyName == nameof(StyleManager.CurrentPieceStyle))
-            {
-                UpdatePieceTheme(_styleManager.CurrentPieceStyle);
-            }
-        }
-
-
-        public void UpdatePieceTheme(PieceStyle pieceTheme)
-        {
-            _pieceStyle = pieceTheme;
+            _position = position;
+            _piece = piece;
         }
 
 
@@ -105,6 +75,7 @@ namespace Chess.UI.Board
                 {
                     _piece = value;
                     OnPropertyChanged();
+                    OnPropertyChanged(nameof(PieceImage));
                 }
             }
         }
@@ -147,12 +118,10 @@ namespace Chess.UI.Board
         {
             get
             {
-                if (Piece == PieceType.None)
+                if (Piece == PieceType.None || _images == null || _styleManager == null)
                     return null;
 
-                _images = new ImageServices();
-
-                return _images.GetPieceImage(_pieceStyle, Piece);
+                return _images.GetPieceImage(_styleManager.CurrentPieceStyle, Piece);
             }
         }
 

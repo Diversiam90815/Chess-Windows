@@ -131,30 +131,27 @@ namespace Chess.UI.ViewModels
         }
 
 
-        public void UpdateBoardFromNative()
+        public void UpdateBoard(PieceType[] newBoardState)
         {
             ResetHighlightsOnBoard();
 
-            var changedSquares = _boardModel.UpdateBoardState();
+            var changedSquares = _boardModel.UpdateBoardState(newBoardState);
 
-            _dispatcherQueue.TryEnqueue(() =>
+            foreach (var kvp in changedSquares)
             {
-                foreach (var kvp in changedSquares)
-                {
-                    Square square = kvp.Key;
-                    int displayIndex = GetDisplayIndex(square);
+                Square square = kvp.Key;
+                int displayIndex = GetDisplayIndex(square);
 
-                    if (displayIndex >= 0 && displayIndex < Board.Count)
+                if (displayIndex >= 0 && displayIndex < Board.Count)
+                {
+                    var updatedSquare = _boardModel.GetSquare(square);
+                    if (updatedSquare != null)
                     {
-                        var updatedSquare = _boardModel.GetSquare(square);
-                        if (updatedSquare != null)
-                        {
-                            Board[displayIndex] = updatedSquare;
-                        }
+                        Board[displayIndex] = updatedSquare;
                     }
                 }
-                OnPropertyChanged(nameof(Board));
-            });
+            }
+            OnPropertyChanged(nameof(Board));
         }
 
 
@@ -191,10 +188,10 @@ namespace Chess.UI.ViewModels
         }
 
 
-        private void OnBoardFromBackendUpdated()
+        private void OnBoardFromBackendUpdated(PieceType[] board)
         {
             Logger.LogInfo("ChessBoardViewModel: Board updated from backend");
-            UpdateBoardFromNative();
+            UpdateBoard(board);
         }
 
 
@@ -290,8 +287,8 @@ namespace Chess.UI.ViewModels
         {
             Logger.LogInfo("ChessBoardViewModel: Undo last move");
 
+            // The engine reports the new board once the move is taken back
             EngineAPI.UndoMove();
-            UpdateBoardFromNative();
         }
 
 
