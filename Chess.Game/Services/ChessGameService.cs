@@ -75,9 +75,9 @@ namespace Chess.UI.Services
             // The engine only starts a game from its initial state. A running game is reset first,
             // the start then follows when the engine reports that state.
             if (_enginePhase == GamePhase.Initializing)
-                EngineAPI.StartGame(config);
+                _backendCommunication.StartGame(config);
             else
-                EngineAPI.ResetGame();
+                _backendCommunication.ResetGame();
 
             return _startRequest.Task;
         }
@@ -92,7 +92,7 @@ namespace Chess.UI.Services
             }
 
             _resetRequest ??= new TaskCompletionSource<bool>(TaskCreationOptions.RunContinuationsAsynchronously);
-            EngineAPI.ResetGame();
+            _backendCommunication.ResetGame();
 
             return _resetRequest.Task;
         }
@@ -113,7 +113,7 @@ namespace Chess.UI.Services
 
             // Leaves the engine ready for the next game. GameReset is raised once it has confirmed.
             if (_enginePhase != GamePhase.Initializing)
-                EngineAPI.ResetGame();
+                _backendCommunication.ResetGame();
 
             return Task.CompletedTask;
         }
@@ -129,7 +129,7 @@ namespace Chess.UI.Services
                 OnGameReset();
 
                 if (_requestedConfiguration.HasValue)
-                    EngineAPI.StartGame(_requestedConfiguration.Value);
+                    _backendCommunication.StartGame(_requestedConfiguration.Value);
             }
             else if (previousPhase == GamePhase.Initializing)
             {

@@ -18,6 +18,10 @@ namespace Chess.UI.Services
         // Event handlers for communication from native code
         void DelegateHandler(int message, nint data);
 
+        // Game lifecycle requests to the engine, it answers with GameStateChanged
+        void StartGame(GameConfiguration config);
+        void ResetGame();
+
         // Events for notifying UI components, raised on the UI thread
         event Action<Side> PlayerChanged;
         event Action<GamePhase> GameStateChanged;
@@ -87,6 +91,18 @@ namespace Chess.UI.Services
         {
             EngineAPI.Deinit();
             _delegateHandle.Free();
+        }
+
+
+        public void StartGame(GameConfiguration config)
+        {
+            EngineAPI.StartGame(config);
+        }
+
+
+        public void ResetGame()
+        {
+            EngineAPI.ResetGame();
         }
 
 
