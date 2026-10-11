@@ -10,6 +10,7 @@ using Chess.UI.Wrappers;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.UI.Xaml;
 using System;
+using System.Threading.Tasks;
 
 
 namespace Chess.UI
@@ -37,8 +38,8 @@ namespace Chess.UI
             var engineCommunication = Services.GetService<ICommunicationLayer>();
             engineCommunication.Init();
 
-            var audioService = Services.GetService<IChessAudioService>();
-            audioService.InitializeAsync();
+            // Audio loads in the background so it does not hold up the window
+            _ = InitializeAudioAsync();
 
             _shellWindow = new ShellWindow();
 
@@ -50,6 +51,20 @@ namespace Chess.UI
             _shellWindow.Activate();
 
             Logger.LogInfo("App initialized!");
+        }
+
+
+        private async Task InitializeAudioAsync()
+        {
+            try
+            {
+                var audioService = Services.GetService<IChessAudioService>();
+                await audioService.InitializeAsync();
+            }
+            catch (Exception ex)
+            {
+                Logger.LogError($"Failed to initialize audio: {ex.Message}");
+            }
         }
 
 
@@ -82,6 +97,7 @@ namespace Chess.UI
             services.AddSingleton<MoveHistoryViewModel>();
             services.AddSingleton<MainMenuViewModel>();
             services.AddSingleton<MultiplayerViewModel>();
+            services.AddSingleton<MultiplayerInfoViewModel>();
             services.AddSingleton<StylesPreferencesViewModel>();
             services.AddSingleton<MultiplayerPreferencesViewModel>();
             services.AddSingleton<AudioPreferencesViewModel>();
