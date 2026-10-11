@@ -57,7 +57,7 @@ namespace Chess.UI.ViewModels
 
         #region Game Service Event Handlers
 
-        private async void OnGameReset()
+        private void OnGameReset()
         {
             Logger.LogInfo("Resetting all components");
 
@@ -126,22 +126,11 @@ namespace Chess.UI.ViewModels
         {
             Logger.LogInfo("Reset game requested");
 
-            await _gameService.ResetGameAsync();
-
-            // Restart with current configuration
+            // Restart with current configuration, the game service resets the running game first
             if (_gameService.CurrentConfiguration.HasValue)
             {
                 await _gameService.StartGameAsync(_gameService.CurrentConfiguration.Value);
             }
-        }
-
-
-        public async void EndGame()
-        {
-            Logger.LogInfo("End game requested");
-
-            await _gameService.ResetGameAsync();
-            // Navigation service will handle window closing and game ending
         }
 
 

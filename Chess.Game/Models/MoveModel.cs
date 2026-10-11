@@ -86,7 +86,7 @@ namespace Chess.UI.Models
         event Action<Side> PlayerChanged;
         event Action GameStateInitSucceeded;
         event Action<EndGameState, Side> GameOverEvent;
-        event Action NewBoardFromBackendEvent;
+        event Action<PieceType[]> NewBoardFromBackendEvent;
         event Action PawnPromotionEvent;
 
         void SetPromotionPieceType(PieceType pieceType);
@@ -145,12 +145,12 @@ namespace Chess.UI.Models
         }
 
 
-        private void HandleLegalMovesCalculated()
+        private void HandleLegalMovesCalculated(IReadOnlyList<Move> moves)
         {
-            Logger.LogDebug("Legal moves calculated. Fetching from Engine");
-
             ChesspieceSelected?.Invoke();
-            GetLegalMoves();
+
+            LegalMoves.Clear();
+            LegalMoves.AddRange(moves);
 
             Logger.LogInfo($"Retrieved {LegalMoves.Count} legal moves");
             LegalMovesCalculated?.Invoke();
@@ -164,10 +164,10 @@ namespace Chess.UI.Models
         }
 
 
-        private void HandleBoardStateChanged()
+        private void HandleBoardStateChanged(PieceType[] board)
         {
             Logger.LogDebug("Board state changed");
-            NewBoardFromBackendEvent?.Invoke();
+            NewBoardFromBackendEvent?.Invoke(board);
         }
 
 
@@ -177,24 +177,6 @@ namespace Chess.UI.Models
             Side winner = endgame.winner;
 
             GameOverEvent?.Invoke(state, winner);
-        }
-
-
-        private List<Move> GetLegalMoves()
-        {
-            LegalMoves.Clear();
-
-            int numMoves = EngineAPI.GetNumLegalMoves();
-
-            for (int i = 0; i < numMoves; ++i)
-            {
-                if (EngineAPI.GetLegalMoveAtIndex(i, out ushort moveData))
-                {
-                    var move = new Move(moveData);
-                    LegalMoves.Add(move);
-                }
-            }
-            return LegalMoves;
         }
 
 
@@ -217,7 +199,7 @@ namespace Chess.UI.Models
         public event Action RemotePlayersTurn;
         public event Action GameStateInitSucceeded;
         public event Action<EndGameState, Side> GameOverEvent;
-        public event Action NewBoardFromBackendEvent;
+        public event Action<PieceType[]> NewBoardFromBackendEvent;
         public event Action PawnPromotionEvent;
     }
 }
