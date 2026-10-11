@@ -5,7 +5,7 @@ using Chess.UI.ViewModels;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.UI.Xaml;
 using Microsoft.UI.Xaml.Controls;
-using Microsoft.UI.Xaml.Input;
+using Microsoft.UI.Xaml.Controls.Primitives;
 using Microsoft.UI.Xaml.Media;
 using System.ComponentModel;
 using System.Runtime.CompilerServices;
@@ -123,29 +123,31 @@ namespace Chess.UI.Views
 
         #region Audio Slider Event Handlers
 
-        private void Master_Volume_PointerCaptureLost(object sender, PointerRoutedEventArgs e)
+        // ValueChanged also covers keyboard and mouse wheel input, the sliders snap to steps of 10
+
+        private void Master_Volume_ValueChanged(object sender, RangeBaseValueChangedEventArgs e)
         {
-            if (sender is Slider slider && _audioViewModel != null)
+            if (_audioViewModel != null)
             {
-                _audioViewModel.MasterVolume = (int)slider.Value;
+                _audioViewModel.MasterVolume = (int)e.NewValue;
             }
         }
 
 
-        private void SFX_Volume_PointerCaptureLost(object sender, PointerRoutedEventArgs e)
+        private void SFX_Volume_ValueChanged(object sender, RangeBaseValueChangedEventArgs e)
         {
-            if (sender is Slider slider && _audioViewModel != null)
+            if (_audioViewModel != null)
             {
-                _audioViewModel.SfxVolume = (int)slider.Value;
+                _audioViewModel.SfxVolume = (int)e.NewValue;
             }
         }
 
 
-        private void Atmos_Volume_PointerCaptureLost(object sender, PointerRoutedEventArgs e)
+        private void Atmos_Volume_ValueChanged(object sender, RangeBaseValueChangedEventArgs e)
         {
-            if (sender is Slider slider && _audioViewModel != null)
+            if (_audioViewModel != null)
             {
-                _audioViewModel.AtmosVolume = (int)slider.Value;
+                _audioViewModel.AtmosVolume = (int)e.NewValue;
             }
         }
 

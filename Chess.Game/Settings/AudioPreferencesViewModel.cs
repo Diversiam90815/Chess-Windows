@@ -55,13 +55,13 @@ namespace Chess.UI.Settings
         private void InitializeValues()
         {
             float masterEngineVolume = _audioService.GetMasterVolume();
-            int masterVolume = (int)masterEngineVolume * 100;
+            int masterVolume = (int)MathF.Round(masterEngineVolume * 100);
 
             float sfxEngineVolume = _audioService.GetSFXVolume();
-            int sfxVolume = (int)(sfxEngineVolume * 100);
+            int sfxVolume = (int)MathF.Round(sfxEngineVolume * 100);
 
             float atmosEngineVolume = _audioService.GetAtmosphereVolume();
-            int atmosVolume = (int)(atmosEngineVolume * 100);
+            int atmosVolume = (int)MathF.Round(atmosEngineVolume * 100);
 
             bool sfxEnabled = _audioService.GetSFXEnabled();
             bool atmosEnabled = _audioService.GetAtmosphereEnabled();

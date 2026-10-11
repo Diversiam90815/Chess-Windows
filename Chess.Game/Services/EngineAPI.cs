@@ -40,7 +40,11 @@ namespace Chess.UI.Services
         public static extern void UndoMove();
 
         [DllImport(LOGIC_API_PATH, CallingConvention = CallingConvention.Cdecl)]
+        [return: MarshalAs(UnmanagedType.I1)]
         public static extern bool GetBoardState([Out, MarshalAs(UnmanagedType.LPArray, SizeConst = 64)] int[] boardState);
+
+        [DllImport(LOGIC_API_PATH, CallingConvention = CallingConvention.Cdecl)]
+        public static extern int GetGameState();
 
         #endregion // Game Management
 
@@ -148,14 +152,6 @@ namespace Chess.UI.Services
         #endregion
 
 
-        #region Utilities
-
-        [DllImport(LOGIC_API_PATH, CallingConvention = CallingConvention.Cdecl, EntryPoint = "GetWindowScalingFactor", CharSet = CharSet.Unicode)]
-        public static extern float GetWindowScalingFactor(nint hwnd);
-
-        #endregion
-
-
         #region Settings
 
         [DllImport(LOGIC_API_PATH, CallingConvention = CallingConvention.Cdecl)]
@@ -219,6 +215,19 @@ namespace Chess.UI.Services
             Error = 9
         }
 
+        // State of the engine's state machine, as returned by GetGameState()
+        public enum GameState
+        {
+            NotRunning = 0,
+            Init = 1,
+            WaitingForInput = 2,
+            WaitingForTarget = 3,
+            PawnPromotion = 4,
+            WaitingForRemoteMove = 5,
+            WaitingForCPUMove = 6,
+            GameOver = 7,
+        }
+
         public enum GamePhase
         {
             Initializing = 0,
@@ -246,12 +255,16 @@ namespace Chess.UI.Services
         }
 
 
+        // Mirrors the engine's PlayerCapturedPieceEvent, where Side and bool are a single byte each
         [StructLayout(LayoutKind.Sequential)]
         public struct PlayerCapturedPiece
         {
-            public Side playerColor;
+            private sbyte _playerColor;
             public PieceType pieceType;
-            public bool captured;
+            private byte _captured;
+
+            public readonly Side playerColor => (Side)_playerColor;
+            public readonly bool captured => _captured != 0;
         };
 
 
@@ -392,9 +405,9 @@ namespace Chess.UI.Services
             // Network
             public int DiscoveryUDPPort;
 
-            // Paths
+            // Paths (the engine creates its "Logs" folder underneath)
             [MarshalAs(UnmanagedType.ByValTStr, SizeConst = 512)]
-            public string AppDataPath;
+            public string LogFolder;
         }
 
 

@@ -272,7 +272,7 @@
                             Grid.Column="1"
                             Maximum="100"
                             Minimum="0"
-                            PointerCaptureLost="Master_Volume_PointerCaptureLost"
+                            ValueChanged="Master_Volume_ValueChanged"
                             SnapsTo="StepValues"
                             StepFrequency="10"
                             Value="{x:Bind _audioViewModel.MasterVolume, Mode=OneWay}" />
@@ -304,7 +304,7 @@
                             Grid.Column="1"
                             Maximum="100"
                             Minimum="0"
-                            PointerCaptureLost="SFX_Volume_PointerCaptureLost"
+                            ValueChanged="SFX_Volume_ValueChanged"
                             SnapsTo="StepValues"
                             StepFrequency="10"
                             Value="{x:Bind _audioViewModel.SfxVolume, Mode=OneWay}" />
@@ -342,7 +342,7 @@
                                 x:Name="AtmosVolumeSlider"
                                 Maximum="100"
                                 Minimum="0"
-                                PointerCaptureLost="Atmos_Volume_PointerCaptureLost"
+                                ValueChanged="Atmos_Volume_ValueChanged"
                                 SnapsTo="StepValues"
                                 StepFrequency="10"
                                 Value="{x:Bind _audioViewModel.AtmosVolume, Mode=OneWay}" />
