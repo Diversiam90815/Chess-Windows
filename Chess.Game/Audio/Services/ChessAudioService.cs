@@ -128,7 +128,7 @@ namespace Chess.UI.Audio.Services
             var sfx = DetermineMoveSound(move, isCapture);
             var volume = DetermineMoveVolume(move, isCapture);
 
-            await _soundEffectsModule?.PlaySoundAsync(sfx, volume);
+            await PlaySoundAsync(sfx, volume);
         }
 
 
@@ -141,13 +141,13 @@ namespace Chess.UI.Audio.Services
                 _ => SoundEffect.Checkmate
             };
 
-            await _soundEffectsModule?.PlaySoundAsync(sfx, 0.8f);
+            await PlaySoundAsync(sfx, 0.8f);
         }
 
 
         public async Task HandleGameStartAsync()
         {
-            await _soundEffectsModule?.PlaySoundAsync(SoundEffect.GameStart, 0.6f);
+            await PlaySoundAsync(SoundEffect.GameStart, 0.6f);
         }
 
 
@@ -164,7 +164,14 @@ namespace Chess.UI.Audio.Services
             };
 
             var volume = interaction == UIInteraction.PieceSelect ? 0.3f : 0.5f;
-            await _soundEffectsModule?.PlaySoundAsync(soundEffect, volume);
+            await PlaySoundAsync(soundEffect, volume);
+        }
+
+
+        private Task PlaySoundAsync(SoundEffect effect, float volume)
+        {
+            // Sounds can be requested before the audio modules are initialized
+            return _soundEffectsModule?.PlaySoundAsync(effect, volume) ?? Task.CompletedTask;
         }
 
 
@@ -195,18 +202,20 @@ namespace Chess.UI.Audio.Services
 
         public void SetSFXVolume(float volume)
         {
+            if (_soundEffectsModule == null) return;
             if (_soundEffectsModule.GetModuleVolume() == volume) return;
 
-            _soundEffectsModule?.SetModuleVolume(volume);
+            _soundEffectsModule.SetModuleVolume(volume);
             _settingsService.AudioSFXVolume = volume;
         }
 
 
         public async Task SetAtmosphereAsync(AtmosphereScenario scenario)
         {
-            if (_atmosphereModule?.CurrentScenario == scenario) return;
+            if (_atmosphereModule == null) return;
+            if (_atmosphereModule.CurrentScenario == scenario) return;
 
-            await _atmosphereModule?.SetAtmosphereAsync(scenario);
+            await _atmosphereModule.SetAtmosphereAsync(scenario);
             _settingsService.AudioAtmosScenario = scenario.ToString();
         }
 
