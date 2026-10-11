@@ -40,6 +40,31 @@ class BuildUtils:
         sys.stdout.flush()
         return process.stdout
 
+    @staticmethod
+    def find_msbuild() -> str:
+        """Locate the MSBuild.exe of the newest Visual Studio installation."""
+        program_files = os.environ.get("ProgramFiles(x86)", r"C:\Program Files (x86)")
+        vswhere = Path(program_files) / "Microsoft Visual Studio" / "Installer" / "vswhere.exe"
+
+        if vswhere.exists():
+            result = subprocess.run(
+                [
+                    str(vswhere),
+                    "-latest",
+                    "-prerelease",
+                    "-requires", "Microsoft.Component.MSBuild",
+                    "-find", r"MSBuild\**\Bin\MSBuild.exe",
+                ],
+                stdout=subprocess.PIPE,
+                text=True,
+            )
+            candidates = result.stdout.splitlines()
+            if candidates:
+                return candidates[0]
+
+        print("\nCould not find MSBuild.exe. Is Visual Studio with the MSBuild component installed?")
+        sys.exit(1)
+
 
 @contextmanager
 def working_directory(path: Path):

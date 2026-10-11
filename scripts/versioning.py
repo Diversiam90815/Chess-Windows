@@ -1,15 +1,15 @@
-import re
 from pathlib import Path
 from subprocess import check_output
 from typing import Optional
 import xml.etree.ElementTree as ET
-from .paths import *
+
 
 class VersionManager:
+    """Keeps the app version in Directory.Build.props and the package manifest."""
 
-    def __init__(self, cmake_file: Path, version_var: str = "PROJECT_VERSION") -> None:
-        self.cmake_file = cmake_file
-        self.version_var = version_var
+    def __init__(self, build_props_file: Path, manifest_file: Path) -> None:
+        self.build_props_file = build_props_file
+        self.manifest_file = manifest_file
 
 
     def get_build_number(self) -> int:
@@ -18,29 +18,12 @@ class VersionManager:
 
 
     def get_current_version(self) -> Optional[str]:
-        pattern = re.compile(rf"set\({re.escape(self.version_var)}\s+(\d+(?:\.\d+){{2,3}})\)")
+        version_element = ET.parse(self.build_props_file).getroot().find('.//Version')
 
-        with self.cmake_file.open("r", encoding="utf-8") as f:
-            for line in f:
-                match = pattern.search(line)
-                if match:
-                    return match.group(1)
-        return None
+        if version_element is None or not version_element.text:
+            return None
 
-
-    def _write_version(self, new_version: str) -> None:
-        pattern = re.compile(rf"set\({re.escape(self.version_var)}\s+(\d+(?:\.\d+){{2,3}})\)")
-        tmp_file = self.cmake_file.with_name(self.cmake_file.name + ".tmp")
-
-        with self.cmake_file.open("r", encoding="utf-8") as fin, \
-             tmp_file.open("w", encoding="utf-8") as fout:
-            for line in fin:
-                if pattern.search(line):
-                    fout.write(f"set({self.version_var} {new_version})\n")
-                else:
-                    fout.write(line)
-
-        tmp_file.replace(self.cmake_file)
+        return version_element.text.strip()
 
 
     def update_build_number_in_version(self) -> Optional[str]:
@@ -53,14 +36,13 @@ class VersionManager:
         parts[-1] = str(build_number)
         new_version = ".".join(parts)
 
-        self._write_version(new_version)
-        self.update_app_version_in_exe(new_version, build_props_file=DIRECTORY_BUILD_PROPS_FILE)
+        self.update_app_version_in_exe(new_version)
         self.update_app_version_in_manifest(new_version)
         return new_version
 
 
-    def update_app_version_in_exe(self,version, build_props_file):   
-        tree = ET.parse(build_props_file)
+    def update_app_version_in_exe(self, version):
+        tree = ET.parse(self.build_props_file)
         root = tree.getroot()
 
         version_element = root.find('.//Version')
@@ -68,23 +50,23 @@ class VersionManager:
         if version_element is not None:
             # Update the Version text
             version_element.text = version
-            
-        tree.write(build_props_file, encoding='utf-8', xml_declaration=True)
+
+        tree.write(self.build_props_file, encoding='utf-8', xml_declaration=True)
 
 
-    def update_app_version_in_manifest(self, version):               
+    def update_app_version_in_manifest(self, version):
         ET.register_namespace("", "http://schemas.microsoft.com/appx/manifest/foundation/windows10")
         ET.register_namespace("mp", "http://schemas.microsoft.com/appx/2014/phone/manifest")
         ET.register_namespace("uap", "http://schemas.microsoft.com/appx/manifest/uap/windows10")
         ET.register_namespace("rescap", "http://schemas.microsoft.com/appx/manifest/foundation/windows10/restrictedcapabilities")
 
-        tree = ET.parse(PACKAGE_MANIFEST_FILE)
+        tree = ET.parse(self.manifest_file)
         root = tree.getroot()
 
         identity_element = root.find('.//{http://schemas.microsoft.com/appx/manifest/foundation/windows10}Identity')
-        
-        if identity_element is not None:           
+
+        if identity_element is not None:
             identity_element.set('Version', version)
-            
+
             # Write the changes back to the file
-            tree.write(PACKAGE_MANIFEST_FILE, encoding='utf-8', xml_declaration=True)
+            tree.write(self.manifest_file, encoding='utf-8', xml_declaration=True)

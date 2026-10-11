@@ -18,37 +18,30 @@ def main():
     os.chdir(ROOT_DIR)
 
     build_dir = get_build_dir(str(args.architecture))
-    test_dir = build_dir / "tests"
-    runner = BuildRunner(root_dir=ENGINE_DIR, build_dir=build_dir, project_name="Chess Game")
+    runner = BuildRunner(engine_dir=ENGINE_DIR, build_dir=build_dir)
 
-    runner.update_environment()
     runner.update_app_version()
 
     print("==== Chess Game Configuration ====")
     print(f"Current Directory:          {ROOT_DIR}")
-    print(f"Build Directory:            {build_dir}")
-    print(f"Test Build Directory:       {test_dir}")
+    print(f"Engine Build Directory:     {build_dir}")
     print(f"Architecture:               {args.architecture}")
 
     if not args.prepare:
         print(f"Configuration:              {args.configuration}")
-    
-    print(f"Environment:                {runner.env}")
+
     print(f"Version:                    {runner.version}")
     print("=====================================")
 
     if args.prepare:
         runner.prepare_cmake_project(platform=args.platform, architecture=args.architecture)
 
-    if args.runtest:
-        runner.run_cpp_unit_tests(configuration=args.configuration, test_build_dir=test_dir, target="RUN_TESTS")
-
     if args.build:
         runner.create_build_generator(platform=args.platform, architecture=args.architecture, configuration=args.configuration)
         runner.build_csharp_project(configuration=args.configuration, architecture=args.architecture)
 
-    if not args.prepare:
-        runner.run_cpp_unit_tests(configuration=args.configuration, test_build_dir=test_dir, target="RUN_TESTS")
+    if args.runtest:
+        runner.run_csharp_unit_tests(configuration=args.configuration, architecture=args.architecture)
 
 
 
