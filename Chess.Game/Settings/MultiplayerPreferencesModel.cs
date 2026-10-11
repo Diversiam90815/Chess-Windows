@@ -60,12 +60,14 @@ namespace Chess.UI.Settings
     public class MultiplayerPreferencesModel : IMultiplayerPreferencesModel
     {
         private readonly ISettingsService _settingsService;
+        private readonly ICommunicationLayer _backendCommunication;
         private readonly List<NetworkAdapter> _adapters = [];
 
 
-        public MultiplayerPreferencesModel(ISettingsService settingsService)
+        public MultiplayerPreferencesModel(ISettingsService settingsService, ICommunicationLayer backendCommunication)
         {
             _settingsService = settingsService;
+            _backendCommunication = backendCommunication;
         }
 
 
@@ -80,20 +82,9 @@ namespace Chess.UI.Settings
         private bool SetNetworkAdapters()
         {
             _adapters.Clear();
-            int adapterCount = EngineAPI.GetNetworkAdapterCount();
 
-            for (uint i = 0; i < adapterCount; ++i)
+            foreach (NetworkAdapter networkAdapter in _backendCommunication.GetNetworkAdapters())
             {
-                EngineAPI.GetNetworkAdapterAtIndex(i, out EngineAPI.NetworkAdapterInstance adapter);
-
-                NetworkAdapter networkAdapter = new()
-                {
-                    AdapterName = adapter.AdapterName,
-                    NetworkName = adapter.NetworkName,
-                    ID = adapter.ID,
-                    Visibility = (AdapterVisibility)adapter.Priority,
-                };
-
                 if (!networkAdapter.IsValid())
                     continue;
 
@@ -113,13 +104,13 @@ namespace Chess.UI.Settings
 
         public int GetSelectedNetworkAdapterID()
         {
-            return EngineAPI.GetCurrentNetworkAdapterID();
+            return _backendCommunication.GetCurrentNetworkAdapterID();
         }
 
 
         public void ChangeNetworkAdapter(int ID)
         {
-            EngineAPI.ChangeCurrentAdapter(ID);
+            _backendCommunication.ChangeNetworkAdapter(ID);
         }
 
         #endregion
@@ -130,7 +121,7 @@ namespace Chess.UI.Settings
         public void SetLocalPlayerName(string name)
         {
             _settingsService.PlayerName = name;
-            EngineAPI.SetLocalPlayerName(name);
+            _backendCommunication.SetLocalPlayerName(name);
             PlayerNameChanged?.Invoke(name);
         }
 

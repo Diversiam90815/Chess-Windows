@@ -75,9 +75,9 @@ namespace Chess.UI.Settings
         };
 
 
-        public SettingsService()
+        public SettingsService(string appDataDirectory)
         {
-            string settingsFolder = Path.Combine(Project.AppDataDirectory, "Settings");
+            string settingsFolder = Path.Combine(appDataDirectory, "Settings");
             _configFilePath = Path.Combine(settingsFolder, "Config.json");
 
             Directory.CreateDirectory(settingsFolder);
@@ -101,12 +101,7 @@ namespace Chess.UI.Settings
         public string PlayerName
         {
             get => _data.PlayerName;
-            set
-            {
-                _data.PlayerName = value;
-                Save();
-                EngineAPI.SetLocalPlayerName(value ?? "");
-            }
+            set { _data.PlayerName = value; Save(); }
         }
 
         public bool AudioSFXEnabled
@@ -148,12 +143,7 @@ namespace Chess.UI.Settings
         public int DiscoveryUDPPort
         {
             get => _data.DiscoveryUDPPort;
-            set
-            {
-                _data.DiscoveryUDPPort = value;
-                Save();
-                EngineAPI.SetDiscoveryPort(value);
-            }
+            set { _data.DiscoveryUDPPort = value; Save(); }
         }
 
 

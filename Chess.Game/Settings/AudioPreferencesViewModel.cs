@@ -1,7 +1,6 @@
 ﻿using Chess.UI.Audio.Modules;
 using Chess.UI.Audio.Services;
 using Chess.UI.Wrappers;
-using Microsoft.Extensions.DependencyInjection;
 using System;
 using System.Collections.ObjectModel;
 using System.ComponentModel;
@@ -39,11 +38,10 @@ namespace Chess.UI.Settings
         public event Action ItemSelected;
 
 
-        public AudioPreferencesViewModel(IDispatcherQueueWrapper dispatcher)
+        public AudioPreferencesViewModel(IDispatcherQueueWrapper dispatcher, IChessAudioService audioService)
         {
             _dispatcherQueue = dispatcher;
-
-            _audioService = App.Current.Services.GetService<IChessAudioService>();
+            _audioService = audioService;
 
             AtmosphereSoundscapes = new ObservableCollection<AtmosphereScenarioItem>();
 

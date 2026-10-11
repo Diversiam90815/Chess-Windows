@@ -1,6 +1,5 @@
 ﻿using Chess.UI.Services;
 using Chess.UI.Wrappers;
-using Microsoft.Extensions.DependencyInjection;
 using System;
 using System.ComponentModel;
 using System.Runtime.CompilerServices;
@@ -28,16 +27,21 @@ namespace Chess.UI.ViewModels
         public event Action ButtonClicked;
 
 
-        public GameWindowViewModel(IDispatcherQueueWrapper dispatcherQueue, IChessGameService gameService)
+        public GameWindowViewModel(
+            IDispatcherQueueWrapper dispatcherQueue,
+            IChessGameService gameService,
+            ChessBoardViewModel chessBoardViewModel,
+            CapturedPiecesViewModel capturedPiecesViewModel,
+            MoveHistoryViewModel moveHistoryViewModel,
+            MultiplayerInfoViewModel multiplayerInfoViewModel)
         {
             _dispatcherQueue = dispatcherQueue;
             _gameService = gameService;
 
-            // Initialize child ViewModels from DI
-            ChessBoardViewModel = App.Current.Services.GetService<ChessBoardViewModel>();
-            CapturedPiecesViewModel = App.Current.Services.GetService<CapturedPiecesViewModel>();
-            MoveHistoryViewModel = App.Current.Services.GetService<MoveHistoryViewModel>();
-            MultiplayerInfoViewModel = App.Current.Services.GetService<MultiplayerInfoViewModel>();
+            ChessBoardViewModel = chessBoardViewModel;
+            CapturedPiecesViewModel = capturedPiecesViewModel;
+            MoveHistoryViewModel = moveHistoryViewModel;
+            MultiplayerInfoViewModel = multiplayerInfoViewModel;
 
             // Subscribe to ChessBoard events that require window-level handling
             ChessBoardViewModel.ShowEndGameDialog += OnShowEndGameDialog;

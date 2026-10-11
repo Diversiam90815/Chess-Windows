@@ -1,7 +1,6 @@
 ﻿using Chess.UI.Settings;
 using Chess.UI.UI;
 using Chess.UI.Wrappers;
-using Microsoft.Extensions.DependencyInjection;
 using System;
 using System.Collections.Generic;
 using System.Collections.ObjectModel;
@@ -25,13 +24,13 @@ namespace Chess.UI.ViewModels
 
 
 
-        public MultiplayerPreferencesViewModel(IDispatcherQueueWrapper dispatcherQueue)
+        public MultiplayerPreferencesViewModel(IDispatcherQueueWrapper dispatcherQueue, IMultiplayerPreferencesModel model)
         {
             _dispatcherQueue = dispatcherQueue;
 
             NetworkAdapters = [];
 
-            _model = App.Current.Services.GetService<IMultiplayerPreferencesModel>();
+            _model = model;
             _model.Init();
 
             UpdateAdapterBox();

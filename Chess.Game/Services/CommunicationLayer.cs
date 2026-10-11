@@ -22,6 +22,12 @@ namespace Chess.UI.Services
         void StartGame(GameConfiguration config);
         void ResetGame();
 
+        // Multiplayer settings of the engine
+        IReadOnlyList<NetworkAdapter> GetNetworkAdapters();
+        int GetCurrentNetworkAdapterID();
+        void ChangeNetworkAdapter(int adapterID);
+        void SetLocalPlayerName(string name);
+
         // Events for notifying UI components, raised on the UI thread
         event Action<Side> PlayerChanged;
         event Action<GamePhase> GameStateChanged;
@@ -103,6 +109,47 @@ namespace Chess.UI.Services
         public void ResetGame()
         {
             EngineAPI.ResetGame();
+        }
+
+
+        public IReadOnlyList<NetworkAdapter> GetNetworkAdapters()
+        {
+            var adapters = new List<NetworkAdapter>();
+            int adapterCount = EngineAPI.GetNetworkAdapterCount();
+
+            for (uint i = 0; i < adapterCount; ++i)
+            {
+                if (!EngineAPI.GetNetworkAdapterAtIndex(i, out NetworkAdapterInstance adapter))
+                    continue;
+
+                adapters.Add(new NetworkAdapter
+                {
+                    AdapterName = adapter.AdapterName,
+                    NetworkName = adapter.NetworkName,
+                    ID = adapter.ID,
+                    Visibility = (AdapterVisibility)adapter.Priority,
+                });
+            }
+
+            return adapters;
+        }
+
+
+        public int GetCurrentNetworkAdapterID()
+        {
+            return EngineAPI.GetCurrentNetworkAdapterID();
+        }
+
+
+        public void ChangeNetworkAdapter(int adapterID)
+        {
+            EngineAPI.ChangeCurrentAdapter(adapterID);
+        }
+
+
+        public void SetLocalPlayerName(string name)
+        {
+            EngineAPI.SetLocalPlayerName(name ?? "");
         }
 
 
