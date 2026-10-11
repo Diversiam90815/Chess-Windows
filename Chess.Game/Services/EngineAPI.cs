@@ -43,9 +43,6 @@ namespace Chess.UI.Services
         [return: MarshalAs(UnmanagedType.I1)]
         public static extern bool GetBoardState([Out, MarshalAs(UnmanagedType.LPArray, SizeConst = 64)] int[] boardState);
 
-        [DllImport(LOGIC_API_PATH, CallingConvention = CallingConvention.Cdecl)]
-        public static extern int GetGameState();
-
         #endregion // Game Management
 
 
@@ -213,19 +210,6 @@ namespace Chess.UI.Services
             InGame = 7,
             Disconnected = 8,
             Error = 9
-        }
-
-        // State of the engine's state machine, as returned by GetGameState()
-        public enum GameState
-        {
-            NotRunning = 0,
-            Init = 1,
-            WaitingForInput = 2,
-            WaitingForTarget = 3,
-            PawnPromotion = 4,
-            WaitingForRemoteMove = 5,
-            WaitingForCPUMove = 6,
-            GameOver = 7,
         }
 
         public enum GamePhase
