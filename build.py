@@ -1,7 +1,9 @@
 import os
 import sys
+from pathlib import Path
 
 from scripts.paths import *
+from scripts.enums import Configuration
 from scripts.build_runner import BuildRunner
 from scripts.argument_parser import create_argument_parser
 
@@ -17,15 +19,18 @@ def main():
     ''' Setting up environment '''
     os.chdir(ROOT_DIR)
 
-    build_dir = get_build_dir(str(args.architecture))
-    runner = BuildRunner(engine_dir=ENGINE_DIR, build_dir=build_dir)
+    dependencies = native_dependencies(engine_dir=Path(args.engine_dir).resolve(), netlink_dir=Path(args.netlink_dir).resolve())
+    runner = BuildRunner(dependencies=dependencies, architecture=args.architecture)
 
     runner.update_app_version()
 
     print("==== Chess Game Configuration ====")
     print(f"Current Directory:          {ROOT_DIR}")
-    print(f"Engine Build Directory:     {build_dir}")
+    print(f"Install Directory:          {INSTALL_DIR}")
     print(f"Architecture:               {args.architecture}")
+
+    for dependency in dependencies:
+        print(f"{dependency.name + ':':28s}{dependency.source_dir}")
 
     if not args.prepare:
         print(f"Configuration:              {args.configuration}")
@@ -34,14 +39,15 @@ def main():
     print("=====================================")
 
     if args.prepare:
-        runner.prepare_cmake_project(platform=args.platform, architecture=args.architecture)
+        # Both configurations, so the solution can be built either way in the IDE
+        runner.build_native_libraries(platform=args.platform, configurations=[Configuration.Release, Configuration.Debug])
 
     if args.build:
-        runner.create_build_generator(platform=args.platform, architecture=args.architecture, configuration=args.configuration)
-        runner.build_csharp_project(configuration=args.configuration, architecture=args.architecture)
+        runner.build_native_libraries(platform=args.platform, configurations=[args.configuration])
+        runner.build_csharp_project(configuration=args.configuration)
 
     if args.runtest:
-        runner.run_csharp_unit_tests(configuration=args.configuration, architecture=args.architecture)
+        runner.run_csharp_unit_tests(configuration=args.configuration)
 
 
 

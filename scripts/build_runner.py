@@ -8,13 +8,14 @@ from .paths import *
 
 class BuildRunner:
     """
-    Builds the Chess Windows app. The engine submodule is only built as far as the app needs it:
-    its API library. Engine tests, tools and code checks are run from the engine repository.
+    Builds the Chess Windows app. The native libraries it loads (the chess engine and NetLink) are built from
+    their repositories only as far as the app needs them, then installed into install/<configuration>, where the
+    C# project picks them up. Their tests, tools and code checks are run from their own repositories.
     """
 
-    def __init__(self, engine_dir: Path, build_dir: Path) -> None:
-        self.engine_dir = engine_dir
-        self.build_dir = build_dir
+    def __init__(self, dependencies: list[NativeDependency], architecture: Architecture) -> None:
+        self.dependencies = dependencies
+        self.architecture = architecture
 
         self.version: str | None = None
 
@@ -25,51 +26,62 @@ class BuildRunner:
         self.version = self.version_manager.update_build_number_in_version()
 
 
-    # ---- Engine library ----
-    def generate_cmake_project(self, platform: Platform, architecture: Architecture) -> None:
+    # ---- Native libraries ----
+    def generate_cmake_project(self, dependency: NativeDependency, platform: Platform) -> None:
         prepare_cmd = [
             "cmake",
             "-G", str(platform),
-            "-S", str(self.engine_dir),
-            "-B", str(self.build_dir),
-            # The engine's own code checks would rewrite and scan the submodule's sources
-            "-DENABLE_FORMAT=OFF",
-            "-DENABLE_CPPCHECK=OFF",
-            "-DENABLE_DOXYGEN=OFF",
+            "-S", str(dependency.source_dir),
+            "-B", str(dependency.build_dir(str(self.architecture))),
+            # For the INSTALL project in Visual Studio: it installs the configuration it is built in where the app
+            # takes it from (cmake_install.cmake gets BUILD_TYPE). Only the projects it depends on in the solution are built.
+            f"-DCMAKE_INSTALL_PREFIX={INSTALL_DIR.as_posix()}/${{BUILD_TYPE}}",
+            "-DCMAKE_SKIP_INSTALL_ALL_DEPENDENCY=ON",
+            *dependency.cmake_options,
         ]
         if platform == Platform.VS2022 or platform == Platform.VS2026:
-            prepare_cmd += ["-A", str(architecture)]
+            prepare_cmd += ["-A", str(self.architecture)]
 
         BuildUtils.execute_command(
             prepare_cmd,
-            f"CMake: Generate {platform} project for the engine",
+            f"CMake: Generate {platform} project for {dependency.name}",
         )
 
 
-    def build_engine_library(self, configuration: Configuration) -> None:
+    def build_and_install(self, dependency: NativeDependency, configuration: Configuration) -> None:
+        build_dir = dependency.build_dir(str(self.architecture))
+        # Named after the C# configuration that loads it
+        install_dir = get_install_dir(self._csharp_configuration(configuration))
+
         BuildUtils.execute_command(
             [
                 "cmake",
-                "--build", str(self.build_dir),
+                "--build", str(build_dir),
                 "--config", str(configuration),
-                "--target", ENGINE_API_TARGET,
+                "--target", dependency.target,
                 "--parallel", "8",
             ],
-            f"CMake: Build {ENGINE_API_TARGET} ({configuration})",
+            f"CMake: Build {dependency.target} ({configuration})",
         )
 
+        install_cmd = [
+            "cmake",
+            "--install", str(build_dir),
+            "--config", str(configuration),
+            "--prefix", str(install_dir),
+        ]
+        if dependency.install_component:
+            install_cmd += ["--component", dependency.install_component]
 
-    def create_build_generator(self, platform: Platform, architecture: Architecture, configuration: Configuration) -> None:
-        self.generate_cmake_project(platform=platform, architecture=architecture)
-        self.build_engine_library(configuration)
+        BuildUtils.execute_command(install_cmd, f"CMake: Install {dependency.name} ({configuration})")
 
 
-    def prepare_cmake_project(self, platform: Platform, architecture: Architecture) -> None:
-        self.generate_cmake_project(platform=platform, architecture=architecture)
+    def build_native_libraries(self, platform: Platform, configurations: list[Configuration]) -> None:
+        for dependency in self.dependencies:
+            self.generate_cmake_project(dependency, platform)
 
-        # Both configurations, so the solution can be built either way in the IDE
-        self.build_engine_library(Configuration.Release)
-        self.build_engine_library(Configuration.Debug)
+            for configuration in configurations:
+                self.build_and_install(dependency, configuration)
 
 
     # ---- C# app ----
@@ -79,15 +91,15 @@ class BuildRunner:
         return "Release" if configuration == Configuration.RelWithDebInfo else str(configuration)
 
 
-    def _msbuild(self, project_file: Path, cs_config: str, architecture: Architecture, description: str) -> None:
-        # The app references the engine's generated .vcxproj, which the dotnet CLI cannot load
+    def _msbuild(self, project_file: Path, cs_config: str, description: str) -> None:
+        # MSBuild rather than the dotnet CLI: the single-project MSIX packaging of the app needs it
         BuildUtils.execute_command(
             [
                 BuildUtils.find_msbuild(),
                 str(project_file),
                 "-restore",
                 f"-p:Configuration={cs_config}",
-                f"-p:Platform={architecture}",
+                f"-p:Platform={self.architecture}",
                 "-m",
                 "-nologo",
                 "-v:minimal",
@@ -96,16 +108,16 @@ class BuildRunner:
         )
 
 
-    def build_csharp_project(self, configuration: Configuration, architecture: Architecture) -> None:
+    def build_csharp_project(self, configuration: Configuration) -> None:
         cs_config = self._csharp_configuration(configuration)
 
-        self._msbuild(GAME_PROJECT_FILE, cs_config, architecture, f"MSBuild: Build Chess Game v{self.version or 'unknown'} ({cs_config}|{architecture})")
+        self._msbuild(GAME_PROJECT_FILE, cs_config, f"MSBuild: Build Chess Game v{self.version or 'unknown'} ({cs_config}|{self.architecture})")
 
 
-    def run_csharp_unit_tests(self, configuration: Configuration, architecture: Architecture) -> None:
+    def run_csharp_unit_tests(self, configuration: Configuration) -> None:
         cs_config = self._csharp_configuration(configuration)
 
-        self._msbuild(TEST_PROJECT_FILE, cs_config, architecture, f"MSBuild: Build C# unit tests ({cs_config}|{architecture})")
+        self._msbuild(TEST_PROJECT_FILE, cs_config, f"MSBuild: Build C# unit tests ({cs_config}|{self.architecture})")
 
         BuildUtils.execute_command(
             [
@@ -113,7 +125,7 @@ class BuildRunner:
                 str(TEST_PROJECT_FILE),
                 "--no-build",
                 "-c", cs_config,
-                f"-p:Platform={architecture}",
+                f"-p:Platform={self.architecture}",
                 "--nologo",
             ],
             "dotnet: Running C# unit tests",
