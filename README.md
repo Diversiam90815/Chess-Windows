@@ -53,7 +53,6 @@ Chess-Windows/
 - **Windows 11 SDK** (10.0.26100 or later)
 - **CMake** 4.0 or higher
 - **Python** 3.x
-- **Git** — required for submodule initialization and build number derivation
 
 ## Getting Started
 
@@ -111,11 +110,6 @@ python build.py -t -c Debug       # build and run the tests only
 ```
 
 Most tests are plain unit tests. `EngineIntegrationTests` load the engine DLL and check that the app and the engine agree on their interface.
-
-## Future Plans
-
-- Onboarding flow for new players
-- Dynamic audio score
 
 ## License
 
