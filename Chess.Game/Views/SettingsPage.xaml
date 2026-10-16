@@ -385,6 +385,12 @@
                             Text="Network and player identity settings" />
                     </StackPanel>
 
+                    <InfoBar
+                        IsClosable="False"
+                        IsOpen="{x:Bind _isMultiplayerGameRunning}"
+                        Message="These settings can't be changed during a multiplayer game."
+                        Severity="Informational" />
+
                     <!-- Player Name -->
                     <Grid ColumnSpacing="16">
                         <Grid.ColumnDefinitions>
@@ -402,6 +408,7 @@
 
                         <TextBox
                             Grid.Column="1"
+                            IsEnabled="{x:Bind _networkSettingsEnabled}"
                             PlaceholderText="Enter your name"
                             Text="{x:Bind _multiplayerPrefsViewModel.LocalPlayerName, Mode=TwoWay}" />
                     </Grid>
@@ -430,6 +437,7 @@
                             x:Name="NetworkAdapterComboBox"
                             Grid.Column="1"
                             HorizontalAlignment="Stretch"
+                            IsEnabled="{x:Bind _networkSettingsEnabled}"
                             ItemContainerStyleSelector="{StaticResource ComboBoxItemContainerStyleSelector}"
                             ItemTemplateSelector="{StaticResource NetworkAdapterSelector}"
                             ItemsSource="{x:Bind _multiplayerPrefsViewModel.NetworkAdapterNodes}"

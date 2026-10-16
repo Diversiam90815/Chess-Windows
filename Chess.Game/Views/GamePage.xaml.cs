@@ -56,6 +56,9 @@ namespace Chess.UI.Views
 
             _viewModel.ShowPawnPromotionDialogRequested += OnShowPawnPromotionDialog;
             _viewModel.ShowEndGameDialog += OnGameOverState;
+
+            // The game may have ended while another page (e.g. settings) was shown
+            _ = _viewModel.ShowPendingEndGameDialogAsync();
         }
 
 
@@ -88,6 +91,13 @@ namespace Chess.UI.Views
             _viewModel.OnButtonClicked();
             await _gameService.EndGameAsync();
             _navigationService.NavigateToHome();
+        }
+
+
+        private void Settings_Click(object sender, RoutedEventArgs e)
+        {
+            _viewModel.OnButtonClicked();
+            _navigationService.NavigateToSettings();
         }
 
 

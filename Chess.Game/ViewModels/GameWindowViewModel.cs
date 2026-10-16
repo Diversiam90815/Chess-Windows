@@ -26,6 +26,9 @@ namespace Chess.UI.ViewModels
         public event Func<Task<PieceType?>> ShowPawnPromotionDialogRequested;
         public event Action ButtonClicked;
 
+        private readonly object _pendingEndGameLock = new();
+        private (EndGameState State, Side Winner)? _pendingEndGame;
+
 
         public GameWindowViewModel(
             IDispatcherQueueWrapper dispatcherQueue,
@@ -65,6 +68,9 @@ namespace Chess.UI.ViewModels
         {
             Logger.LogInfo("Resetting all components");
 
+            lock (_pendingEndGameLock)
+                _pendingEndGame = null;
+
             MoveHistoryViewModel.OnReset();
             CapturedPiecesViewModel.ClearCaptures();
         }
@@ -73,6 +79,9 @@ namespace Chess.UI.ViewModels
         private void OnConfigurationChanged(GameConfiguration config)
         {
             Logger.LogInfo($"Configuration changed - Mode={config.Mode}");
+
+            lock (_pendingEndGameLock)
+                _pendingEndGame = null;
 
             // Update game mode flags
             IsMultiplayerGame = config.Mode == GameModeSelection.MultiPlayer;
@@ -89,10 +98,35 @@ namespace Chess.UI.ViewModels
         {
             Logger.LogInfo($"Showing end game dialog - State={state}, Winner={winner}");
 
-            if (ShowEndGameDialog != null)
+            var handler = ShowEndGameDialog;
+
+            if (handler == null)
             {
-                await ShowEndGameDialog.Invoke(state, winner);
+                // No game page is listening (e.g. settings are open), so keep the result until it is shown again
+                lock (_pendingEndGameLock)
+                    _pendingEndGame = (state, winner);
+                return;
             }
+
+            await handler.Invoke(state, winner);
+        }
+
+
+        /// <summary>
+        /// Shows the end game dialog for a game that ended while no game page was listening.
+        /// </summary>
+        public async Task ShowPendingEndGameDialogAsync()
+        {
+            (EndGameState State, Side Winner)? pending;
+
+            lock (_pendingEndGameLock)
+            {
+                pending = _pendingEndGame;
+                _pendingEndGame = null;
+            }
+
+            if (pending.HasValue)
+                await OnShowEndGameDialog(pending.Value.State, pending.Value.Winner);
         }
 
 

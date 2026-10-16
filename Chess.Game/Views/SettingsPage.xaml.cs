@@ -28,9 +28,16 @@ namespace Chess.UI.Views
 
         private ImageSource _previewBoardImage;
 
+        // Settings can be opened from a running game, changing the network identity would break a multiplayer session
+        private readonly bool _isMultiplayerGameRunning;
+        private readonly bool _networkSettingsEnabled;
+
 
         public SettingsPage()
         {
+            _isMultiplayerGameRunning = App.Current.Services.GetService<IChessGameService>()?.IsMultiplayerGame ?? false;
+            _networkSettingsEnabled = !_isMultiplayerGameRunning;
+
             this.InitializeComponent();
 
             _navigationService = App.Current.Services.GetService<INavigationService>();

@@ -174,6 +174,64 @@ namespace Chess.UI.Test
 
 
         [Fact]
+        public async Task EndOfGame_WithoutAPage_IsShownWhenThePageReturns()
+        {
+            GameWindowViewModel viewModel = _fixture.CreateGameWindowViewModel();
+
+            _fixture.MoveModel.Raise(model => model.GameOverEvent += null, EndGameState.Checkmate, Side.White);
+
+            (EndGameState State, Side Winner)? dialog = null;
+            viewModel.ShowEndGameDialog += (state, winner) =>
+            {
+                dialog = (state, winner);
+                return Task.CompletedTask;
+            };
+
+            await viewModel.ShowPendingEndGameDialogAsync();
+
+            Assert.Equal((EndGameState.Checkmate, Side.White), dialog);
+        }
+
+
+        [Fact]
+        public async Task EndOfGame_ShownToThePage_IsNotShownAgain()
+        {
+            GameWindowViewModel viewModel = _fixture.CreateGameWindowViewModel();
+            int dialogs = 0;
+            viewModel.ShowEndGameDialog += (state, winner) =>
+            {
+                dialogs++;
+                return Task.CompletedTask;
+            };
+
+            _fixture.MoveModel.Raise(model => model.GameOverEvent += null, EndGameState.StaleMate, Side.None);
+            await viewModel.ShowPendingEndGameDialogAsync();
+
+            Assert.Equal(1, dialogs);
+        }
+
+
+        [Fact]
+        public async Task EndOfGame_WithoutAPage_IsDroppedWhenTheGameIsReset()
+        {
+            GameWindowViewModel viewModel = _fixture.CreateGameWindowViewModel();
+            _fixture.MoveModel.Raise(model => model.GameOverEvent += null, EndGameState.Checkmate, Side.Black);
+
+            _fixture.GameService.Raise(service => service.GameReset += null);
+
+            bool shown = false;
+            viewModel.ShowEndGameDialog += (state, winner) =>
+            {
+                shown = true;
+                return Task.CompletedTask;
+            };
+            await viewModel.ShowPendingEndGameDialogAsync();
+
+            Assert.False(shown);
+        }
+
+
+        [Fact]
         public void Promotion_AsksThePageAndSendsItsAnswerToTheEngine()
         {
             GameWindowViewModel viewModel = _fixture.CreateGameWindowViewModel();
