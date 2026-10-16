@@ -38,12 +38,12 @@ class NativeDependency:
         return BUILD_DIR / self.key / architecture
 
 
-def native_dependencies(engine_dir: Path = ENGINE_DIR, netlink_dir: Path = NETLINK_DIR) -> list[NativeDependency]:
+def native_dependencies() -> list[NativeDependency]:
     return [
         NativeDependency(
             name="Chess Engine",
             key="ChessEngine",
-            source_dir=engine_dir,
+            source_dir=ENGINE_DIR,
             target="Chess.Engine.API",
             cmake_options=[
                 # The engine's own code checks would rewrite and scan the submodule's sources
@@ -56,7 +56,7 @@ def native_dependencies(engine_dir: Path = ENGINE_DIR, netlink_dir: Path = NETLI
         NativeDependency(
             name="NetLink",
             key="NetLink",
-            source_dir=netlink_dir,
+            source_dir=NETLINK_DIR,
             target="NetLinkC",
             cmake_options=[
                 "-DNETLINK_BUILD_C_API=ON",

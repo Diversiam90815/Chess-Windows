@@ -1,6 +1,5 @@
 import os
 import sys
-from pathlib import Path
 
 from scripts.paths import *
 from scripts.enums import Configuration
@@ -19,7 +18,7 @@ def main():
     ''' Setting up environment '''
     os.chdir(ROOT_DIR)
 
-    dependencies = native_dependencies(engine_dir=Path(args.engine_dir).resolve(), netlink_dir=Path(args.netlink_dir).resolve())
+    dependencies = native_dependencies()
     runner = BuildRunner(dependencies=dependencies, architecture=args.architecture)
 
     runner.update_app_version()

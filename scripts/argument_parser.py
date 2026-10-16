@@ -1,6 +1,5 @@
 import argparse
 from .enums import Architecture, Configuration, Platform
-from .paths import ENGINE_DIR, NETLINK_DIR
 
 
 def create_argument_parser() -> argparse.ArgumentParser:
@@ -48,17 +47,5 @@ def create_argument_parser() -> argparse.ArgumentParser:
         "-t", "--runtest",
         action="store_true",
         help="Build and run the C# unit tests."
-    )
-
-    parser.add_argument(
-        "--engine-dir",
-        default=str(ENGINE_DIR),
-        help="Source of the chess engine. Defaults to the Chess.Engine submodule."
-    )
-
-    parser.add_argument(
-        "--netlink-dir",
-        default=str(NETLINK_DIR),
-        help="Source of NetLink. Defaults to the NetLink submodule."
     )
     return parser
