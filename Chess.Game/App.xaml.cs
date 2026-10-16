@@ -36,6 +36,10 @@ namespace Chess.UI
 
         protected override void OnLaunched(Microsoft.UI.Xaml.LaunchActivatedEventArgs args)
         {
+            // First of all, so everything after it is in the log. The level is set by the app, for the engine and NetLink as well.
+            Logger.Initialize(Project.AppDataDirectory);
+            Logger.SetLevel(Services.GetService<ISettingsService>().LogLevel);
+
             var engineCommunication = Services.GetService<ICommunicationLayer>();
             engineCommunication.Init();
 
@@ -49,6 +53,9 @@ namespace Chess.UI
                 // Tells a connected opponent that the session ends
                 Services.GetService<INetworkService>().Dispose();
                 engineCommunication.Deinit();
+
+                Logger.LogInfo("App closed");
+                Logger.Shutdown();
             };
 
             _shellWindow.Activate();

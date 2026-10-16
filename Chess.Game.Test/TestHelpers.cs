@@ -5,8 +5,9 @@ using System.ComponentModel;
 using System.Runtime.InteropServices;
 using static Chess.UI.Services.EngineAPI;
 
-// All app code logs through the engine's native logger, which must not be called while the engine
-// is being initialized or shut down on another thread. Test classes therefore run one after another.
+// The engine is one instance per process, and some view models call into it directly (a click on a square).
+// Those tests must not run while the engine integration tests play a game, and the Logger is static as well,
+// so test classes run one after another.
 [assembly: CollectionBehavior(DisableTestParallelization = true)]
 
 

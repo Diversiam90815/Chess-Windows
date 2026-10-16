@@ -27,6 +27,9 @@ namespace Chess.UI.Settings
         // Network
         int DiscoveryUDPPort { get; set; }
         ulong NetworkAdapterId { get; set; }
+
+        // Diagnostics: the lowest level written to the log, for the app, the engine and NetLink
+        LogLevel LogLevel { get; set; }
     }
 
 
@@ -65,6 +68,10 @@ namespace Chess.UI.Settings
         // 0: none chosen, the preferred adapter is used
         [JsonPropertyName("Network_Adapter_ID")]
         public ulong NetworkAdapterId { get; set; } = 0;
+
+        [JsonPropertyName("Log_Level")]
+        [JsonConverter(typeof(JsonStringEnumConverter<LogLevel>))]
+        public LogLevel LogLevel { get; set; } = LogLevel.Info;
     }
 
 
@@ -166,6 +173,12 @@ namespace Chess.UI.Settings
         {
             get => _data.NetworkAdapterId;
             set { _data.NetworkAdapterId = value; Save(); }
+        }
+
+        public LogLevel LogLevel
+        {
+            get => _data.LogLevel;
+            set { _data.LogLevel = value; Save(); }
         }
 
 
