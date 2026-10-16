@@ -146,7 +146,7 @@ namespace Chess.UI.Test
         private readonly Mock<IMultiplayerPreferencesModel> _model = new();
 
 
-        private MultiplayerPreferencesViewModel CreateViewModel(int selectedAdapterID, params NetworkAdapter[] adapters)
+        private MultiplayerPreferencesViewModel CreateViewModel(ulong selectedAdapterID, params NetworkAdapter[] adapters)
         {
             _model.Setup(model => model.GetNetworkAdapters()).Returns(adapters.ToList());
             _model.Setup(model => model.GetSelectedNetworkAdapterID()).Returns(selectedAdapterID);
@@ -201,12 +201,36 @@ namespace Chess.UI.Test
 
 
         [Fact]
-        public void WithoutAnAdapterInUse_NothingIsSelected()
+        public void WithoutAnAdapterInUse_TheFirstRecommendedOneIsUsed()
         {
-            MultiplayerPreferencesViewModel viewModel = CreateViewModel(0, Ethernet, WiFi);
+            MultiplayerPreferencesViewModel viewModel = CreateViewModel(0, Vpn, Ethernet, WiFi);
+
+            Assert.Equal(Ethernet, viewModel.SelectedAdapter);
+            _model.Verify(model => model.ChangeNetworkAdapter(Ethernet.ID), Times.Once);
+        }
+
+
+        [Fact]
+        public void WithoutARecommendedAdapter_NothingIsSelected()
+        {
+            MultiplayerPreferencesViewModel viewModel = CreateViewModel(0, Vpn);
 
             Assert.Null(viewModel.SelectedAdapter);
             Assert.Null(viewModel.SelectedNetworkAdaperNode);
+        }
+
+
+        [Fact]
+        public void RefreshAdapters_ReadsThemAgain()
+        {
+            MultiplayerPreferencesViewModel viewModel = CreateViewModel(2, Ethernet);
+            _model.Setup(model => model.GetNetworkAdapters()).Returns(new List<NetworkAdapter> { Ethernet, WiFi });
+
+            viewModel.RefreshAdapters();
+
+            _model.Verify(model => model.Init(), Times.Exactly(2));
+            Assert.Equal(new[] { Ethernet, WiFi }, viewModel.NetworkAdapters);
+            Assert.Equal(WiFi, viewModel.SelectedAdapter);
         }
 
 
@@ -256,14 +280,14 @@ namespace Chess.UI.Test
     public class MultiplayerPreferencesModelTests
     {
         private readonly Mock<ISettingsService> _settings = new();
-        private readonly Mock<ICommunicationLayer> _engine = new();
+        private readonly Mock<INetworkService> _network = new();
         private readonly MultiplayerPreferencesModel _model;
 
 
         public MultiplayerPreferencesModelTests()
         {
             _settings.SetupProperty(settings => settings.PlayerName, "Jens");
-            _model = new MultiplayerPreferencesModel(_settings.Object, _engine.Object);
+            _model = new MultiplayerPreferencesModel(_settings.Object, _network.Object);
         }
 
 
@@ -273,7 +297,7 @@ namespace Chess.UI.Test
             var usable = new NetworkAdapter { ID = 1, NetworkName = "Home", Visibility = AdapterVisibility.Recommended };
             var withoutID = new NetworkAdapter { ID = 0, NetworkName = "Ghost" };
             var withoutNetwork = new NetworkAdapter { ID = 7, NetworkName = "" };
-            _engine.Setup(engine => engine.GetNetworkAdapters()).Returns(new[] { usable, withoutID, withoutNetwork });
+            _network.Setup(network => network.GetNetworkAdapters()).Returns(new[] { usable, withoutID, withoutNetwork });
 
             _model.Init();
 
@@ -286,10 +310,10 @@ namespace Chess.UI.Test
         {
             var first = new NetworkAdapter { ID = 1, NetworkName = "Home" };
             var second = new NetworkAdapter { ID = 2, NetworkName = "Office" };
-            _engine.Setup(engine => engine.GetNetworkAdapters()).Returns(new[] { first });
+            _network.Setup(network => network.GetNetworkAdapters()).Returns(new[] { first });
             _model.Init();
 
-            _engine.Setup(engine => engine.GetNetworkAdapters()).Returns(new[] { second });
+            _network.Setup(network => network.GetNetworkAdapters()).Returns(new[] { second });
             _model.Init();
 
             Assert.Equal(new[] { second }, _model.GetNetworkAdapters());
@@ -304,20 +328,20 @@ namespace Chess.UI.Test
 
 
         [Fact]
-        public void SelectedAdapter_IsReadFromAndWrittenToTheEngine()
+        public void SelectedAdapter_IsReadFromAndWrittenToTheNetwork()
         {
-            _engine.Setup(engine => engine.GetCurrentNetworkAdapterID()).Returns(5);
+            _network.SetupGet(network => network.ActiveAdapterId).Returns(5UL);
 
-            Assert.Equal(5, _model.GetSelectedNetworkAdapterID());
+            Assert.Equal(5UL, _model.GetSelectedNetworkAdapterID());
 
             _model.ChangeNetworkAdapter(9);
 
-            _engine.Verify(engine => engine.ChangeNetworkAdapter(9), Times.Once);
+            _network.Verify(network => network.SetActiveAdapter(9), Times.Once);
         }
 
 
         [Fact]
-        public void PlayerName_IsSavedSentToTheEngineAndAnnounced()
+        public void PlayerName_IsSavedAndAnnounced()
         {
             string? announcedName = null;
             _model.PlayerNameChanged += name => announcedName = name;
@@ -327,7 +351,6 @@ namespace Chess.UI.Test
             Assert.Equal("Magnus", _settings.Object.PlayerName);
             Assert.Equal("Magnus", _model.GetLocalPlayerName());
             Assert.Equal("Magnus", announcedName);
-            _engine.Verify(engine => engine.SetLocalPlayerName("Magnus"), Times.Once);
         }
     }
 
@@ -496,7 +519,8 @@ namespace Chess.UI.Test
             Assert.True(File.Exists(ConfigFile));
             Assert.Equal("Wood", settings.BoardStyle);
             Assert.Equal("Basic", settings.ChessPieceStyle);
-            Assert.Equal("", settings.PlayerName);
+            Assert.Equal(Environment.UserName, settings.PlayerName);
+            Assert.Equal(0UL, settings.NetworkAdapterId);
             Assert.True(settings.AudioSFXEnabled);
             Assert.True(settings.AudioAtmosEnabled);
             Assert.Equal(1.0f, settings.AudioSFXVolume);
@@ -568,6 +592,7 @@ namespace Chess.UI.Test
             Assert.Contains("\"Audio_Master_Volume\"", json);
             Assert.Contains("\"Audio_Atmos_Scenario\"", json);
             Assert.Contains("\"Discovery_UDP_Port\"", json);
+            Assert.Contains("\"Network_Adapter_ID\"", json);
         }
 
 

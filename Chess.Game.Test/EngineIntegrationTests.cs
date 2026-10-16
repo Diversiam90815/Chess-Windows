@@ -55,8 +55,6 @@ namespace Chess.UI.Test
 
             EngineAPI.Init(new UserSettingsInit
             {
-                PlayerName = "Test",
-                DiscoveryUDPPort = 5555,
                 LogFolder = Path.Combine(Path.GetTempPath(), "Chess.Game.Test")
             });
 
@@ -144,6 +142,53 @@ namespace Chess.UI.Test
             Assert.True(EngineAPI.GetBoardState(rawBoard));
 
             return Array.ConvertAll(rawBoard, piece => (PieceType)piece);
+        }
+
+
+        // Plays a move the way a move from the network arrives: complete, in one call
+        private async Task SubmitMoveAsync(Square from, Square to)
+        {
+            int movesBefore = _engine.ExecutedMoves;
+
+            _engine.Communication.SubmitMove(from, to, PieceType.None);
+            await WaitUntilAsync(() => _engine.ExecutedMoves > movesBefore, $"{from}-{to} to be played");
+        }
+
+
+        [Fact]
+        public async Task MultiplayerGame_TakesMovesOfBothSidesThroughSubmitMove()
+        {
+            Assert.True(await _gameService.StartGameAsync(GameConfiguration.CreateMultiplayer(Side.Black)).WaitAsync(Timeout));
+
+            await SubmitMoveAsync(Square.e2, Square.e4);
+            await SubmitMoveAsync(Square.e7, Square.e5);
+
+            PieceType[] board = ReadBoard();
+
+            Assert.Equal(GameModeSelection.MultiPlayer, _gameService.CurrentConfiguration?.Mode);
+            Assert.Equal(PieceType.WPawn, board[(int)Square.e4]);
+            Assert.Equal(PieceType.BPawn, board[(int)Square.e5]);
+            Assert.Equal(GamePhase.PlayerTurn, _engine.Phase);
+        }
+
+
+        [Fact]
+        public async Task SubmittedIllegalMove_IsNotPlayed()
+        {
+            Assert.True(await StartGameAsync());
+            int movesBefore = _engine.ExecutedMoves;
+
+            // Black is not to move, and a pawn cannot jump three squares
+            _engine.Communication.SubmitMove(Square.e7, Square.e5, PieceType.None);
+            _engine.Communication.SubmitMove(Square.e2, Square.e5, PieceType.None);
+            await SubmitMoveAsync(Square.d2, Square.d4);
+
+            PieceType[] board = ReadBoard();
+
+            Assert.Equal(movesBefore + 1, _engine.ExecutedMoves);
+            Assert.Equal(PieceType.BPawn, board[(int)Square.e7]);
+            Assert.Equal(PieceType.WPawn, board[(int)Square.e2]);
+            Assert.Equal(PieceType.WPawn, board[(int)Square.d4]);
         }
 
 

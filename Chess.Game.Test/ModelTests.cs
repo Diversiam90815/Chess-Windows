@@ -313,62 +313,245 @@ namespace Chess.UI.Test
 
     public class MultiplayerModelTests
     {
+        private static readonly NetworkPeer Anna = new(11, "Anna");
+        private static readonly NetworkPeer Ben = new(22, "Ben");
+
         private readonly Mock<ICommunicationLayer> _communication = new();
+        private readonly Mock<INetworkService> _network = new();
+        private readonly Mock<ISettingsService> _settings = new();
+        private readonly Mock<IChessGameService> _gameService = new();
         private readonly MultiplayerModel _model;
+
+        private readonly List<(MultiplayerState State, string Name)> _states = new();
 
 
         public MultiplayerModelTests()
         {
-            _model = new MultiplayerModel(_communication.Object);
+            _settings.SetupGet(settings => settings.PlayerName).Returns("Jens");
+            _network.Setup(network => network.Start(It.IsAny<string>())).Returns(true);
+            _network.Setup(network => network.Connect(It.IsAny<ulong>())).Returns(true);
+            _network.Setup(network => network.Send(It.IsAny<ulong>(), It.IsAny<uint>(), It.IsAny<byte[]>())).Returns(true);
+
+            _model = new MultiplayerModel(_communication.Object, _network.Object, _settings.Object, _gameService.Object);
+            _model.OnMultiplayerStateChanged += (state, name) => _states.Add((state, name));
         }
 
 
-        [Fact]
-        public void StateChange_IsForwardedWithTheRemoteName()
+        private void ConnectTo(NetworkPeer peer)
         {
-            (MultiplayerState State, string Name)? stateChange = null;
-            _model.OnMultiplayerStateChanged += (state, name) => stateChange = (state, name);
+            _network.Raise(network => network.Connected += null, peer);
+        }
 
-            _communication.Raise(layer => layer.MultiplayerStateChanged += null,
-                new MultiplayerStateEvent { State = MultiplayerState.ConnectionRequested, remoteName = "Anna" });
 
-            Assert.Equal((MultiplayerState.ConnectionRequested, "Anna"), stateChange);
+        private void Receive(NetworkPeer from, ChessMessageType type, params byte[] data)
+        {
+            _network.Raise(network => network.MessageReceived += null, from.Id, (uint)type, data);
+        }
+
+
+        private void InMultiplayerGame()
+        {
+            _gameService.SetupGet(service => service.IsMultiplayerGame).Returns(true);
         }
 
 
         [Fact]
-        public void ErrorState_IsReportedAsAnErrorOnly()
+        public void StartMultiplayer_StartsNetworkingWithThePlayerName()
+        {
+            _model.StartMultiplayer();
+
+            _network.Verify(network => network.Start("Jens"), Times.Once);
+        }
+
+
+        [Fact]
+        public void FindOpponent_ListsEveryDiscoveredPlayerOnce()
+        {
+            var opponents = new List<string>();
+            _model.OnOpponentDiscovered += opponents.Add;
+
+            _model.FindOpponent();
+            _network.Raise(network => network.PeerDiscovered += null, Anna);
+            _network.Raise(network => network.PeerDiscovered += null, Anna);
+            _network.Raise(network => network.PeerDiscovered += null, Ben);
+
+            _network.Verify(network => network.StartDiscovery(), Times.Once);
+            Assert.Equal(new[] { "Anna", "Ben" }, opponents);
+            Assert.Equal(MultiplayerState.Searching, _states.Single().State);
+        }
+
+
+        [Fact]
+        public void ConnectToOpponent_ConnectsToThePlayerAtThatIndex()
+        {
+            _network.Raise(network => network.PeerDiscovered += null, Anna);
+            _network.Raise(network => network.PeerDiscovered += null, Ben);
+
+            _model.ConnectToOpponent(1);
+            _model.ConnectToOpponent(5);
+
+            _network.Verify(network => network.Connect(Ben.Id), Times.Once);
+            _network.Verify(network => network.Connect(It.IsAny<ulong>()), Times.Once);
+        }
+
+
+        [Theory]
+        [InlineData(true)]
+        [InlineData(false)]
+        public void ConnectionRequest_IsShownAndAnswered(bool accept)
+        {
+            _network.Raise(network => network.ConnectionRequested += null, Anna);
+
+            _model.RespondToConnectionRequest(accept);
+
+            Assert.Equal((MultiplayerState.ConnectionRequested, "Anna"), _states.Single());
+            _network.Verify(network => network.Accept(Anna.Id), accept ? Times.Once() : Times.Never());
+            _network.Verify(network => network.Decline(Anna.Id), accept ? Times.Never() : Times.Once());
+        }
+
+
+        [Fact]
+        public void Connected_LeadsToThePlayerSetup()
+        {
+            ConnectTo(Anna);
+
+            Assert.Equal(new[] { MultiplayerState.Connected, MultiplayerState.PlayerSetup }, _states.Select(change => change.State));
+            _network.Verify(network => network.StopDiscovery(), Times.Once);
+        }
+
+
+        [Fact]
+        public void ChosenColor_IsSentAndTheOpponentGetsTheOtherOne()
+        {
+            Side? localFromRemote = null;
+            _model.OnMultiplayerPlayerSetFromRemote += side => localFromRemote = side;
+            ConnectTo(Anna);
+
+            _model.SetLocalPlayerColor(Side.Black);
+            Receive(Anna, ChessMessageType.PlayerChosen, (byte)Side.White);
+
+            _network.Verify(network => network.Send(Anna.Id, (uint)ChessMessageType.PlayerChosen, new byte[] { (byte)Side.Black }), Times.Once);
+            Assert.Equal(Side.Black, localFromRemote);
+        }
+
+
+        [Fact]
+        public void Game_StartsOnceBothPlayersAreReady()
+        {
+            ConnectTo(Anna);
+
+            _model.SetPlayerReady(true);
+            Assert.DoesNotContain(_states, change => change.State == MultiplayerState.InGame);
+
+            Receive(Anna, ChessMessageType.PlayerReady, 1);
+
+            Assert.Equal((MultiplayerState.InGame, "Anna"), _states.Last());
+            _network.Verify(network => network.Send(Anna.Id, (uint)ChessMessageType.PlayerReady, new byte[] { 1 }), Times.Once);
+        }
+
+
+        [Fact]
+        public void OpponentsMove_IsSubmittedToTheEngine()
+        {
+            InMultiplayerGame();
+            ConnectTo(Anna);
+
+            Receive(Anna, ChessMessageType.Move, (byte)Square.e7, (byte)Square.e5, 0xFF);
+            Receive(Anna, ChessMessageType.Move, (byte)Square.b2, (byte)Square.b1, 3);
+
+            _communication.Verify(layer => layer.SubmitMove(Square.e7, Square.e5, PieceType.None), Times.Once);
+            _communication.Verify(layer => layer.SubmitMove(Square.b2, Square.b1, PieceType.WQueen), Times.Once);
+        }
+
+
+        [Fact]
+        public void MovesFromAnotherPeerOrBrokenMessages_AreIgnored()
+        {
+            InMultiplayerGame();
+            ConnectTo(Anna);
+
+            Receive(Ben, ChessMessageType.Move, (byte)Square.e7, (byte)Square.e5, 0xFF);
+            Receive(Anna, ChessMessageType.Move, (byte)Square.e7);
+            Receive(Anna, ChessMessageType.Move, 200, (byte)Square.e5, 0xFF);
+
+            _communication.Verify(layer => layer.SubmitMove(It.IsAny<Square>(), It.IsAny<Square>(), It.IsAny<PieceType>()), Times.Never);
+        }
+
+
+        [Fact]
+        public void LocalMove_IsSentToTheOpponent()
+        {
+            InMultiplayerGame();
+            ConnectTo(Anna);
+
+            _communication.Raise(layer => layer.MoveExecuted += null, new Move(Square.e2, Square.e4, MoveFlag.DoublePawnPush), "e4");
+            _communication.Raise(layer => layer.MoveExecuted += null, new Move(Square.g7, Square.g8, MoveFlag.KnightPromotion), "g8=N");
+
+            _network.Verify(network => network.Send(Anna.Id, (uint)ChessMessageType.Move, new byte[] { (byte)Square.e2, (byte)Square.e4, 0xFF }), Times.Once);
+            _network.Verify(network => network.Send(Anna.Id, (uint)ChessMessageType.Move, new byte[] { (byte)Square.g7, (byte)Square.g8, 0 }), Times.Once);
+        }
+
+
+        [Fact]
+        public void OpponentsMove_IsNotSentBack()
+        {
+            InMultiplayerGame();
+            ConnectTo(Anna);
+
+            Receive(Anna, ChessMessageType.Move, (byte)Square.e7, (byte)Square.e5, 0xFF);
+            _communication.Raise(layer => layer.MoveExecuted += null, new Move(Square.e7, Square.e5, MoveFlag.DoublePawnPush), "e5");
+
+            _network.Verify(network => network.Send(It.IsAny<ulong>(), (uint)ChessMessageType.Move, It.IsAny<byte[]>()), Times.Never);
+        }
+
+
+        [Fact]
+        public void MovesOutsideAMultiplayerGame_AreNotSent()
+        {
+            ConnectTo(Anna);
+
+            _communication.Raise(layer => layer.MoveExecuted += null, new Move(Square.e2, Square.e4, MoveFlag.DoublePawnPush), "e4");
+
+            _network.Verify(network => network.Send(It.IsAny<ulong>(), (uint)ChessMessageType.Move, It.IsAny<byte[]>()), Times.Never);
+        }
+
+
+        [Fact]
+        public void OpponentLeaving_EndsTheSession()
+        {
+            InMultiplayerGame();
+            ConnectTo(Anna);
+
+            _network.Raise(network => network.Disconnected += null, Anna.Id, NetLinkAPI.DisconnectReason.Remote);
+            Receive(Anna, ChessMessageType.Move, (byte)Square.e7, (byte)Square.e5, 0xFF);
+
+            Assert.Equal((MultiplayerState.Disconnected, "Anna"), _states.Last());
+            _communication.Verify(layer => layer.SubmitMove(It.IsAny<Square>(), It.IsAny<Square>(), It.IsAny<PieceType>()), Times.Never);
+        }
+
+
+        [Fact]
+        public void DeclinedConnection_IsReportedAsAnError()
         {
             string? error = null;
-            int stateChanges = 0;
             _model.OnConnectionErrorOccured += message => error = message;
-            _model.OnMultiplayerStateChanged += (_, _) => stateChanges++;
 
-            _communication.Raise(layer => layer.MultiplayerStateChanged += null,
-                new MultiplayerStateEvent { State = MultiplayerState.Error, errorMessage = "Connection lost" });
+            _network.Raise(network => network.Disconnected += null, Anna.Id, NetLinkAPI.DisconnectReason.Declined);
 
-            Assert.Equal("Connection lost", error);
-            Assert.Equal(0, stateChanges);
+            Assert.NotNull(error);
+            Assert.Empty(_states);
         }
 
 
         [Fact]
-        public void EngineEvents_AreForwarded()
+        public void PlayerChanges_AreForwarded()
         {
-            string? opponent = null;
             Side? currentPlayer = null;
-            Side? chosenByRemote = null;
-            _model.OnOpponentDiscovered += name => opponent = name;
             _model.OnPlayerChanged += side => currentPlayer = side;
-            _model.OnMultiplayerPlayerSetFromRemote += side => chosenByRemote = side;
 
-            _communication.Raise(layer => layer.OpponentDiscoveredEvent += null, new MultiplayerStateEvent { remoteName = "Ben" });
             _communication.Raise(layer => layer.PlayerChanged += null, Side.Black);
-            _communication.Raise(layer => layer.MultiPlayerChosenByRemote += null, Side.White);
 
-            Assert.Equal("Ben", opponent);
             Assert.Equal(Side.Black, currentPlayer);
-            Assert.Equal(Side.White, chosenByRemote);
         }
     }
 
@@ -378,7 +561,7 @@ namespace Chess.UI.Test
         [Fact]
         public void Adapter_NeedsAnIdAndANetworkName()
         {
-            Assert.True(new NetworkAdapter { ID = 3, NetworkName = "Home" }.IsValid());
+            Assert.True(new NetworkAdapter { ID = 3UL, NetworkName = "Home" }.IsValid());
             Assert.False(new NetworkAdapter { ID = 0, NetworkName = "Home" }.IsValid());
             Assert.False(new NetworkAdapter { ID = 3, NetworkName = " " }.IsValid());
             Assert.False(new NetworkAdapter { ID = 3 }.IsValid());
