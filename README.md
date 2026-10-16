@@ -67,7 +67,9 @@ git submodule update --init --recursive
 
 ### 2. Build
 
-`build.py` handles the full build in one step: it builds the C++ engine submodule via CMake, then builds the C# application via `dotnet build`.
+`build.py` handles the full build in one step: it builds the engine library the app loads (`Chess.Engine.API`) from the submodule via CMake, then builds the C# application with Visual Studio's MSBuild (the C# project references the engine's generated `.vcxproj`, which the `dotnet` CLI cannot build).
+
+This repository only consumes the engine. Its tests, tools and code checks are run from the [Chess-Engine](https://github.com/Diversiam90815/Chess-Engine) repository, and the build never writes into the submodule's sources.
 
 **Release build:**
 
@@ -87,27 +89,23 @@ For day-to-day development, opening `Chess.sln` in Visual Studio is fine — jus
 
 | Flag | Long form | Description |
 |---|---|---|
-| `-p` | `--prepare` | CMake configure only (no compile) |
-| `-b` | `--build` | Build engine and C# application |
+| `-p` | `--prepare` | Generate the engine project and build the engine library in Debug and Release, for working in Visual Studio |
+| `-b` | `--build` | Build the engine library and the C# application |
 | `-c CONFIG` | `--configuration` | `Debug`, `Release` (default), or `RelWithDebInfo` |
 | `-a ARCH` | `--architecture` | `x64` (default) or `ARM64` |
-| `-pl PLATFORM` | `--platform` | `Ninja` (default), `VS2022`, or `VS2026` |
-| `-t` | `--runtest` | Run C++ unit tests via CTest |
+| `-pl PLATFORM` | `--platform` | `VS2026` (default) or `VS2022`; the C# project needs a Visual Studio generator |
+| `-t` | `--runtest` | Build and run the C# unit tests |
 
 ## Testing
 
-**C++ engine tests:**
+The C# tests run from Test Explorer in Visual Studio, or with:
 
 ```bash
-python build.py -b -t    # build then run
-python build.py -t       # run against existing build
+python build.py -b -t -c Debug    # build the app, then build and run the tests
+python build.py -t -c Debug       # build and run the tests only
 ```
 
-**C# tests** — from Test Explorer in Visual Studio, or:
-
-```bash
-dotnet test Chess.Game.Test/Chess.UI.Test.csproj
-```
+Most tests are plain unit tests. `EngineIntegrationTests` load the engine DLL and check that the app and the engine agree on their interface.
 
 ## Future Plans
 
