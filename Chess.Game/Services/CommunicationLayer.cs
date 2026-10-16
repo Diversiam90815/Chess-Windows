@@ -1,4 +1,5 @@
-﻿using Chess.UI.Models;
+﻿using Chess.UI.Board;
+using Chess.UI.Models;
 using Chess.UI.Settings;
 using Chess.UI.Wrappers;
 using System;
@@ -22,20 +23,14 @@ namespace Chess.UI.Services
         void StartGame(GameConfiguration config);
         void ResetGame();
 
-        // Multiplayer settings of the engine
-        IReadOnlyList<NetworkAdapter> GetNetworkAdapters();
-        int GetCurrentNetworkAdapterID();
-        void ChangeNetworkAdapter(int adapterID);
-        void SetLocalPlayerName(string name);
+        // A complete move, wherever it comes from. The engine plays it only if it is legal.
+        void SubmitMove(Square from, Square to, PieceType promotion);
 
         // Events for notifying UI components, raised on the UI thread
         event Action<Side> PlayerChanged;
         event Action<GamePhase> GameStateChanged;
         event Action<PlayerCapturedPiece> PlayerCapturedPieceEvent;
         event Action<EndGameStateEvent> EndGameStateEvent;
-        event Action<MultiplayerStateEvent> MultiplayerStateChanged;
-        event Action<MultiplayerStateEvent> OpponentDiscoveredEvent;
-        event Action<Side> MultiPlayerChosenByRemote;
         event Action<Move, string> MoveExecuted;
         event Action MoveUndone;
         event Action<IReadOnlyList<Move>> LegalMovesCalculated;
@@ -70,12 +65,9 @@ namespace Chess.UI.Services
             GameStateChanged = 4,
             MoveExecuted = 5,
             MoveUndone = 6,
-            ConnectionStateChanged = 7,
-            MultiplayerPlayerChosen = 8,
-            BoardStateChanged = 9,
-            PawnPromotion = 10,
-            LegalMovesCalculated = 11,
-            OpponentDiscovered = 12,
+            BoardStateChanged = 7,
+            PawnPromotion = 8,
+            LegalMovesCalculated = 9,
         }
 
 
@@ -83,8 +75,6 @@ namespace Chess.UI.Services
         {
             var settings = new UserSettingsInit
             {
-                PlayerName = _settingsService.PlayerName ?? "",
-                DiscoveryUDPPort = _settingsService.DiscoveryUDPPort,
                 LogFolder = Project.AppDataDirectory
             };
 
@@ -102,54 +92,24 @@ namespace Chess.UI.Services
 
         public void StartGame(GameConfiguration config)
         {
+            // Where the moves come from does not matter to the engine: a game against a player on the network is
+            // a game of two players to it, the opponent's moves are submitted like any other
+            if (config.Mode == GameModeSelection.MultiPlayer)
+                config = GameConfiguration.CreateLocalCoop();
+
             EngineAPI.StartGame(config);
+        }
+
+
+        public void SubmitMove(Square from, Square to, PieceType promotion)
+        {
+            EngineAPI.SubmitMove((int)from, (int)to, (int)promotion);
         }
 
 
         public void ResetGame()
         {
             EngineAPI.ResetGame();
-        }
-
-
-        public IReadOnlyList<NetworkAdapter> GetNetworkAdapters()
-        {
-            var adapters = new List<NetworkAdapter>();
-            int adapterCount = EngineAPI.GetNetworkAdapterCount();
-
-            for (uint i = 0; i < adapterCount; ++i)
-            {
-                if (!EngineAPI.GetNetworkAdapterAtIndex(i, out NetworkAdapterInstance adapter))
-                    continue;
-
-                adapters.Add(new NetworkAdapter
-                {
-                    AdapterName = adapter.AdapterName,
-                    NetworkName = adapter.NetworkName,
-                    ID = adapter.ID,
-                    Visibility = (AdapterVisibility)adapter.Priority,
-                });
-            }
-
-            return adapters;
-        }
-
-
-        public int GetCurrentNetworkAdapterID()
-        {
-            return EngineAPI.GetCurrentNetworkAdapterID();
-        }
-
-
-        public void ChangeNetworkAdapter(int adapterID)
-        {
-            EngineAPI.ChangeCurrentAdapter(adapterID);
-        }
-
-
-        public void SetLocalPlayerName(string name)
-        {
-            EngineAPI.SetLocalPlayerName(name ?? "");
         }
 
 
@@ -195,18 +155,6 @@ namespace Chess.UI.Services
 
                     case DelegateMessage.PlayerCapturedPiece:
                         HandlePlayerCapturedPiece(data);
-                        break;
-
-                    case DelegateMessage.ConnectionStateChanged:
-                        HandleConnectionStatusChanged(data);
-                        break;
-
-                    case DelegateMessage.MultiplayerPlayerChosen:
-                        HandlePlayerChosenForMultiplayerByRemote(data);
-                        break;
-
-                    case DelegateMessage.OpponentDiscovered:
-                        HandleOpponentDiscovered(data);
                         break;
 
                     case DelegateMessage.BoardStateChanged:
@@ -354,52 +302,6 @@ namespace Chess.UI.Services
         }
 
 
-        private void HandleConnectionStatusChanged(nint data)
-        {
-            if (data == nint.Zero)
-            {
-                Logger.LogError("HandleConnectionStatusChanged received null data pointer");
-                return;
-            }
-
-            MultiplayerStateEvent connectionEvent = Marshal.PtrToStructure<MultiplayerStateEvent>(data);
-
-            Logger.LogInfo($"Multiplayer state changed: {connectionEvent.State}");
-            RaiseOnUIThread(() => MultiplayerStateChanged?.Invoke(connectionEvent));
-        }
-
-
-        private void HandleOpponentDiscovered(nint data)
-        {
-            if (data == nint.Zero)
-            {
-                Logger.LogError("HandleOpponentDiscovered received null data pointer");
-                return;
-            }
-
-            MultiplayerStateEvent opponentEvent = Marshal.PtrToStructure<MultiplayerStateEvent>(data);
-
-            Logger.LogInfo($"Opponent discovered: {opponentEvent.remoteName}");
-            RaiseOnUIThread(() => OpponentDiscoveredEvent?.Invoke(opponentEvent));
-        }
-
-
-        private void HandlePlayerChosenForMultiplayerByRemote(nint data)
-        {
-            if (data == nint.Zero)
-            {
-                Logger.LogError("HandlePlayerChosenForMultiplayerByRemote received null data pointer");
-                return;
-            }
-
-            // The engine passes its Side enum here, which is a single signed byte
-            Side player = (Side)(sbyte)Marshal.ReadByte(data);
-
-            Logger.LogInfo($"Multiplayer player chosen by remote: {player}");
-            RaiseOnUIThread(() => MultiPlayerChosenByRemote?.Invoke(player));
-        }
-
-
         private void RaiseOnUIThread(Action raiseEvent)
         {
             _dispatcherQueue.TryEnqueue(() =>
@@ -451,9 +353,6 @@ namespace Chess.UI.Services
         public event Action MoveUndone;
         public event Action<PlayerCapturedPiece> PlayerCapturedPieceEvent;
         public event Action<EndGameStateEvent> EndGameStateEvent;
-        public event Action<MultiplayerStateEvent> MultiplayerStateChanged;
-        public event Action<MultiplayerStateEvent> OpponentDiscoveredEvent;
-        public event Action<Side> MultiPlayerChosenByRemote;
         public event Action<IReadOnlyList<Move>> LegalMovesCalculated;
         public event Action PawnPromotionRequired;
         public event Action<PieceType[]> BoardStateChanged;

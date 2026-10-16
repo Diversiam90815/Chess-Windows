@@ -396,36 +396,36 @@ namespace Chess.UI.ViewModels
         }
 
 
-        private void HandleMultiplayerStateUpdated(EngineAPI.MultiplayerState state, string remotePlayerName)
+        private void HandleMultiplayerStateUpdated(MultiplayerState state, string remotePlayerName)
         {
             switch (state)
             {
-                case EngineAPI.MultiplayerState.Searching:
+                case MultiplayerState.Searching:
                     DisplaySearchingView();
                     break;
 
-                case EngineAPI.MultiplayerState.ConnectionRequested:
+                case MultiplayerState.ConnectionRequested:
                     RemotePlayerName = remotePlayerName;
                     DisplayConnectionRequestedView();
                     break;
 
-                case EngineAPI.MultiplayerState.PlayerSetup:
+                case MultiplayerState.PlayerSetup:
                     DisplaySettingPlayerColorView();
                     break;
 
-                case EngineAPI.MultiplayerState.InGame:
+                case MultiplayerState.InGame:
                     RequestNavigationToChessboard?.Invoke();
                     break;
 
-                case EngineAPI.MultiplayerState.Disconnected:
+                case MultiplayerState.Disconnected:
                     RequestCloseChessboard?.Invoke();
                     DiscoveredOpponents.Clear();
                     SelectedOpponentIndex = -1;
                     DisplayInitView();
                     break;
 
-                case EngineAPI.MultiplayerState.Connected:
-                case EngineAPI.MultiplayerState.ReadyToStart:
+                case MultiplayerState.Connected:
+                case MultiplayerState.ReadyToStart:
                     break;
 
                 default:

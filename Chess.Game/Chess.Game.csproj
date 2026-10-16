@@ -51,8 +51,8 @@
 	</ItemGroup>
 
 	<PropertyGroup>
-		<LocalChessLogicFiles Condition="'$(Configuration)' == 'Release'">..\Chess.Engine\build\x64\src\capi\Release</LocalChessLogicFiles>
-		<LocalChessLogicFiles Condition="'$(Configuration)' == 'Debug'">..\Chess.Engine\build\x64\src\capi\Debug</LocalChessLogicFiles>
+		<!-- The native libraries, installed by build.py (-p or -b) -->
+		<NativeInstallDir>$(MSBuildThisFileDirectory)..\install\$(Configuration)\bin</NativeInstallDir>
 		<GenerateAppInstallerFile>False</GenerateAppInstallerFile>
 		<AppxPackageSigningEnabled>True</AppxPackageSigningEnabled>
 		<AppxPackageSigningTimestampDigestAlgorithm>SHA256</AppxPackageSigningTimestampDigestAlgorithm>
@@ -67,24 +67,28 @@
 		<AppxBundlePlatforms>x86|x64</AppxBundlePlatforms>
 	</PropertyGroup>
 
-	<!-- Add the Chess Engine DLL library to project -->
+	<!-- The native libraries the app loads: the chess engine and NetLink -->
 	<ItemGroup>
-		<None Include="$(LocalChessLogicFiles)\*.dll">
+		<NativeLibrary Include="$(NativeInstallDir)\Chess.Engine.API.dll" />
+		<NativeLibrary Include="$(NativeInstallDir)\NetLinkC.dll" />
+
+		<None Include="@(NativeLibrary)">
 			<Link>%(Filename)%(Extension)</Link>
 			<CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
 		</None>
-		<None Include="$(LocalChessLogicFiles)\*.pdb">
+		<None Include="$(NativeInstallDir)\*.pdb">
 			<Link>%(Filename)%(Extension)</Link>
 			<CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
 		</None>
 	</ItemGroup>
+
+	<Target Name="CheckNativeLibraries" BeforeTargets="BeforeBuild">
+		<Error Condition="!Exists('%(NativeLibrary.Identity)')" Text="%(NativeLibrary.Filename)%(NativeLibrary.Extension) is missing in $(NativeInstallDir). Run 'python build.py -p' (or -b) first." />
+	</Target>
 	<ItemGroup>
 	  <None Remove="Views\LocalCoopConfigPage.xaml" />
 	  <None Remove="Views\MultiplayerConfigPage.xaml" />
 	  <None Remove="Views\SinglePlayerConfigPage.xaml" />
-	</ItemGroup>
-	<ItemGroup>
-	  <ProjectReference Include="..\Chess.Engine\build\x64\src\capi\Chess.Engine.API.vcxproj" />
 	</ItemGroup>
 	<ItemGroup>
 	  <Compile Update="Properties\Resources.Designer.cs">

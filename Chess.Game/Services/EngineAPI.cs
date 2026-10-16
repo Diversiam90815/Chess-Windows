@@ -54,6 +54,10 @@ namespace Chess.UI.Services
         [DllImport(LOGIC_API_PATH, CallingConvention = CallingConvention.Cdecl)]
         public static extern void OnPawnPromotionChosen(int pieceType);
 
+        // A complete move, wherever it comes from (a click, the network). The engine plays it only if it is legal.
+        [DllImport(LOGIC_API_PATH, CallingConvention = CallingConvention.Cdecl)]
+        public static extern void SubmitMove(int from, int to, int promotion);
+
         [DllImport(LOGIC_API_PATH, CallingConvention = CallingConvention.Cdecl)]
         public static extern int GetNumLegalMoves();
 
@@ -62,58 +66,6 @@ namespace Chess.UI.Services
         public static extern bool GetLegalMoveAtIndex(int index, out ushort move);
 
         #endregion // Moves & Input Generation
-
-
-        #region Multiplayer
-
-        [DllImport(LOGIC_API_PATH, CallingConvention = CallingConvention.Cdecl)]
-        public static extern void StartMultiplayer();
-
-        [DllImport(LOGIC_API_PATH, CallingConvention = CallingConvention.Cdecl)]
-        public static extern void StopMultiplayer();
-
-        [DllImport(LOGIC_API_PATH, CallingConvention = CallingConvention.Cdecl)]
-        public static extern void FindOpponent();
-
-        [DllImport(LOGIC_API_PATH, CallingConvention = CallingConvention.Cdecl)]
-        public static extern int GetDiscoveredOpponentCount();
-
-        [DllImport(LOGIC_API_PATH, CallingConvention = CallingConvention.Cdecl)]
-        [return: MarshalAs(UnmanagedType.I1)]
-        public static extern bool GetDiscoveredOpponentAtIndex(int index, StringBuilder name, int maxLen);
-
-        [DllImport(LOGIC_API_PATH, CallingConvention = CallingConvention.Cdecl)]
-        public static extern void ConnectToOpponent(int index);
-
-        [DllImport(LOGIC_API_PATH, CallingConvention = CallingConvention.Cdecl)]
-        public static extern void RespondToConnectionRequest([MarshalAs(UnmanagedType.I1)] bool accept);
-
-        [DllImport(LOGIC_API_PATH, CallingConvention = CallingConvention.Cdecl)]
-        public static extern void SetLocalPlayer(int iLocalPlayer);
-
-        [DllImport(LOGIC_API_PATH, CallingConvention = CallingConvention.Cdecl)]
-        public static extern void SetLocalPlayerReady([MarshalAs(UnmanagedType.I1)] bool ready);
-
-        #endregion // Multiplayer
-
-
-        #region Network
-
-        [DllImport(LOGIC_API_PATH, CallingConvention = CallingConvention.Cdecl)]
-        public static extern int GetNetworkAdapterCount();
-
-        [DllImport(LOGIC_API_PATH, CallingConvention = CallingConvention.Cdecl)]
-        [return: MarshalAs(UnmanagedType.I1)]
-        public static extern bool GetNetworkAdapterAtIndex(uint index, out NetworkAdapterInstance adapter);
-
-        [DllImport(LOGIC_API_PATH, CallingConvention = CallingConvention.Cdecl)]
-        [return: MarshalAs(UnmanagedType.I1)]
-        public static extern bool ChangeCurrentAdapter(int ID);
-
-        [DllImport(LOGIC_API_PATH, CallingConvention = CallingConvention.Cdecl)]
-        public static extern int GetCurrentNetworkAdapterID();
-
-        #endregion
 
 
         #region Logging
@@ -147,17 +99,6 @@ namespace Chess.UI.Services
             int lineNumber);
 
         #endregion
-
-
-        #region Settings
-
-        [DllImport(LOGIC_API_PATH, CallingConvention = CallingConvention.Cdecl)]
-        public static extern void SetLocalPlayerName([MarshalAs(UnmanagedType.LPStr)] string name);
-
-        [DllImport(LOGIC_API_PATH, CallingConvention = CallingConvention.Cdecl)]
-        public static extern void SetDiscoveryPort(int port);
-
-        #endregion // Settings
 
 
         #endregion // DLL Defines
@@ -196,20 +137,6 @@ namespace Chess.UI.Services
             Easy = 1,
             Medium = 2,
             Hard = 3,
-        }
-
-        public enum MultiplayerState
-        {
-            None = 0,
-            Searching = 1,
-            OpponentFound = 2,
-            ConnectionRequested = 3,
-            Connected = 4,
-            PlayerSetup = 5,
-            ReadyToStart = 6,
-            InGame = 7,
-            Disconnected = 8,
-            Error = 9
         }
 
         public enum GamePhase
@@ -253,18 +180,6 @@ namespace Chess.UI.Services
 
 
         [StructLayout(LayoutKind.Sequential)]
-        public struct MultiplayerStateEvent
-        {
-            public MultiplayerState State;
-
-            [MarshalAs(UnmanagedType.ByValTStr, SizeConst = 250)]
-            public string remoteName;
-            [MarshalAs(UnmanagedType.ByValTStr, SizeConst = 250)]
-            public string errorMessage;
-        };
-
-
-        [StructLayout(LayoutKind.Sequential)]
         public struct EndGameStateEvent
         {
             public EndGameState State;
@@ -272,44 +187,10 @@ namespace Chess.UI.Services
         };
 
 
-        [StructLayout(LayoutKind.Sequential, CharSet = CharSet.Ansi)]
-        public struct NetworkAdapterInstance
-        {
-            public int ID;
-            public int Priority;
-
-            [MarshalAs(UnmanagedType.ByValArray, SizeConst = 250)]
-            private byte[] _adapterNameBytes;
-
-            public string AdapterName
-            {
-                get
-                {
-                    int nullIndex = Array.IndexOf(_adapterNameBytes, (byte)0);
-                    int length = (nullIndex >= 0) ? nullIndex : _adapterNameBytes.Length;
-                    return Encoding.UTF8.GetString(_adapterNameBytes, 0, length);
-                }
-            }
-
-            [MarshalAs(UnmanagedType.ByValArray, SizeConst = 250)]
-            private byte[] _networkNameBytes;
-
-            public string NetworkName
-            {
-                get
-                {
-                    int nullIndex = Array.IndexOf(_networkNameBytes, (byte)0);
-                    int length = (nullIndex >= 0) ? nullIndex : _networkNameBytes.Length;
-                    return Encoding.UTF8.GetString(_networkNameBytes, 0, length);
-                }
-            }
-        }
-
-
         public struct GameConfiguration
         {
             public GameModeSelection Mode;
-            public Side PlayerColor;        // Used for SinglePlayer and Multiplayer
+            public Side PlayerColor;        // SinglePlayer: the human player. Multiplayer: the local player.
             public CPUDifficulty CpuDifficulty;  // Only used for SinglePlayer mode
 
             /// <summary>
@@ -382,13 +263,6 @@ namespace Chess.UI.Services
         [StructLayout(LayoutKind.Sequential, CharSet = CharSet.Ansi)]
         public struct UserSettingsInit
         {
-            // Player
-            [MarshalAs(UnmanagedType.ByValTStr, SizeConst = 250)]
-            public string PlayerName;
-
-            // Network
-            public int DiscoveryUDPPort;
-
             // Paths (the engine creates its "Logs" folder underneath)
             [MarshalAs(UnmanagedType.ByValTStr, SizeConst = 512)]
             public string LogFolder;
