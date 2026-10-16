@@ -74,7 +74,7 @@ git submodule update --init --recursive
 
 `build.py` handles the full build in one step: it builds the two native libraries the app loads (`Chess.Engine.API` and `NetLinkC`) from the submodules via CMake into `build/`, installs them into `install/<configuration>/bin`, and then builds the C# application, which copies the DLLs from there.
 
-This repository only consumes the libraries. Their tests, tools and code checks are run from their own repositories, and the build never writes into the submodules' sources. To build against another checkout of a library, pass `--engine-dir` or `--netlink-dir`.
+This repository only consumes the libraries. Their tests, tools and code checks are run from their own repositories, and the build never writes into the submodules' sources.
 
 **Release build:**
 
@@ -100,8 +100,6 @@ For day-to-day development, open `Chess.sln` in Visual Studio after running `pyt
 | `-a ARCH` | `--architecture` | `x64` (default) or `ARM64` |
 | `-pl PLATFORM` | `--platform` | `VS2026` (default) or `VS2022`; the C# project needs a Visual Studio generator |
 | `-t` | `--runtest` | Build and run the C# unit tests |
-| | `--engine-dir DIR` | Source of the chess engine (default: `submodules/Chess.Engine`) |
-| | `--netlink-dir DIR` | Source of NetLink (default: `submodules/NetLink`) |
 
 ## Testing
 
