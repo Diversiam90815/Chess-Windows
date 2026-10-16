@@ -277,6 +277,14 @@ namespace Chess.UI.ViewModels
         public void HandleSquareClick(BoardSquare square)
         {
             Square engineSquare = square.Position;
+
+            // The engine takes moves for either side; in a network game the opponent's come over the network
+            if (IsMultiplayerGame && CurrentPlayer != _gameService.CurrentConfiguration?.PlayerColor)
+            {
+                Logger.LogInfo($"Square {engineSquare.ToAlgebraic()} clicked while it is the opponent's turn");
+                return;
+            }
+
             Logger.LogInfo($"Square {engineSquare.ToAlgebraic()} clicked");
 
             EngineAPI.OnSquareSelected((int)engineSquare);
