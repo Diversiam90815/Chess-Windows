@@ -1,4 +1,13 @@
-﻿using Chess.UI.Styles;
+using Chess.UI.Styles;
+using Chess.UI.Wrappers;
+using Microsoft.UI.Dispatching;
+using System.ComponentModel;
+using System.Runtime.InteropServices;
+using static Chess.UI.Services.EngineAPI;
+
+// All app code logs through the engine's native logger, which must not be called while the engine
+// is being initialized or shut down on another thread. Test classes therefore run one after another.
+[assembly: CollectionBehavior(DisableTestParallelization = true)]
 
 
 namespace Chess.UI.Test.Helpers
@@ -29,5 +38,61 @@ namespace Chess.UI.Test.Helpers
     {
         public static string CurrentBoardStyle { get; set; } = "Wood";
         public static string CurrentPieceStyle { get; set; } = "Basic";
+    }
+
+
+    // Runs everything inline, there is no UI thread in the tests
+    public class InlineDispatcherQueue : IDispatcherQueueWrapper
+    {
+        public bool TryEnqueue(DispatcherQueueHandler callback)
+        {
+            callback();
+            return true;
+        }
+
+        public bool TryDequeue(DispatcherQueuePriority priority, DispatcherQueueHandler callback)
+        {
+            callback();
+            return true;
+        }
+
+        public Task EnqueueAsync(Action callback)
+        {
+            callback();
+            return Task.CompletedTask;
+        }
+    }
+
+
+    public static class TestData
+    {
+        // PlayerCapturedPiece mirrors a native struct and can only be filled the way the engine does it
+        public static PlayerCapturedPiece Capture(Side capturingSide, PieceType capturedPiece, bool captured = true)
+        {
+            nint buffer = Marshal.AllocHGlobal(Marshal.SizeOf<PlayerCapturedPiece>());
+
+            try
+            {
+                Marshal.WriteByte(buffer, 0, unchecked((byte)(sbyte)capturingSide));
+                Marshal.WriteInt32(buffer, 4, (int)capturedPiece);
+                Marshal.WriteByte(buffer, 8, captured ? (byte)1 : (byte)0);
+
+                return Marshal.PtrToStructure<PlayerCapturedPiece>(buffer);
+            }
+            finally
+            {
+                Marshal.FreeHGlobal(buffer);
+            }
+        }
+
+
+        // Records the names of the properties an object reports as changed
+        public static List<string?> RecordPropertyChanges(INotifyPropertyChanged source)
+        {
+            var changedProperties = new List<string?>();
+            source.PropertyChanged += (_, e) => changedProperties.Add(e.PropertyName);
+
+            return changedProperties;
+        }
     }
 }

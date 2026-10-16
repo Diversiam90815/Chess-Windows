@@ -1,86 +1,94 @@
+using Chess.UI.Settings;
 using Chess.UI.Styles;
-using System.ComponentModel;
+using Chess.UI.Test.Helpers;
+using Moq;
 
 
 namespace Chess.UI.Test
 {
-    public partial class StyleManagerTests
+    public class StyleManagerTests
     {
-        [Fact]
-        public void CurrentBoardStyle_PropertyChanged_PropertyRaised()
+        private readonly Mock<ISettingsService> _settings = new();
+
+
+        private StyleManager CreateStyleManager(string boardStyle, string pieceStyle)
         {
-            // Arrange
-            var mockStyleManager = new MockStyleManager();
-            bool eventRaised = false;
-            string? propertyNameChanged = null;
+            _settings.SetupProperty(settings => settings.BoardStyle, boardStyle);
+            _settings.SetupProperty(settings => settings.ChessPieceStyle, pieceStyle);
 
-            mockStyleManager.PropertyChanged += (sender, e) =>
-            {
-                eventRaised = true;
-                propertyNameChanged = e.PropertyName;
-            };
-
-            // Act
-            mockStyleManager.CurrentBoardStyle = BoardStyle.Glass;
-
-            // Assert
-            Assert.True(eventRaised);
-            Assert.Equal(nameof(IStyleManager.CurrentBoardStyle), propertyNameChanged);
-        }
-
-        [Fact]
-        public void CurrentPieceStyle_PropertyChanged_PropertyRaised()
-        {
-            // Arrange
-            var mockStyleManager = new MockStyleManager();
-            bool eventRaised = false;
-            string? propertyNameChanged = null;
-
-            mockStyleManager.PropertyChanged += (sender, e) =>
-            {
-                eventRaised = true;
-                propertyNameChanged = e.PropertyName;
-            };
-
-            // Act
-            mockStyleManager.CurrentPieceStyle = PieceStyle.Standard;
-
-            // Assert
-            Assert.True(eventRaised);
-            Assert.Equal(nameof(IStyleManager.CurrentPieceStyle), propertyNameChanged);
+            return new StyleManager(new InlineDispatcherQueue(), _settings.Object);
         }
 
 
-        // Mock implementation for testing
-        private partial class MockStyleManager : IStyleManager
+        [Fact]
+        public void Styles_AreLoadedFromTheSettings()
         {
-            private BoardStyle _boardStyle;
-            private PieceStyle _pieceStyle;
+            StyleManager styleManager = CreateStyleManager("Glass", "Standard");
 
-            public event PropertyChangedEventHandler? PropertyChanged;
+            Assert.Equal(BoardStyle.Glass, styleManager.CurrentBoardStyle);
+            Assert.Equal(PieceStyle.Standard, styleManager.CurrentPieceStyle);
+        }
 
-            public BoardStyle CurrentBoardStyle
-            {
-                get => _boardStyle;
-                set
-                {
-                    _boardStyle = value;
-                    PropertyChanged?.Invoke(this, new PropertyChangedEventArgs(nameof(CurrentBoardStyle)));
-                }
-            }
 
-            public PieceStyle CurrentPieceStyle
-            {
-                get => _pieceStyle;
-                set
-                {
-                    _pieceStyle = value;
-                    PropertyChanged?.Invoke(this, new PropertyChangedEventArgs(nameof(CurrentPieceStyle)));
-                }
-            }
+        [Fact]
+        public void UnknownStyles_FallBackToTheDefaults()
+        {
+            StyleManager styleManager = CreateStyleManager("Granite", "");
 
-            public void LoadStyles() { }
-            public void SaveStyles() { }
+            Assert.Equal(BoardStyle.Wood, styleManager.CurrentBoardStyle);
+            Assert.Equal(PieceStyle.Standard, styleManager.CurrentPieceStyle);
+        }
+
+
+        [Fact]
+        public void LoadingStyles_DoesNotWriteTheSettings()
+        {
+            CreateStyleManager("Glass", "Basic");
+
+            _settings.VerifySet(settings => settings.BoardStyle = It.IsAny<string>(), Times.Never);
+            _settings.VerifySet(settings => settings.ChessPieceStyle = It.IsAny<string>(), Times.Never);
+        }
+
+
+        [Fact]
+        public void ChangingTheBoardStyle_IsReportedAndSaved()
+        {
+            StyleManager styleManager = CreateStyleManager("Wood", "Basic");
+            List<string?> changedProperties = TestData.RecordPropertyChanges(styleManager);
+
+            styleManager.CurrentBoardStyle = BoardStyle.Marble;
+
+            Assert.Equal(new[] { nameof(IStyleManager.CurrentBoardStyle) }, changedProperties);
+            Assert.Equal("Marble", _settings.Object.BoardStyle);
+            Assert.Equal("Basic", _settings.Object.ChessPieceStyle);
+        }
+
+
+        [Fact]
+        public void ChangingThePieceStyle_IsReportedAndSaved()
+        {
+            StyleManager styleManager = CreateStyleManager("Wood", "Basic");
+            List<string?> changedProperties = TestData.RecordPropertyChanges(styleManager);
+
+            styleManager.CurrentPieceStyle = PieceStyle.Standard;
+
+            Assert.Equal(new[] { nameof(IStyleManager.CurrentPieceStyle) }, changedProperties);
+            Assert.Equal("Standard", _settings.Object.ChessPieceStyle);
+            Assert.Equal("Wood", _settings.Object.BoardStyle);
+        }
+
+
+        [Fact]
+        public void SettingTheSameStyle_ChangesNothing()
+        {
+            StyleManager styleManager = CreateStyleManager("Wood", "Basic");
+            List<string?> changedProperties = TestData.RecordPropertyChanges(styleManager);
+
+            styleManager.CurrentBoardStyle = BoardStyle.Wood;
+            styleManager.CurrentPieceStyle = PieceStyle.Basic;
+
+            Assert.Empty(changedProperties);
+            _settings.VerifySet(settings => settings.BoardStyle = It.IsAny<string>(), Times.Never);
         }
     }
 }
