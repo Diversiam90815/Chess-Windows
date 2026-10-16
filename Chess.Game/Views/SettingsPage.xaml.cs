@@ -47,6 +47,7 @@ namespace Chess.UI.Views
             _stylesViewModel = App.Current.Services.GetService<StylesPreferencesViewModel>();
             _audioViewModel = App.Current.Services.GetService<AudioPreferencesViewModel>();
             _multiplayerPrefsViewModel = App.Current.Services.GetService<MultiplayerPreferencesViewModel>();
+            _multiplayerPrefsViewModel.RefreshAdapters();
 
             // Subscribe to style changes for live preview
             _stylesViewModel.ItemSelected += RefreshPreview;

@@ -26,6 +26,7 @@ namespace Chess.UI.Settings
 
         // Network
         int DiscoveryUDPPort { get; set; }
+        ulong NetworkAdapterId { get; set; }
     }
 
 
@@ -60,6 +61,10 @@ namespace Chess.UI.Settings
 
         [JsonPropertyName("Discovery_UDP_Port")]
         public int DiscoveryUDPPort { get; set; } = 5555;
+
+        // 0: none chosen, the preferred adapter is used
+        [JsonPropertyName("Network_Adapter_ID")]
+        public ulong NetworkAdapterId { get; set; } = 0;
     }
 
 
@@ -83,6 +88,17 @@ namespace Chess.UI.Settings
             Directory.CreateDirectory(settingsFolder);
 
             _data = LoadOrCreateDefaults();
+
+            // Other players see this name, so there always is one
+            if (string.IsNullOrWhiteSpace(_data.PlayerName))
+                PlayerName = DefaultPlayerName();
+        }
+
+
+        private static string DefaultPlayerName()
+        {
+            string name = Environment.UserName;
+            return string.IsNullOrWhiteSpace(name) ? Environment.MachineName : name;
         }
 
 
@@ -144,6 +160,12 @@ namespace Chess.UI.Settings
         {
             get => _data.DiscoveryUDPPort;
             set { _data.DiscoveryUDPPort = value; Save(); }
+        }
+
+        public ulong NetworkAdapterId
+        {
+            get => _data.NetworkAdapterId;
+            set { _data.NetworkAdapterId = value; Save(); }
         }
 
 

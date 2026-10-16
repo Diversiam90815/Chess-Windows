@@ -71,9 +71,11 @@ namespace Chess.UI.Views
 
             // Subscribe to multiplayer navigation (lives for entire app lifetime)
             var multiplayerViewModel = App.Current.Services.GetService<MultiplayerViewModel>();
+            var gameSetupViewModel = App.Current.Services.GetService<GameSetupViewModel>();
             multiplayerViewModel.RequestNavigationToChessboard += () =>
             {
-                _ = _navigationService.NavigateToGameAsync();
+                // Both players are ready: start the game with the side the local player picked, then show the board
+                _ = gameSetupViewModel.StartMultiplayerGameAsync(multiplayerViewModel.LocalPlayer);
             };
 
             // Navigate to home page

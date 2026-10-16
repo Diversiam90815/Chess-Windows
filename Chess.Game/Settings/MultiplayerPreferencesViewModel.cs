@@ -31,10 +31,19 @@ namespace Chess.UI.ViewModels
             NetworkAdapters = [];
 
             _model = model;
-            _model.Init();
 
-            UpdateAdapterBox();
+            RefreshAdapters();
             SetLocalNameFromBackend();
+        }
+
+
+        /// <summary>
+        /// Reads the adapters again: they can come and go while the app runs.
+        /// </summary>
+        public void RefreshAdapters()
+        {
+            _model.Init();
+            UpdateAdapterBox();
         }
 
 
@@ -91,21 +100,16 @@ namespace Chess.UI.ViewModels
 
         public void SelectPresavedNetworkAdapter()
         {
-            int savedAdapterID = _model.GetSelectedNetworkAdapterID();
+            ulong savedAdapterID = _model.GetSelectedNetworkAdapterID();
 
-            if (savedAdapterID != 0)
-            {
-                for (int i = 0; i < NetworkAdapters.Count; i++)
-                {
-                    NetworkAdapter adapter = NetworkAdapters[i];
-                    if (adapter != null && adapter.ID == savedAdapterID)
-                    {
-                        SelectedAdapter = adapter;
-                        _userInteractionEnabled = true;
-                        return;
-                    }
-                }
-            }
+            // The one in use, otherwise the first recommended one
+            NetworkAdapter adapter = NetworkAdapters.FirstOrDefault(candidate => candidate != null && savedAdapterID != 0 && candidate.ID == savedAdapterID)
+                ?? NetworkAdapters.FirstOrDefault(candidate => candidate != null && candidate.IsRecommended());
+
+            if (adapter != null)
+                SelectedAdapter = adapter;
+
+            _userInteractionEnabled = true;
         }
 
 
