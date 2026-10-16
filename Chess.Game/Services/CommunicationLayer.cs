@@ -41,19 +41,21 @@ namespace Chess.UI.Services
 
     public class CommunicationLayer : ICommunicationLayer
     {
-        private readonly ISettingsService _settingsService;
         private readonly IDispatcherQueueWrapper _dispatcherQueue;
         private GCHandle _delegateHandle;
+
+        // The engine calls it from its threads until it is removed: it must stay alive that long
+        private readonly EngineLogDelegate _logDelegate;
 
         // The engine declares PFN_CALLBACK as __stdcall
         [UnmanagedFunctionPointer(CallingConvention.StdCall)]
         public delegate void APIDelegate(int message, nint data);
 
 
-        public CommunicationLayer(ISettingsService settingsService, IDispatcherQueueWrapper dispatcherQueue)
+        public CommunicationLayer(IDispatcherQueueWrapper dispatcherQueue)
         {
-            _settingsService = settingsService;
             _dispatcherQueue = dispatcherQueue;
+            _logDelegate = HandleEngineLog;
         }
 
 
@@ -73,12 +75,12 @@ namespace Chess.UI.Services
 
         public void Init()
         {
-            var settings = new UserSettingsInit
-            {
-                LogFolder = Project.AppDataDirectory
-            };
+            // Before Init, so the lines the engine writes while it starts are in the app's log too
+            EngineAPI.SetLogLevel((int)Logger.Level);
+            EngineAPI.SetLogCallback(_logDelegate, 0);
+            Logger.LevelChanged += SetEngineLogLevel;
 
-            EngineAPI.Init(settings);
+            EngineAPI.Init();
             SetDelegate();
         }
 
@@ -87,6 +89,33 @@ namespace Chess.UI.Services
         {
             EngineAPI.Deinit();
             _delegateHandle.Free();
+
+            // Returns once the engine is not in the callback anymore
+            Logger.LevelChanged -= SetEngineLogLevel;
+            EngineAPI.SetLogCallback(null, 0);
+        }
+
+
+        private static void SetEngineLogLevel(LogLevel level)
+        {
+            EngineAPI.SetLogLevel((int)level);
+        }
+
+
+        /// <summary>
+        /// A log line of the engine, on the engine thread that wrote it. Never throws back into the engine.
+        /// </summary>
+        private static void HandleEngineLog(int level, nint file, int line, nint function, nint message, nint context)
+        {
+            try
+            {
+                string component = System.IO.Path.GetFileNameWithoutExtension(Marshal.PtrToStringUTF8(file) ?? string.Empty);
+                Logger.Write((LogLevel)level, component, Marshal.PtrToStringUTF8(function), Marshal.PtrToStringUTF8(message));
+            }
+            catch
+            {
+                // A log line is not worth crashing the engine thread for
+            }
         }
 
 

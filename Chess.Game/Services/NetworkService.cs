@@ -264,15 +264,15 @@ namespace Chess.UI.Services
 
         private void OnLog(nint context, int level, nint message)
         {
-            string text = $"NetLink: {Marshal.PtrToStringUTF8(message)}";
-
-            switch ((LogLevel)level)
+            Services.LogLevel appLevel = (NetLinkAPI.LogLevel)level switch
             {
-                case LogLevel.Error: Logger.LogError(text); break;
-                case LogLevel.Warning: Logger.LogWarning(text); break;
-                case LogLevel.Info: Logger.LogInfo(text); break;
-                default: Logger.LogDebug(text); break;
-            }
+                NetLinkAPI.LogLevel.Error => Services.LogLevel.Error,
+                NetLinkAPI.LogLevel.Warning => Services.LogLevel.Warning,
+                NetLinkAPI.LogLevel.Info => Services.LogLevel.Info,
+                _ => Services.LogLevel.Debug,
+            };
+
+            Logger.Write(appLevel, "NetLink", "NetLink", Marshal.PtrToStringUTF8(message));
         }
 
 
