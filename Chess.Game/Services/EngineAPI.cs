@@ -17,7 +17,7 @@ namespace Chess.UI.Services
         #region Core Lifecycle
 
         [DllImport(LOGIC_API_PATH, CallingConvention = CallingConvention.Cdecl)]
-        public static extern void Init([In, MarshalAs(UnmanagedType.Struct)] UserSettingsInit settings);
+        public static extern void Init();
 
         [DllImport(LOGIC_API_PATH, CallingConvention = CallingConvention.Cdecl)]
         public static extern void Deinit();
@@ -70,33 +70,17 @@ namespace Chess.UI.Services
 
         #region Logging
 
+        // The engine writes no log file: its lines come to the app. Works before Init; null stops them.
         [DllImport(LOGIC_API_PATH, CallingConvention = CallingConvention.Cdecl)]
-        public static extern void LogInfoWithCaller(
-            [MarshalAs(UnmanagedType.LPStr)] string message,
-            [MarshalAs(UnmanagedType.LPStr)] string functionName,
-            [MarshalAs(UnmanagedType.LPStr)] string className,
-            int lineNumber);
+        public static extern void SetLogCallback(EngineLogDelegate callback, nint context);
 
+        // Lines below this level are dropped by the engine (values of LogLevel)
         [DllImport(LOGIC_API_PATH, CallingConvention = CallingConvention.Cdecl)]
-        public static extern void LogErrorWithCaller(
-            [MarshalAs(UnmanagedType.LPStr)] string message,
-            [MarshalAs(UnmanagedType.LPStr)] string functionName,
-            [MarshalAs(UnmanagedType.LPStr)] string className,
-            int lineNumber);
+        public static extern void SetLogLevel(int level);
 
-        [DllImport(LOGIC_API_PATH, CallingConvention = CallingConvention.Cdecl)]
-        public static extern void LogWarningWithCaller(
-            [MarshalAs(UnmanagedType.LPStr)] string message,
-            [MarshalAs(UnmanagedType.LPStr)] string functionName,
-            [MarshalAs(UnmanagedType.LPStr)] string className,
-            int lineNumber);
-
-        [DllImport(LOGIC_API_PATH, CallingConvention = CallingConvention.Cdecl)]
-        public static extern void LogDebugWithCaller(
-            [MarshalAs(UnmanagedType.LPStr)] string message,
-            [MarshalAs(UnmanagedType.LPStr)] string functionName,
-            [MarshalAs(UnmanagedType.LPStr)] string className,
-            int lineNumber);
+        // The engine declares PFN_LOG_CALLBACK as __stdcall. The texts are UTF-8 and only valid during the call.
+        [UnmanagedFunctionPointer(CallingConvention.StdCall)]
+        public delegate void EngineLogDelegate(int level, nint file, int line, nint function, nint message, nint context);
 
         #endregion
 
@@ -257,15 +241,6 @@ namespace Chess.UI.Services
 
             [MarshalAs(UnmanagedType.ByValTStr, SizeConst = 250)]
             public string moveNotation;
-        }
-
-
-        [StructLayout(LayoutKind.Sequential, CharSet = CharSet.Ansi)]
-        public struct UserSettingsInit
-        {
-            // Paths (the engine creates its "Logs" folder underneath)
-            [MarshalAs(UnmanagedType.ByValTStr, SizeConst = 512)]
-            public string LogFolder;
         }
 
 

@@ -19,8 +19,6 @@ namespace Chess.UI.Test
     /// </summary>
     public sealed class EngineFixture : IDisposable
     {
-        // Keeps the callback alive for as long as the engine may call it
-        private readonly CommunicationLayer.APIDelegate _delegate;
         private int _executedMoves;
         private int _undoneMoves;
         private int _selections;
@@ -41,7 +39,7 @@ namespace Chess.UI.Test
 
         public EngineFixture()
         {
-            Communication = new CommunicationLayer(Mock.Of<ISettingsService>(), new InlineDispatcherQueue());
+            Communication = new CommunicationLayer(new InlineDispatcherQueue());
             Communication.MoveExecuted += (_, _) => Interlocked.Increment(ref _executedMoves);
             Communication.MoveUndone += () => Interlocked.Increment(ref _undoneMoves);
             Communication.LegalMovesCalculated += _ => Interlocked.Increment(ref _selections);
@@ -53,13 +51,8 @@ namespace Chess.UI.Test
             GameService = new ChessGameService(Communication);
             GameService.GameReset += () => Interlocked.Increment(ref _resets);
 
-            EngineAPI.Init(new UserSettingsInit
-            {
-                LogFolder = Path.Combine(Path.GetTempPath(), "Chess.Game.Test")
-            });
-
-            _delegate = Communication.DelegateHandler;
-            EngineAPI.SetDelegate(_delegate);
+            // Like the app: log callback, engine, event delegate
+            Communication.Init();
         }
 
 
@@ -72,7 +65,7 @@ namespace Chess.UI.Test
 
         public void Dispose()
         {
-            EngineAPI.Deinit();
+            Communication.Deinit();
         }
     }
 
