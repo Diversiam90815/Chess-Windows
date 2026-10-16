@@ -17,7 +17,7 @@ namespace Chess.UI.Services
         #region Core Lifecycle
 
         [DllImport(LOGIC_API_PATH, CallingConvention = CallingConvention.Cdecl)]
-        public static extern void Init([In, MarshalAs(UnmanagedType.Struct)] UserSettingsInit settings);
+        public static extern void Init();
 
         [DllImport(LOGIC_API_PATH, CallingConvention = CallingConvention.Cdecl)]
         public static extern void Deinit();
@@ -40,6 +40,7 @@ namespace Chess.UI.Services
         public static extern void UndoMove();
 
         [DllImport(LOGIC_API_PATH, CallingConvention = CallingConvention.Cdecl)]
+        [return: MarshalAs(UnmanagedType.I1)]
         public static extern bool GetBoardState([Out, MarshalAs(UnmanagedType.LPArray, SizeConst = 64)] int[] boardState);
 
         #endregion // Game Management
@@ -53,6 +54,10 @@ namespace Chess.UI.Services
         [DllImport(LOGIC_API_PATH, CallingConvention = CallingConvention.Cdecl)]
         public static extern void OnPawnPromotionChosen(int pieceType);
 
+        // A complete move, wherever it comes from (a click, the network). The engine plays it only if it is legal.
+        [DllImport(LOGIC_API_PATH, CallingConvention = CallingConvention.Cdecl)]
+        public static extern void SubmitMove(int from, int to, int promotion);
+
         [DllImport(LOGIC_API_PATH, CallingConvention = CallingConvention.Cdecl)]
         public static extern int GetNumLegalMoves();
 
@@ -63,108 +68,21 @@ namespace Chess.UI.Services
         #endregion // Moves & Input Generation
 
 
-        #region Multiplayer
-
-        [DllImport(LOGIC_API_PATH, CallingConvention = CallingConvention.Cdecl)]
-        public static extern void StartMultiplayer();
-
-        [DllImport(LOGIC_API_PATH, CallingConvention = CallingConvention.Cdecl)]
-        public static extern void StopMultiplayer();
-
-        [DllImport(LOGIC_API_PATH, CallingConvention = CallingConvention.Cdecl)]
-        public static extern void FindOpponent();
-
-        [DllImport(LOGIC_API_PATH, CallingConvention = CallingConvention.Cdecl)]
-        public static extern int GetDiscoveredOpponentCount();
-
-        [DllImport(LOGIC_API_PATH, CallingConvention = CallingConvention.Cdecl)]
-        [return: MarshalAs(UnmanagedType.I1)]
-        public static extern bool GetDiscoveredOpponentAtIndex(int index, StringBuilder name, int maxLen);
-
-        [DllImport(LOGIC_API_PATH, CallingConvention = CallingConvention.Cdecl)]
-        public static extern void ConnectToOpponent(int index);
-
-        [DllImport(LOGIC_API_PATH, CallingConvention = CallingConvention.Cdecl)]
-        public static extern void RespondToConnectionRequest([MarshalAs(UnmanagedType.I1)] bool accept);
-
-        [DllImport(LOGIC_API_PATH, CallingConvention = CallingConvention.Cdecl)]
-        public static extern void SetLocalPlayer(int iLocalPlayer);
-
-        [DllImport(LOGIC_API_PATH, CallingConvention = CallingConvention.Cdecl)]
-        public static extern void SetLocalPlayerReady([MarshalAs(UnmanagedType.I1)] bool ready);
-
-        #endregion // Multiplayer
-
-
-        #region Network
-
-        [DllImport(LOGIC_API_PATH, CallingConvention = CallingConvention.Cdecl)]
-        public static extern int GetNetworkAdapterCount();
-
-        [DllImport(LOGIC_API_PATH, CallingConvention = CallingConvention.Cdecl)]
-        [return: MarshalAs(UnmanagedType.I1)]
-        public static extern bool GetNetworkAdapterAtIndex(uint index, out NetworkAdapterInstance adapter);
-
-        [DllImport(LOGIC_API_PATH, CallingConvention = CallingConvention.Cdecl)]
-        [return: MarshalAs(UnmanagedType.I1)]
-        public static extern bool ChangeCurrentAdapter(int ID);
-
-        [DllImport(LOGIC_API_PATH, CallingConvention = CallingConvention.Cdecl)]
-        public static extern int GetCurrentNetworkAdapterID();
-
-        #endregion
-
-
         #region Logging
 
+        // The engine writes no log file: its lines come to the app. Works before Init; null stops them.
         [DllImport(LOGIC_API_PATH, CallingConvention = CallingConvention.Cdecl)]
-        public static extern void LogInfoWithCaller(
-            [MarshalAs(UnmanagedType.LPStr)] string message,
-            [MarshalAs(UnmanagedType.LPStr)] string functionName,
-            [MarshalAs(UnmanagedType.LPStr)] string className,
-            int lineNumber);
+        public static extern void SetLogCallback(EngineLogDelegate callback, nint context);
 
+        // Lines below this level are dropped by the engine (values of LogLevel)
         [DllImport(LOGIC_API_PATH, CallingConvention = CallingConvention.Cdecl)]
-        public static extern void LogErrorWithCaller(
-            [MarshalAs(UnmanagedType.LPStr)] string message,
-            [MarshalAs(UnmanagedType.LPStr)] string functionName,
-            [MarshalAs(UnmanagedType.LPStr)] string className,
-            int lineNumber);
+        public static extern void SetLogLevel(int level);
 
-        [DllImport(LOGIC_API_PATH, CallingConvention = CallingConvention.Cdecl)]
-        public static extern void LogWarningWithCaller(
-            [MarshalAs(UnmanagedType.LPStr)] string message,
-            [MarshalAs(UnmanagedType.LPStr)] string functionName,
-            [MarshalAs(UnmanagedType.LPStr)] string className,
-            int lineNumber);
-
-        [DllImport(LOGIC_API_PATH, CallingConvention = CallingConvention.Cdecl)]
-        public static extern void LogDebugWithCaller(
-            [MarshalAs(UnmanagedType.LPStr)] string message,
-            [MarshalAs(UnmanagedType.LPStr)] string functionName,
-            [MarshalAs(UnmanagedType.LPStr)] string className,
-            int lineNumber);
+        // The engine declares PFN_LOG_CALLBACK as __stdcall. The texts are UTF-8 and only valid during the call.
+        [UnmanagedFunctionPointer(CallingConvention.StdCall)]
+        public delegate void EngineLogDelegate(int level, nint file, int line, nint function, nint message, nint context);
 
         #endregion
-
-
-        #region Utilities
-
-        [DllImport(LOGIC_API_PATH, CallingConvention = CallingConvention.Cdecl, EntryPoint = "GetWindowScalingFactor", CharSet = CharSet.Unicode)]
-        public static extern float GetWindowScalingFactor(nint hwnd);
-
-        #endregion
-
-
-        #region Settings
-
-        [DllImport(LOGIC_API_PATH, CallingConvention = CallingConvention.Cdecl)]
-        public static extern void SetLocalPlayerName([MarshalAs(UnmanagedType.LPStr)] string name);
-
-        [DllImport(LOGIC_API_PATH, CallingConvention = CallingConvention.Cdecl)]
-        public static extern void SetDiscoveryPort(int port);
-
-        #endregion // Settings
 
 
         #endregion // DLL Defines
@@ -205,20 +123,6 @@ namespace Chess.UI.Services
             Hard = 3,
         }
 
-        public enum MultiplayerState
-        {
-            None = 0,
-            Searching = 1,
-            OpponentFound = 2,
-            ConnectionRequested = 3,
-            Connected = 4,
-            PlayerSetup = 5,
-            ReadyToStart = 6,
-            InGame = 7,
-            Disconnected = 8,
-            Error = 9
-        }
-
         public enum GamePhase
         {
             Initializing = 0,
@@ -246,24 +150,16 @@ namespace Chess.UI.Services
         }
 
 
+        // Mirrors the engine's PlayerCapturedPieceEvent, where Side and bool are a single byte each
         [StructLayout(LayoutKind.Sequential)]
         public struct PlayerCapturedPiece
         {
-            public Side playerColor;
+            private sbyte _playerColor;
             public PieceType pieceType;
-            public bool captured;
-        };
+            private byte _captured;
 
-
-        [StructLayout(LayoutKind.Sequential)]
-        public struct MultiplayerStateEvent
-        {
-            public MultiplayerState State;
-
-            [MarshalAs(UnmanagedType.ByValTStr, SizeConst = 250)]
-            public string remoteName;
-            [MarshalAs(UnmanagedType.ByValTStr, SizeConst = 250)]
-            public string errorMessage;
+            public readonly Side playerColor => (Side)_playerColor;
+            public readonly bool captured => _captured != 0;
         };
 
 
@@ -275,44 +171,10 @@ namespace Chess.UI.Services
         };
 
 
-        [StructLayout(LayoutKind.Sequential, CharSet = CharSet.Ansi)]
-        public struct NetworkAdapterInstance
-        {
-            public int ID;
-            public int Priority;
-
-            [MarshalAs(UnmanagedType.ByValArray, SizeConst = 250)]
-            private byte[] _adapterNameBytes;
-
-            public string AdapterName
-            {
-                get
-                {
-                    int nullIndex = Array.IndexOf(_adapterNameBytes, (byte)0);
-                    int length = (nullIndex >= 0) ? nullIndex : _adapterNameBytes.Length;
-                    return Encoding.UTF8.GetString(_adapterNameBytes, 0, length);
-                }
-            }
-
-            [MarshalAs(UnmanagedType.ByValArray, SizeConst = 250)]
-            private byte[] _networkNameBytes;
-
-            public string NetworkName
-            {
-                get
-                {
-                    int nullIndex = Array.IndexOf(_networkNameBytes, (byte)0);
-                    int length = (nullIndex >= 0) ? nullIndex : _networkNameBytes.Length;
-                    return Encoding.UTF8.GetString(_networkNameBytes, 0, length);
-                }
-            }
-        }
-
-
         public struct GameConfiguration
         {
             public GameModeSelection Mode;
-            public Side PlayerColor;        // Used for SinglePlayer and Multiplayer
+            public Side PlayerColor;        // SinglePlayer: the human player. Multiplayer: the local player.
             public CPUDifficulty CpuDifficulty;  // Only used for SinglePlayer mode
 
             /// <summary>
@@ -379,22 +241,6 @@ namespace Chess.UI.Services
 
             [MarshalAs(UnmanagedType.ByValTStr, SizeConst = 250)]
             public string moveNotation;
-        }
-
-
-        [StructLayout(LayoutKind.Sequential, CharSet = CharSet.Ansi)]
-        public struct UserSettingsInit
-        {
-            // Player
-            [MarshalAs(UnmanagedType.ByValTStr, SizeConst = 250)]
-            public string PlayerName;
-
-            // Network
-            public int DiscoveryUDPPort;
-
-            // Paths
-            [MarshalAs(UnmanagedType.ByValTStr, SizeConst = 512)]
-            public string AppDataPath;
         }
 
 

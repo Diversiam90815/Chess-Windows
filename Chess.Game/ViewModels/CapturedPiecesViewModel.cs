@@ -86,18 +86,19 @@ namespace Chess.UI.ViewModels
 
         private string GetPropertyNameForPiece(PieceType piece)
         {
+            // The model counts by the piece that was taken, so a captured black piece belongs to white's tally
             return piece switch
             {
-                PieceType.WPawn => nameof(WhiteCapturedPawn),
-                PieceType.WBishop => nameof(WhiteCapturedBishop),
-                PieceType.WKnight => nameof(WhiteCapturedKnight),
-                PieceType.WRook => nameof(WhiteCapturedRook),
-                PieceType.WQueen => nameof(WhiteCapturedQueen),
-                PieceType.BPawn => nameof(BlackCapturedPawn),
-                PieceType.BBishop => nameof(BlackCapturedBishop),
-                PieceType.BKnight => nameof(BlackCapturedKnight),
-                PieceType.BRook => nameof(BlackCapturedRook),
-                PieceType.BQueen => nameof(BlackCapturedQueen),
+                PieceType.BPawn => nameof(WhiteCapturedPawn),
+                PieceType.BBishop => nameof(WhiteCapturedBishop),
+                PieceType.BKnight => nameof(WhiteCapturedKnight),
+                PieceType.BRook => nameof(WhiteCapturedRook),
+                PieceType.BQueen => nameof(WhiteCapturedQueen),
+                PieceType.WPawn => nameof(BlackCapturedPawn),
+                PieceType.WBishop => nameof(BlackCapturedBishop),
+                PieceType.WKnight => nameof(BlackCapturedKnight),
+                PieceType.WRook => nameof(BlackCapturedRook),
+                PieceType.WQueen => nameof(BlackCapturedQueen),
                 _ => null
             };
         }
@@ -105,16 +106,19 @@ namespace Chess.UI.ViewModels
 
         #region Captured Piece Counts
 
-        public int WhiteCapturedPawn => _model.CapturedPieces[PieceType.WPawn];
-        public int WhiteCapturedBishop => _model.CapturedPieces[PieceType.WBishop];
-        public int WhiteCapturedKnight => _model.CapturedPieces[PieceType.WKnight];
-        public int WhiteCapturedRook => _model.CapturedPieces[PieceType.WRook];
-        public int WhiteCapturedQueen => _model.CapturedPieces[PieceType.WQueen];
-        public int BlackCapturedPawn => _model.CapturedPieces[PieceType.BPawn];
-        public int BlackCapturedBishop => _model.CapturedPieces[PieceType.BBishop];
-        public int BlackCapturedKnight => _model.CapturedPieces[PieceType.BKnight];
-        public int BlackCapturedRook => _model.CapturedPieces[PieceType.BRook];
-        public int BlackCapturedQueen => _model.CapturedPieces[PieceType.BQueen];
+        // Pieces white has captured
+        public int WhiteCapturedPawn => _model.CapturedPieces[PieceType.BPawn];
+        public int WhiteCapturedBishop => _model.CapturedPieces[PieceType.BBishop];
+        public int WhiteCapturedKnight => _model.CapturedPieces[PieceType.BKnight];
+        public int WhiteCapturedRook => _model.CapturedPieces[PieceType.BRook];
+        public int WhiteCapturedQueen => _model.CapturedPieces[PieceType.BQueen];
+
+        // Pieces black has captured
+        public int BlackCapturedPawn => _model.CapturedPieces[PieceType.WPawn];
+        public int BlackCapturedBishop => _model.CapturedPieces[PieceType.WBishop];
+        public int BlackCapturedKnight => _model.CapturedPieces[PieceType.WKnight];
+        public int BlackCapturedRook => _model.CapturedPieces[PieceType.WRook];
+        public int BlackCapturedQueen => _model.CapturedPieces[PieceType.WQueen];
 
         #endregion
 

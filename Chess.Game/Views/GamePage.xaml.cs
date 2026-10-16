@@ -43,8 +43,29 @@ namespace Chess.UI.Views
 
             RootGrid.DataContext = _viewModel;
 
+            Loaded += OnLoaded;
+            Unloaded += OnUnloaded;
+        }
+
+
+        // The view model outlives the page, so the page only listens to it while it is shown
+
+        private void OnLoaded(object sender, RoutedEventArgs e)
+        {
+            OnUnloaded(sender, e);
+
             _viewModel.ShowPawnPromotionDialogRequested += OnShowPawnPromotionDialog;
             _viewModel.ShowEndGameDialog += OnGameOverState;
+
+            // The game may have ended while another page (e.g. settings) was shown
+            _ = _viewModel.ShowPendingEndGameDialogAsync();
+        }
+
+
+        private void OnUnloaded(object sender, RoutedEventArgs e)
+        {
+            _viewModel.ShowPawnPromotionDialogRequested -= OnShowPawnPromotionDialog;
+            _viewModel.ShowEndGameDialog -= OnGameOverState;
         }
 
 
@@ -67,10 +88,16 @@ namespace Chess.UI.Views
 
         private async void EndGame_Click(object sender, RoutedEventArgs e)
         {
-            _viewModel.EndGame();
             _viewModel.OnButtonClicked();
             await _gameService.EndGameAsync();
             _navigationService.NavigateToHome();
+        }
+
+
+        private void Settings_Click(object sender, RoutedEventArgs e)
+        {
+            _viewModel.OnButtonClicked();
+            _navigationService.NavigateToSettings();
         }
 
 
@@ -107,6 +134,10 @@ namespace Chess.UI.Views
 
                         case EndGameState.StaleMate:
                             await ShowEnhancedEndGameDialog("Stalemate", winner, endGameState);
+                            break;
+
+                        case EndGameState.Draw:
+                            await ShowEnhancedEndGameDialog("Draw", winner, endGameState);
                             break;
 
                         default:
@@ -279,7 +310,7 @@ namespace Chess.UI.Views
         }
 
 
-        private void AddPromotionButton(Panel panel, PieceType pieceType, Side playerSide, ContentDialog dialog)
+        private void AddPromotionButton(Panel panel, PieceType pieceType, ContentDialog dialog)
         {
             var button = new Button
             {
@@ -329,15 +360,18 @@ namespace Chess.UI.Views
                         Spacing = 10
                     };
 
-                    Side currentPlayer = _viewModel.ChessBoardViewModel.CurrentPlayer;
+                    bool isBlack = _viewModel.ChessBoardViewModel.CurrentPlayer == Side.Black;
                     _selectedPromotionPiece = null;
 
-                    AddPromotionButton(stackPanel, PieceType.WQueen, currentPlayer, dialog);
-                    AddPromotionButton(stackPanel, PieceType.WRook, currentPlayer, dialog);
-                    AddPromotionButton(stackPanel, PieceType.WBishop, currentPlayer, dialog);
-                    AddPromotionButton(stackPanel, PieceType.WKnight, currentPlayer, dialog);
+                    AddPromotionButton(stackPanel, isBlack ? PieceType.BQueen : PieceType.WQueen, dialog);
+                    AddPromotionButton(stackPanel, isBlack ? PieceType.BRook : PieceType.WRook, dialog);
+                    AddPromotionButton(stackPanel, isBlack ? PieceType.BBishop : PieceType.WBishop, dialog);
+                    AddPromotionButton(stackPanel, isBlack ? PieceType.BKnight : PieceType.WKnight, dialog);
 
                     dialog.Content = stackPanel;
+
+                    // The engine waits for a piece and offers no way to take the move back, so Escape must not close the dialog
+                    dialog.Closing += (s, args) => args.Cancel = _selectedPromotionPiece == null;
 
                     await dialog.ShowAsync();
 

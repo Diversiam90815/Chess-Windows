@@ -34,6 +34,8 @@ namespace Chess.UI.Services
 
         public Dictionary<PieceType, ImageSource> CapturedPiecesImages;
 
+        private readonly Dictionary<(PieceStyle, PieceType), ImageSource> _pieceImages = new();
+
 
         public ImageServices()
         {
@@ -84,6 +86,9 @@ namespace Chess.UI.Services
         // Dynamic piece image loading based on theme, color, and type
         public ImageSource GetPieceImage(PieceStyle theme, PieceType piece)
         {
+            if (_pieceImages.TryGetValue((theme, piece), out ImageSource cachedImage))
+                return cachedImage;
+
             // Convert enum values to strings that match folder and file naming conventions
             string themeName = theme.ToString();
             string pieceName = piece.ToString();
@@ -91,7 +96,10 @@ namespace Chess.UI.Services
             // Construct the relative file path. Assumes folder structure: Assets/Pieces/{Theme}/
             string relativePath = $"/Assets/Pieces/{themeName}/{pieceName}.png";
 
-            return LoadImage(relativePath);
+            ImageSource image = LoadImage(relativePath);
+            _pieceImages[(theme, piece)] = image;
+
+            return image;
         }
 
 

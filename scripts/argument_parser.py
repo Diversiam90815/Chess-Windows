@@ -10,21 +10,21 @@ def create_argument_parser() -> argparse.ArgumentParser:
     parser.add_argument(
         "-p", "--prepare",
         action="store_true",
-        help="Prepare the project for the IDE without building."
+        help="Build and install the native libraries (Debug and Release) for use in the IDE."
     )
 
     parser.add_argument(
         "-b", "--build",
         action="store_true",
-        help="Build the project after generating the build files."
+        help="Build and install the native libraries, then build the C# application."
     )
 
     parser.add_argument(
         "-pl", "--platform",
-        default=Platform.Ninja,
+        default=Platform.VS2026,
         type=Platform,
         choices=list(Platform),
-        help="Select your Platform/IDE. Defaults to Ninja."
+        help="Select your Platform/IDE. Defaults to VS2026 (the C# project needs a Visual Studio generator)."
     )
 
     parser.add_argument(
@@ -45,8 +45,7 @@ def create_argument_parser() -> argparse.ArgumentParser:
     
     parser.add_argument(
         "-t", "--runtest",
-        default=False,
-        type=bool,
-        help="Run only the CMake test suite. Defaults to False"
+        action="store_true",
+        help="Build and run the C# unit tests."
     )
     return parser

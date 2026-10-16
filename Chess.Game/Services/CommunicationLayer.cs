@@ -1,6 +1,9 @@
-﻿using Chess.UI.Models;
+﻿using Chess.UI.Board;
+using Chess.UI.Models;
 using Chess.UI.Settings;
+using Chess.UI.Wrappers;
 using System;
+using System.Collections.Generic;
 using System.Runtime.InteropServices;
 using static Chess.UI.Services.EngineAPI;
 
@@ -16,34 +19,43 @@ namespace Chess.UI.Services
         // Event handlers for communication from native code
         void DelegateHandler(int message, nint data);
 
-        // Events for notifying UI components
+        // Game lifecycle requests to the engine, it answers with GameStateChanged
+        void StartGame(GameConfiguration config);
+        void ResetGame();
+
+        // A complete move, wherever it comes from. The engine plays it only if it is legal.
+        void SubmitMove(Square from, Square to, PieceType promotion);
+
+        // Events for notifying UI components, raised on the UI thread
         event Action<Side> PlayerChanged;
         event Action<GamePhase> GameStateChanged;
         event Action<PlayerCapturedPiece> PlayerCapturedPieceEvent;
         event Action<EndGameStateEvent> EndGameStateEvent;
-        event Action<MultiplayerStateEvent> MultiplayerStateChanged;
-        event Action<MultiplayerStateEvent> OpponentDiscoveredEvent;
-        event Action<Side> MultiPlayerChosenByRemote;
         event Action<Move, string> MoveExecuted;
         event Action MoveUndone;
-        event Action LegalMovesCalculated;
+        event Action<IReadOnlyList<Move>> LegalMovesCalculated;
         event Action PawnPromotionRequired;
-        event Action BoardStateChanged;
+        event Action<PieceType[]> BoardStateChanged;
     }
 
 
     public class CommunicationLayer : ICommunicationLayer
     {
-        private readonly ISettingsService _settingsService;
+        private readonly IDispatcherQueueWrapper _dispatcherQueue;
         private GCHandle _delegateHandle;
 
-        [UnmanagedFunctionPointer(CallingConvention.Cdecl)]
+        // The engine calls it from its threads until it is removed: it must stay alive that long
+        private readonly EngineLogDelegate _logDelegate;
+
+        // The engine declares PFN_CALLBACK as __stdcall
+        [UnmanagedFunctionPointer(CallingConvention.StdCall)]
         public delegate void APIDelegate(int message, nint data);
 
 
-        public CommunicationLayer(ISettingsService settingsService)
+        public CommunicationLayer(IDispatcherQueueWrapper dispatcherQueue)
         {
-            _settingsService = settingsService;
+            _dispatcherQueue = dispatcherQueue;
+            _logDelegate = HandleEngineLog;
         }
 
 
@@ -55,25 +67,20 @@ namespace Chess.UI.Services
             GameStateChanged = 4,
             MoveExecuted = 5,
             MoveUndone = 6,
-            ConnectionStateChanged = 7,
-            MultiplayerPlayerChosen = 8,
-            BoardStateChanged = 9,
-            PawnPromotion = 10,
-            LegalMovesCalculated = 11,
-            OpponentDiscovered = 12,
+            BoardStateChanged = 7,
+            PawnPromotion = 8,
+            LegalMovesCalculated = 9,
         }
 
 
         public void Init()
         {
-            var settings = new UserSettingsInit
-            {
-                PlayerName = _settingsService.PlayerName ?? "",
-                DiscoveryUDPPort = _settingsService.DiscoveryUDPPort,
-                AppDataPath = Project.AppDataDirectory
-            };
+            // Before Init, so the lines the engine writes while it starts are in the app's log too
+            EngineAPI.SetLogLevel((int)Logger.Level);
+            EngineAPI.SetLogCallback(_logDelegate, 0);
+            Logger.LevelChanged += SetEngineLogLevel;
 
-            EngineAPI.Init(settings);
+            EngineAPI.Init();
             SetDelegate();
         }
 
@@ -82,6 +89,56 @@ namespace Chess.UI.Services
         {
             EngineAPI.Deinit();
             _delegateHandle.Free();
+
+            // Returns once the engine is not in the callback anymore
+            Logger.LevelChanged -= SetEngineLogLevel;
+            EngineAPI.SetLogCallback(null, 0);
+        }
+
+
+        private static void SetEngineLogLevel(LogLevel level)
+        {
+            EngineAPI.SetLogLevel((int)level);
+        }
+
+
+        /// <summary>
+        /// A log line of the engine, on the engine thread that wrote it. Never throws back into the engine.
+        /// </summary>
+        private static void HandleEngineLog(int level, nint file, int line, nint function, nint message, nint context)
+        {
+            try
+            {
+                string component = System.IO.Path.GetFileNameWithoutExtension(Marshal.PtrToStringUTF8(file) ?? string.Empty);
+                Logger.Write((LogLevel)level, component, Marshal.PtrToStringUTF8(function), Marshal.PtrToStringUTF8(message));
+            }
+            catch
+            {
+                // A log line is not worth crashing the engine thread for
+            }
+        }
+
+
+        public void StartGame(GameConfiguration config)
+        {
+            // Where the moves come from does not matter to the engine: a game against a player on the network is
+            // a game of two players to it, the opponent's moves are submitted like any other
+            if (config.Mode == GameModeSelection.MultiPlayer)
+                config = GameConfiguration.CreateLocalCoop();
+
+            EngineAPI.StartGame(config);
+        }
+
+
+        public void SubmitMove(Square from, Square to, PieceType promotion)
+        {
+            EngineAPI.SubmitMove((int)from, (int)to, (int)promotion);
+        }
+
+
+        public void ResetGame()
+        {
+            EngineAPI.ResetGame();
         }
 
 
@@ -93,6 +150,10 @@ namespace Chess.UI.Services
         }
 
 
+        /// <summary>
+        /// Called by the engine on its own threads. The payload behind 'data' is only valid during the call and
+        /// the engine moves on right after it, so everything is read here; the events are raised on the UI thread.
+        /// </summary>
         public void DelegateHandler(int message, nint data)
         {
             DelegateMessage delegateMessage = (DelegateMessage)message;
@@ -125,18 +186,6 @@ namespace Chess.UI.Services
                         HandlePlayerCapturedPiece(data);
                         break;
 
-                    case DelegateMessage.ConnectionStateChanged:
-                        HandleConnectionStatusChanged(data);
-                        break;
-
-                    case DelegateMessage.MultiplayerPlayerChosen:
-                        HandlePlayerChosenForMultiplayerByRemote(data);
-                        break;
-
-                    case DelegateMessage.OpponentDiscovered:
-                        HandleOpponentDiscovered(data);
-                        break;
-
                     case DelegateMessage.BoardStateChanged:
                         HandleBoardStateChanged();
                         break;
@@ -164,7 +213,7 @@ namespace Chess.UI.Services
         private void HandleMoveUndone(nint data)
         {
             Logger.LogDebug("Move undone");
-            MoveUndone?.Invoke();
+            RaiseOnUIThread(() => MoveUndone?.Invoke());
         }
 
 
@@ -185,7 +234,7 @@ namespace Chess.UI.Services
 
                 Logger.LogDebug($"Move executed: {move} ({notation})");
 
-                MoveExecuted?.Invoke(move, notation);
+                RaiseOnUIThread(() => MoveExecuted?.Invoke(move, notation));
 
             }
             catch (Exception ex)
@@ -197,22 +246,26 @@ namespace Chess.UI.Services
 
         private void HandleLegalMovesCalculated()
         {
-            Logger.LogInfo("Legal moves calculated");
-            LegalMovesCalculated?.Invoke();
+            List<Move> legalMoves = ReadLegalMoves();
+
+            Logger.LogInfo($"{legalMoves.Count} legal moves calculated");
+            RaiseOnUIThread(() => LegalMovesCalculated?.Invoke(legalMoves));
         }
 
 
         private void HandlePawnPromotionRequired()
         {
             Logger.LogInfo("Pawn promotion required");
-            PawnPromotionRequired?.Invoke();
+            RaiseOnUIThread(() => PawnPromotionRequired?.Invoke());
         }
 
 
         private void HandleBoardStateChanged()
         {
+            PieceType[] board = ReadBoardState();
+
             Logger.LogInfo("Board state changed");
-            BoardStateChanged?.Invoke();
+            RaiseOnUIThread(() => BoardStateChanged?.Invoke(board));
         }
 
 
@@ -228,7 +281,7 @@ namespace Chess.UI.Services
             Side player = (Side)iPlayer;
 
             Logger.LogInfo($"Player changed to: {player}");
-            PlayerChanged?.Invoke(player);
+            RaiseOnUIThread(() => PlayerChanged?.Invoke(player));
         }
 
 
@@ -243,7 +296,7 @@ namespace Chess.UI.Services
             EndGameStateEvent endgameEvent = Marshal.PtrToStructure<EndGameStateEvent>(data);
 
             Logger.LogInfo($"Game ended: State={endgameEvent.State}, Winner={endgameEvent.winner}");
-            EndGameStateEvent?.Invoke(endgameEvent);
+            RaiseOnUIThread(() => EndGameStateEvent?.Invoke(endgameEvent));
         }
 
 
@@ -258,7 +311,7 @@ namespace Chess.UI.Services
             PlayerCapturedPiece capturedEvent = Marshal.PtrToStructure<PlayerCapturedPiece>(data);
 
             Logger.LogInfo($"Piece captured: Player={capturedEvent.playerColor}, Piece={capturedEvent.pieceType}, Captured={capturedEvent.captured}");
-            PlayerCapturedPieceEvent?.Invoke(capturedEvent);
+            RaiseOnUIThread(() => PlayerCapturedPieceEvent?.Invoke(capturedEvent));
         }
 
 
@@ -274,53 +327,50 @@ namespace Chess.UI.Services
             GamePhase state = (GamePhase)iState;
 
             Logger.LogInfo($"Game state changed to: {state}");
-            GameStateChanged?.Invoke(state);
+            RaiseOnUIThread(() => GameStateChanged?.Invoke(state));
         }
 
 
-        private void HandleConnectionStatusChanged(nint data)
+        private void RaiseOnUIThread(Action raiseEvent)
         {
-            if (data == nint.Zero)
+            _dispatcherQueue.TryEnqueue(() =>
             {
-                Logger.LogError("HandleConnectionStatusChanged received null data pointer");
-                return;
-            }
-
-            MultiplayerStateEvent connectionEvent = Marshal.PtrToStructure<MultiplayerStateEvent>(data);
-
-            Logger.LogInfo($"Multiplayer state changed: {connectionEvent.State}");
-            MultiplayerStateChanged?.Invoke(connectionEvent);
+                try
+                {
+                    raiseEvent();
+                }
+                catch (Exception ex)
+                {
+                    Logger.LogError($"Error in a handler of an engine event: {ex.Message}");
+                }
+            });
         }
 
 
-        private void HandleOpponentDiscovered(nint data)
+        // Legal moves of the piece that is currently selected in the engine
+        private static List<Move> ReadLegalMoves()
         {
-            if (data == nint.Zero)
+            var legalMoves = new List<Move>();
+            int numMoves = EngineAPI.GetNumLegalMoves();
+
+            for (int i = 0; i < numMoves; ++i)
             {
-                Logger.LogError("HandleOpponentDiscovered received null data pointer");
-                return;
+                if (EngineAPI.GetLegalMoveAtIndex(i, out ushort moveData))
+                {
+                    legalMoves.Add(new Move(moveData));
+                }
             }
 
-            MultiplayerStateEvent opponentEvent = Marshal.PtrToStructure<MultiplayerStateEvent>(data);
-
-            Logger.LogInfo($"Opponent discovered: {opponentEvent.remoteName}");
-            OpponentDiscoveredEvent?.Invoke(opponentEvent);
+            return legalMoves;
         }
 
 
-        private void HandlePlayerChosenForMultiplayerByRemote(nint data)
+        public static PieceType[] ReadBoardState()
         {
-            if (data == nint.Zero)
-            {
-                Logger.LogError("HandlePlayerChosenForMultiplayerByRemote received null data pointer");
-                return;
-            }
+            int[] rawBoard = new int[64]; // pre-allocated array
+            EngineAPI.GetBoardState(rawBoard);
 
-            int iPlayer = Marshal.ReadInt32(data);
-            Side player = (Side)iPlayer;
-
-            Logger.LogInfo($"Multiplayer player chosen by remote: {player}");
-            MultiPlayerChosenByRemote?.Invoke(player);
+            return Array.ConvertAll(rawBoard, piece => (PieceType)piece);
         }
 
 
@@ -332,12 +382,9 @@ namespace Chess.UI.Services
         public event Action MoveUndone;
         public event Action<PlayerCapturedPiece> PlayerCapturedPieceEvent;
         public event Action<EndGameStateEvent> EndGameStateEvent;
-        public event Action<MultiplayerStateEvent> MultiplayerStateChanged;
-        public event Action<MultiplayerStateEvent> OpponentDiscoveredEvent;
-        public event Action<Side> MultiPlayerChosenByRemote;
-        public event Action LegalMovesCalculated;
+        public event Action<IReadOnlyList<Move>> LegalMovesCalculated;
         public event Action PawnPromotionRequired;
-        public event Action BoardStateChanged;
+        public event Action<PieceType[]> BoardStateChanged;
 
         #endregion
 

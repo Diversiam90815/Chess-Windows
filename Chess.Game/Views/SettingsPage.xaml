@@ -272,7 +272,7 @@
                             Grid.Column="1"
                             Maximum="100"
                             Minimum="0"
-                            PointerCaptureLost="Master_Volume_PointerCaptureLost"
+                            ValueChanged="Master_Volume_ValueChanged"
                             SnapsTo="StepValues"
                             StepFrequency="10"
                             Value="{x:Bind _audioViewModel.MasterVolume, Mode=OneWay}" />
@@ -304,7 +304,7 @@
                             Grid.Column="1"
                             Maximum="100"
                             Minimum="0"
-                            PointerCaptureLost="SFX_Volume_PointerCaptureLost"
+                            ValueChanged="SFX_Volume_ValueChanged"
                             SnapsTo="StepValues"
                             StepFrequency="10"
                             Value="{x:Bind _audioViewModel.SfxVolume, Mode=OneWay}" />
@@ -342,7 +342,7 @@
                                 x:Name="AtmosVolumeSlider"
                                 Maximum="100"
                                 Minimum="0"
-                                PointerCaptureLost="Atmos_Volume_PointerCaptureLost"
+                                ValueChanged="Atmos_Volume_ValueChanged"
                                 SnapsTo="StepValues"
                                 StepFrequency="10"
                                 Value="{x:Bind _audioViewModel.AtmosVolume, Mode=OneWay}" />
@@ -385,6 +385,12 @@
                             Text="Network and player identity settings" />
                     </StackPanel>
 
+                    <InfoBar
+                        IsClosable="False"
+                        IsOpen="{x:Bind _isMultiplayerGameRunning}"
+                        Message="These settings can't be changed during a multiplayer game."
+                        Severity="Informational" />
+
                     <!-- Player Name -->
                     <Grid ColumnSpacing="16">
                         <Grid.ColumnDefinitions>
@@ -402,6 +408,7 @@
 
                         <TextBox
                             Grid.Column="1"
+                            IsEnabled="{x:Bind _networkSettingsEnabled}"
                             PlaceholderText="Enter your name"
                             Text="{x:Bind _multiplayerPrefsViewModel.LocalPlayerName, Mode=TwoWay}" />
                     </Grid>
@@ -430,6 +437,7 @@
                             x:Name="NetworkAdapterComboBox"
                             Grid.Column="1"
                             HorizontalAlignment="Stretch"
+                            IsEnabled="{x:Bind _networkSettingsEnabled}"
                             ItemContainerStyleSelector="{StaticResource ComboBoxItemContainerStyleSelector}"
                             ItemTemplateSelector="{StaticResource NetworkAdapterSelector}"
                             ItemsSource="{x:Bind _multiplayerPrefsViewModel.NetworkAdapterNodes}"

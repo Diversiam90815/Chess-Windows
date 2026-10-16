@@ -3,8 +3,6 @@ using Chess.UI.Audio.Modules;
 using Chess.UI.Models;
 using Chess.UI.Services;
 using Chess.UI.Settings;
-using Chess.UI.ViewModels;
-using Microsoft.Extensions.DependencyInjection;
 using System;
 using System.Threading.Tasks;
 using static Chess.UI.Services.EngineAPI;
@@ -16,25 +14,34 @@ namespace Chess.UI.Audio.Services
     {
         private readonly IAudioEngine _audioEngine;
         private readonly ISettingsService _settingsService;
-        private ISoundEffectsModule _soundEffectsModule;
-        private IAtmosphereModule _atmosphereModule;
+        private readonly ISoundEffectsModule _soundEffectsModule;
+        private readonly IAtmosphereModule _atmosphereModule;
+        private readonly IMoveModel _moveModel;
+        private readonly ICommunicationLayer _backendCommunication;
 
         public ISoundEffectsModule SoundEffectsModule => _soundEffectsModule;
         public IAtmosphereModule AtmosphereModule => _atmosphereModule;
 
 
-        public ChessAudioService(IAudioEngine engine, ISettingsService settingsService)
+        public ChessAudioService(
+            IAudioEngine engine,
+            ISettingsService settingsService,
+            ISoundEffectsModule soundEffectsModule,
+            IAtmosphereModule atmosphereModule,
+            IMoveModel moveModel,
+            ICommunicationLayer backendCommunication)
         {
             _audioEngine = engine;
             _settingsService = settingsService;
+            _soundEffectsModule = soundEffectsModule;
+            _atmosphereModule = atmosphereModule;
+            _moveModel = moveModel;
+            _backendCommunication = backendCommunication;
         }
 
 
         public async Task InitializeAsync()
         {
-            _soundEffectsModule = new SoundEffectsModule();
-            _atmosphereModule = new AtmosphereModule();
-
             _audioEngine.RegisterModule(AudioModuleType.SFX, _soundEffectsModule);
             _audioEngine.RegisterModule(AudioModuleType.Atmosphere, _atmosphereModule);
 
@@ -43,37 +50,18 @@ namespace Chess.UI.Audio.Services
             // Apply settings from the config
             await LoadAudioSettingsFromConfig();
 
-            // Subscribe to the events from the viewmodels
-            SubscribeToEvents();
+            // Subscribe to the events of the game
+            SubscribeToGameEvents();
         }
 
 
-        private void SubscribeToEvents()
+        // The sounds for clicks and selections in the UI are connected in App, where the view models are known
+        private void SubscribeToGameEvents()
         {
-            var mainMenuViewModel = App.Current.Services.GetService<MainMenuViewModel>();
-            mainMenuViewModel.ButtonClicked += () => _ = Task.Run(async () => await HandleUIInteractionAsync(UIInteraction.ButtonClick));
+            _moveModel.GameOverEvent += (EndGameState state, Side player) => _ = Task.Run(async () => await HandleEndGameStateAsync(state));
+            _moveModel.ChesspieceSelected += () => _ = Task.Run(async () => await HandleUIInteractionAsync(UIInteraction.PieceSelect));
 
-            var chessboardVM = App.Current.Services.GetService<ChessBoardViewModel>();
-            chessboardVM.ButtonClicked += () => _ = Task.Run(async () => await HandleUIInteractionAsync(UIInteraction.ButtonClick));
-
-            var moveModel = App.Current.Services.GetService<IMoveModel>();
-            moveModel.GameOverEvent += (EndGameState state, Side player) => _ = Task.Run(async () => await HandleEndGameStateAsync(state));
-            moveModel.ChesspieceSelected += () => _ = Task.Run(async () => await HandleUIInteractionAsync(UIInteraction.PieceSelect));
-
-            var backendCom = App.Current.Services.GetService<ICommunicationLayer>();
-            backendCom.MoveExecuted += (Move move, string notation) => _ = Task.Run(async () => await HandleMoveAsync(move));
-
-            var themePreferences = App.Current.Services.GetService<StylesPreferencesViewModel>();
-            themePreferences.ItemSelected += () => _ = Task.Run(async () => await HandleUIInteractionAsync(UIInteraction.ItemSelected));
-
-            var multiplayerPreferences = App.Current.Services.GetService<MultiplayerPreferencesViewModel>();
-            multiplayerPreferences.ItemSelected += () => _ = Task.Run(async () => await HandleUIInteractionAsync(UIInteraction.ItemSelected));
-
-            var multiplayerVM = App.Current.Services.GetService<MultiplayerViewModel>();
-            multiplayerVM.ButtonClicked += () => _ = Task.Run(async () => await HandleUIInteractionAsync(UIInteraction.ButtonClick));
-
-            var audioPref = App.Current.Services.GetService<AudioPreferencesViewModel>();
-            audioPref.ItemSelected += () => _ = Task.Run(async () => await HandleUIInteractionAsync(UIInteraction.ItemSelected));
+            _backendCommunication.MoveExecuted += (Move move, string notation) => _ = Task.Run(async () => await HandleMoveAsync(move));
         }
 
 
@@ -92,23 +80,17 @@ namespace Chess.UI.Audio.Services
                 _audioEngine.SetMasterVolume(masterVolume);
 
                 // Apply SFX settings
-                if (_soundEffectsModule != null)
-                {
-                    _soundEffectsModule.SetModuleVolume(sfxVolume);
-                    _soundEffectsModule.IsEnabled = sfxEnabled;
-                }
+                _soundEffectsModule.SetModuleVolume(sfxVolume);
+                _soundEffectsModule.IsEnabled = sfxEnabled;
 
                 // Apply atmosphere settings
-                if (_atmosphereModule != null)
-                {
-                    _atmosphereModule.SetModuleVolume(atmosVolume);
-                    _atmosphereModule.IsEnabled = atmosEnabled;
+                _atmosphereModule.SetModuleVolume(atmosVolume);
+                _atmosphereModule.IsEnabled = atmosEnabled;
 
-                    if (!string.IsNullOrEmpty(atmosScenario) &&
-                        Enum.TryParse<AtmosphereScenario>(atmosScenario, out var scenario))
-                    {
-                        await _atmosphereModule.SetAtmosphereAsync(scenario);   // Also triggers playback
-                    }
+                if (!string.IsNullOrEmpty(atmosScenario) &&
+                    Enum.TryParse<AtmosphereScenario>(atmosScenario, out var scenario))
+                {
+                    await _atmosphereModule.SetAtmosphereAsync(scenario);   // Also triggers playback
                 }
 
                 Logger.LogInfo("Audio settings loaded and applied from configuration");
@@ -128,7 +110,7 @@ namespace Chess.UI.Audio.Services
             var sfx = DetermineMoveSound(move, isCapture);
             var volume = DetermineMoveVolume(move, isCapture);
 
-            await _soundEffectsModule?.PlaySoundAsync(sfx, volume);
+            await PlaySoundAsync(sfx, volume);
         }
 
 
@@ -141,13 +123,13 @@ namespace Chess.UI.Audio.Services
                 _ => SoundEffect.Checkmate
             };
 
-            await _soundEffectsModule?.PlaySoundAsync(sfx, 0.8f);
+            await PlaySoundAsync(sfx, 0.8f);
         }
 
 
         public async Task HandleGameStartAsync()
         {
-            await _soundEffectsModule?.PlaySoundAsync(SoundEffect.GameStart, 0.6f);
+            await PlaySoundAsync(SoundEffect.GameStart, 0.6f);
         }
 
 
@@ -164,20 +146,24 @@ namespace Chess.UI.Audio.Services
             };
 
             var volume = interaction == UIInteraction.PieceSelect ? 0.3f : 0.5f;
-            await _soundEffectsModule?.PlaySoundAsync(soundEffect, volume);
+            await PlaySoundAsync(soundEffect, volume);
+        }
+
+
+        private Task PlaySoundAsync(SoundEffect effect, float volume)
+        {
+            return _soundEffectsModule.PlaySoundAsync(effect, volume);
         }
 
 
         public bool GetSFXEnabled()
         {
-            if (_soundEffectsModule == null) return false;
             return _soundEffectsModule.IsEnabled;
         }
 
 
         public void SetSFXEnabled(bool enabled)
         {
-            if (_soundEffectsModule == null) return;
             if (_soundEffectsModule.IsEnabled == enabled) return;
 
             _soundEffectsModule.IsEnabled = enabled;
@@ -188,7 +174,6 @@ namespace Chess.UI.Audio.Services
 
         public float GetSFXVolume()
         {
-            if (_soundEffectsModule == null) return 0.0f;
             return _soundEffectsModule.GetModuleVolume();
         }
 
@@ -197,16 +182,16 @@ namespace Chess.UI.Audio.Services
         {
             if (_soundEffectsModule.GetModuleVolume() == volume) return;
 
-            _soundEffectsModule?.SetModuleVolume(volume);
+            _soundEffectsModule.SetModuleVolume(volume);
             _settingsService.AudioSFXVolume = volume;
         }
 
 
         public async Task SetAtmosphereAsync(AtmosphereScenario scenario)
         {
-            if (_atmosphereModule?.CurrentScenario == scenario) return;
+            if (_atmosphereModule.CurrentScenario == scenario) return;
 
-            await _atmosphereModule?.SetAtmosphereAsync(scenario);
+            await _atmosphereModule.SetAtmosphereAsync(scenario);
             _settingsService.AudioAtmosScenario = scenario.ToString();
         }
 
@@ -219,13 +204,12 @@ namespace Chess.UI.Audio.Services
 
         public void StopAtmosphereAsync()
         {
-            _atmosphereModule?.StopAtmosphereAsync();
+            _atmosphereModule.StopAtmosphereAsync();
         }
 
 
         public void SetAtmosphereEnabled(bool enabled)
         {
-            if (_atmosphereModule == null) return;
             if (_atmosphereModule.IsEnabled == enabled) return;
 
             _atmosphereModule.IsEnabled = enabled;
@@ -248,23 +232,21 @@ namespace Chess.UI.Audio.Services
 
         public bool GetAtmosphereEnabled()
         {
-            if (_atmosphereModule == null) return false;
             return _atmosphereModule.IsEnabled;
         }
 
 
         public float GetAtmosphereVolume()
         {
-            if (_atmosphereModule == null) return 0.0f;
             return _atmosphereModule.GetModuleVolume();
         }
 
 
         public void SetAtmosphereVolume(float volume)
         {
-            if (_atmosphereModule?.GetModuleVolume() == volume) return;
+            if (_atmosphereModule.GetModuleVolume() == volume) return;
 
-            _atmosphereModule?.SetModuleVolume(volume);
+            _atmosphereModule.SetModuleVolume(volume);
             _settingsService.AudioAtmosVolume = volume;
         }
 

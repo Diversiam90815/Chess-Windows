@@ -1,7 +1,6 @@
 ﻿using Chess.UI.Audio.Modules;
 using Chess.UI.Audio.Services;
 using Chess.UI.Wrappers;
-using Microsoft.Extensions.DependencyInjection;
 using System;
 using System.Collections.ObjectModel;
 using System.ComponentModel;
@@ -39,11 +38,10 @@ namespace Chess.UI.Settings
         public event Action ItemSelected;
 
 
-        public AudioPreferencesViewModel(IDispatcherQueueWrapper dispatcher)
+        public AudioPreferencesViewModel(IDispatcherQueueWrapper dispatcher, IChessAudioService audioService)
         {
             _dispatcherQueue = dispatcher;
-
-            _audioService = App.Current.Services.GetService<IChessAudioService>();
+            _audioService = audioService;
 
             AtmosphereSoundscapes = new ObservableCollection<AtmosphereScenarioItem>();
 
@@ -55,13 +53,13 @@ namespace Chess.UI.Settings
         private void InitializeValues()
         {
             float masterEngineVolume = _audioService.GetMasterVolume();
-            int masterVolume = (int)masterEngineVolume * 100;
+            int masterVolume = (int)MathF.Round(masterEngineVolume * 100);
 
             float sfxEngineVolume = _audioService.GetSFXVolume();
-            int sfxVolume = (int)(sfxEngineVolume * 100);
+            int sfxVolume = (int)MathF.Round(sfxEngineVolume * 100);
 
             float atmosEngineVolume = _audioService.GetAtmosphereVolume();
-            int atmosVolume = (int)(atmosEngineVolume * 100);
+            int atmosVolume = (int)MathF.Round(atmosEngineVolume * 100);
 
             bool sfxEnabled = _audioService.GetSFXEnabled();
             bool atmosEnabled = _audioService.GetAtmosphereEnabled();

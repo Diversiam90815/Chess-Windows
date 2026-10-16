@@ -326,7 +326,7 @@ namespace Chess.UI.Audio.Modules
             {
                 try
                 {
-                    if (_currentPlayer == null && !_disposed)
+                    if (_currentPlayer == null || _disposed)
                         return;
 
                     if (IsEnabled)
@@ -351,7 +351,6 @@ namespace Chess.UI.Audio.Modules
         {
             int steps = (int)(_crossfadeDuration * 10);
             int stepDelay = (int)((_crossfadeDuration * 1000) / steps);
-            float effectiveVolume = targetVolume * GetEffectiveVolume();
 
             for (int i = 0; i <= steps; i++)
             {
@@ -360,16 +359,16 @@ namespace Chess.UI.Audio.Modules
                 lock (_playerLock)
                 {
                     if (_currentPlayer != null)
-                        _currentPlayer.Volume = Math.Clamp(effectiveVolume * (1.0 - progress), 0.0f, 1.0f);
+                        _currentPlayer.Volume = Math.Clamp(targetVolume * (1.0 - progress), 0.0f, 1.0f);
 
                     if (_crossfadePlayer != null)
-                        _crossfadePlayer.Volume = Math.Clamp(effectiveVolume * progress, 0.0f, 1.0f);
+                        _crossfadePlayer.Volume = Math.Clamp(targetVolume * progress, 0.0f, 1.0f);
                 }
 
                 await Task.Delay(stepDelay);
             }
 
-            // Swap the players
+            // Swap the players; the faded-out one is kept for the next crossfade
             lock (_playerLock)
             {
                 var tmp = _currentPlayer;
@@ -381,7 +380,6 @@ namespace Chess.UI.Audio.Modules
                     _crossfadePlayer.Pause();
                     _crossfadePlayer.Source = null;
                 }
-                _crossfadePlayer = null;
             }
         }
 

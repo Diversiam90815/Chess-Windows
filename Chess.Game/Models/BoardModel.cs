@@ -10,7 +10,7 @@ namespace Chess.UI.Models
     {
         PieceType[] GetBoardStateFromNative();
         BoardSquare GetSquare(Square square);
-        Dictionary<Square, PieceType> UpdateBoardState();
+        Dictionary<Square, PieceType> UpdateBoardState(PieceType[] newBoardState);
         BoardSquare[] GetAllSquares();
         void SyncBoardStateFromNative();
     }
@@ -39,16 +39,7 @@ namespace Chess.UI.Models
 
         public PieceType[] GetBoardStateFromNative()
         {
-            int[] rawBoard = new int[64]; // pre-allocated array
-            EngineAPI.GetBoardState(rawBoard);
-
-            PieceType[] board = new PieceType[64];
-            for (int i = 0; i < 64; ++i)
-            {
-                board[i] = (PieceType)rawBoard[i];
-            }
-
-            return board;
+            return CommunicationLayer.ReadBoardState();
         }
 
 
@@ -68,9 +59,8 @@ namespace Chess.UI.Models
 
 
 
-        public Dictionary<Square, PieceType> UpdateBoardState()
+        public Dictionary<Square, PieceType> UpdateBoardState(PieceType[] newBoardState)
         {
-            PieceType[] newBoardState = GetBoardStateFromNative();    // Get the latest board state
             Dictionary<Square, PieceType> changedSquares = new Dictionary<Square, PieceType>();
 
             for (int i = 0; i < 64; i++)

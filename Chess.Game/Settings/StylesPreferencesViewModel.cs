@@ -11,13 +11,13 @@ using System.Threading.Tasks;
 
 namespace Chess.UI.Settings
 {
-    public class StylesPreferencesViewModel
+    public class StylesPreferencesViewModel : INotifyPropertyChanged
     {
         public event PropertyChangedEventHandler PropertyChanged;
 
         private readonly IDispatcherQueueWrapper _dispatcherQueueWrapper;
 
-        private readonly StyleLoader _styleLoader;
+        private readonly IStyleLoader _styleLoader;
 
         private readonly IStyleManager _styleManager;
 
@@ -34,17 +34,21 @@ namespace Chess.UI.Settings
         public ObservableCollection<PieceStyleInfo> PieceThemes { get; }
 
 
-        public StylesPreferencesViewModel(IDispatcherQueueWrapper dispatcherQueue, IStyleManager themeManager, ISettingsService settingsService)
+        // Completes once the available styles are loaded and the saved ones are selected
+        public Task Initialization { get; }
+
+
+        public StylesPreferencesViewModel(IDispatcherQueueWrapper dispatcherQueue, IStyleManager themeManager, ISettingsService settingsService, IStyleLoader styleLoader)
         {
             _dispatcherQueueWrapper = dispatcherQueue;
-            _styleLoader = new();
+            _styleLoader = styleLoader;
             _styleManager = themeManager;
             _settingsService = settingsService;
 
             BoardThemes = [];
             PieceThemes = [];
 
-            _ = InitializeAsync();
+            Initialization = InitializeAsync();
         }
 
 
@@ -61,7 +65,7 @@ namespace Chess.UI.Settings
                     return (boards, pieces);
                 });
 
-                _dispatcherQueueWrapper.TryEnqueue(() =>
+                await _dispatcherQueueWrapper.EnqueueAsync(() =>
                 {
                     foreach (var board in boardThemes)
                         BoardThemes.Add(board);
@@ -117,7 +121,8 @@ namespace Chess.UI.Settings
 
                     // Update ThemeManager’s board theme
                     // This triggers property change events in the manager
-                    _styleManager.CurrentBoardStyle = value.Style;
+                    if (value != null)
+                        _styleManager.CurrentBoardStyle = value.Style;
 
                     if (_userInteractionEnabled)
                         ItemSelected?.Invoke();
@@ -141,7 +146,8 @@ namespace Chess.UI.Settings
                     OnPropertyChanged();
 
                     // Update ThemeManager’s piece theme
-                    _styleManager.CurrentPieceStyle = value.Style;
+                    if (value != null)
+                        _styleManager.CurrentPieceStyle = value.Style;
 
                     if (_userInteractionEnabled)
                         ItemSelected?.Invoke();

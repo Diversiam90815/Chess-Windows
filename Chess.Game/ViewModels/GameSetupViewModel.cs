@@ -40,7 +40,7 @@ namespace Chess.UI.ViewModels
 
         public async Task<bool> StartGameAsync(GameConfiguration config)
         {
-            if(config.IsValid())
+            if(!config.IsValid())
             {
                 Logger.LogError($"Invalid game configuration for mode: {config.Mode}");
                 return false;

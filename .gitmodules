@@ -1,3 +1,7 @@
 [submodule "Chess.Engine"]
-	path = Chess.Engine
+	path = submodules/Chess.Engine
 	url = git@github.com:Diversiam90815/Chess-Engine.git
+[submodule "NetLink"]
+	path = submodules/NetLink
+	url = git@github.com:Diversiam90815/NetLink.git
+	branch = Add-plain-C-api

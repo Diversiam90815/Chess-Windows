@@ -1,4 +1,5 @@
 using Chess.UI.Audio.Core;
+using Chess.UI.Audio.Modules;
 using Chess.UI.Audio.Services;
 using Chess.UI.Models;
 using Chess.UI.Services;
@@ -10,6 +11,7 @@ using Chess.UI.Wrappers;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.UI.Xaml;
 using System;
+using System.Threading.Tasks;
 
 
 namespace Chess.UI
@@ -25,7 +27,7 @@ namespace Chess.UI
 
         public App()
         {
-            Services = ConfigureServices();
+            Services = ConfigureServices().BuildServiceProvider();
 
             Current = this;
             this.InitializeComponent();
@@ -34,17 +36,26 @@ namespace Chess.UI
 
         protected override void OnLaunched(Microsoft.UI.Xaml.LaunchActivatedEventArgs args)
         {
+            // First of all, so everything after it is in the log. The level is set by the app, for the engine and NetLink as well.
+            Logger.Initialize(Project.AppDataDirectory);
+            Logger.SetLevel(Services.GetService<ISettingsService>().LogLevel);
+
             var engineCommunication = Services.GetService<ICommunicationLayer>();
             engineCommunication.Init();
 
-            var audioService = Services.GetService<IChessAudioService>();
-            audioService.InitializeAsync();
+            // Audio loads in the background so it does not hold up the window
+            _ = InitializeAudioAsync();
 
             _shellWindow = new ShellWindow();
 
             _shellWindow.Closed += (sender, args) =>
             {
+                // Tells a connected opponent that the session ends
+                Services.GetService<INetworkService>().Dispose();
                 engineCommunication.Deinit();
+
+                Logger.LogInfo("App closed");
+                Logger.Shutdown();
             };
 
             _shellWindow.Activate();
@@ -53,16 +64,50 @@ namespace Chess.UI
         }
 
 
-        private IServiceProvider ConfigureServices()
+        private async Task InitializeAudioAsync()
+        {
+            try
+            {
+                var audioService = Services.GetService<IChessAudioService>();
+                await audioService.InitializeAsync();
+
+                ConnectUISounds(audioService);
+            }
+            catch (Exception ex)
+            {
+                Logger.LogError($"Failed to initialize audio: {ex.Message}");
+            }
+        }
+
+
+        // The view models only announce clicks and selections. Which of them make a sound is decided here,
+        // so the audio service and the view models do not need to know each other.
+        private void ConnectUISounds(IChessAudioService audioService)
+        {
+            void Play(UIInteraction interaction) => _ = Task.Run(async () => await audioService.HandleUIInteractionAsync(interaction));
+
+            Services.GetService<MainMenuViewModel>().ButtonClicked += () => Play(UIInteraction.ButtonClick);
+            Services.GetService<ChessBoardViewModel>().ButtonClicked += () => Play(UIInteraction.ButtonClick);
+            Services.GetService<MultiplayerViewModel>().ButtonClicked += () => Play(UIInteraction.ButtonClick);
+
+            Services.GetService<StylesPreferencesViewModel>().ItemSelected += () => Play(UIInteraction.ItemSelected);
+            Services.GetService<MultiplayerPreferencesViewModel>().ItemSelected += () => Play(UIInteraction.ItemSelected);
+            Services.GetService<AudioPreferencesViewModel>().ItemSelected += () => Play(UIInteraction.ItemSelected);
+        }
+
+
+        public static IServiceCollection ConfigureServices()
         {
             var services = new ServiceCollection();
 
             services.AddSingleton<IDispatcherQueueWrapper, DispatcherQueueWrapper>();
 
-            services.AddSingleton<ISettingsService, SettingsService>();
+            services.AddSingleton<ISettingsService>(_ => new SettingsService(Project.AppDataDirectory));
 
             services.AddSingleton<ICommunicationLayer, CommunicationLayer>();
+            services.AddSingleton<INetworkService, NetworkService>();
             services.AddSingleton<IStyleManager, StyleManager>();
+            services.AddSingleton<IStyleLoader, StyleLoader>();
             services.AddSingleton<IImageService, ImageServices>();
             services.AddSingleton<INavigationService, NavigationService>();
             services.AddSingleton<IChessGameService, ChessGameService>();
@@ -82,6 +127,7 @@ namespace Chess.UI
             services.AddSingleton<MoveHistoryViewModel>();
             services.AddSingleton<MainMenuViewModel>();
             services.AddSingleton<MultiplayerViewModel>();
+            services.AddSingleton<MultiplayerInfoViewModel>();
             services.AddSingleton<StylesPreferencesViewModel>();
             services.AddSingleton<MultiplayerPreferencesViewModel>();
             services.AddSingleton<AudioPreferencesViewModel>();
@@ -89,9 +135,11 @@ namespace Chess.UI
 
             // Audio Services
             services.AddSingleton<IAudioEngine, AudioEngine>();
+            services.AddSingleton<ISoundEffectsModule, SoundEffectsModule>();
+            services.AddSingleton<IAtmosphereModule, AtmosphereModule>();
             services.AddSingleton<IChessAudioService, ChessAudioService>();
 
-            return services.BuildServiceProvider();
+            return services;
         }
     }
 }

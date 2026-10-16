@@ -1,7 +1,6 @@
 ﻿using Chess.UI.Settings;
 using Chess.UI.UI;
 using Chess.UI.Wrappers;
-using Microsoft.Extensions.DependencyInjection;
 using System;
 using System.Collections.Generic;
 using System.Collections.ObjectModel;
@@ -25,17 +24,26 @@ namespace Chess.UI.ViewModels
 
 
 
-        public MultiplayerPreferencesViewModel(IDispatcherQueueWrapper dispatcherQueue)
+        public MultiplayerPreferencesViewModel(IDispatcherQueueWrapper dispatcherQueue, IMultiplayerPreferencesModel model)
         {
             _dispatcherQueue = dispatcherQueue;
 
             NetworkAdapters = [];
 
-            _model = App.Current.Services.GetService<IMultiplayerPreferencesModel>();
-            _model.Init();
+            _model = model;
 
-            UpdateAdapterBox();
+            RefreshAdapters();
             SetLocalNameFromBackend();
+        }
+
+
+        /// <summary>
+        /// Reads the adapters again: they can come and go while the app runs.
+        /// </summary>
+        public void RefreshAdapters()
+        {
+            _model.Init();
+            UpdateAdapterBox();
         }
 
 
@@ -92,21 +100,16 @@ namespace Chess.UI.ViewModels
 
         public void SelectPresavedNetworkAdapter()
         {
-            int savedAdapterID = _model.GetSelectedNetworkAdapterID();
+            ulong savedAdapterID = _model.GetSelectedNetworkAdapterID();
 
-            if (savedAdapterID != 0)
-            {
-                for (int i = 0; i < NetworkAdapters.Count; i++)
-                {
-                    NetworkAdapter adapter = NetworkAdapters[i];
-                    if (adapter != null && adapter.ID == savedAdapterID)
-                    {
-                        SelectedAdapter = adapter;
-                        _userInteractionEnabled = true;
-                        return;
-                    }
-                }
-            }
+            // The one in use, otherwise the first recommended one
+            NetworkAdapter adapter = NetworkAdapters.FirstOrDefault(candidate => candidate != null && savedAdapterID != 0 && candidate.ID == savedAdapterID)
+                ?? NetworkAdapters.FirstOrDefault(candidate => candidate != null && candidate.IsRecommended());
+
+            if (adapter != null)
+                SelectedAdapter = adapter;
+
+            _userInteractionEnabled = true;
         }
 
 

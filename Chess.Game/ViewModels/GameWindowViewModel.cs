@@ -1,6 +1,5 @@
 ﻿using Chess.UI.Services;
 using Chess.UI.Wrappers;
-using Microsoft.Extensions.DependencyInjection;
 using System;
 using System.ComponentModel;
 using System.Runtime.CompilerServices;
@@ -27,17 +26,25 @@ namespace Chess.UI.ViewModels
         public event Func<Task<PieceType?>> ShowPawnPromotionDialogRequested;
         public event Action ButtonClicked;
 
+        private readonly object _pendingEndGameLock = new();
+        private (EndGameState State, Side Winner)? _pendingEndGame;
 
-        public GameWindowViewModel(IDispatcherQueueWrapper dispatcherQueue, IChessGameService gameService)
+
+        public GameWindowViewModel(
+            IDispatcherQueueWrapper dispatcherQueue,
+            IChessGameService gameService,
+            ChessBoardViewModel chessBoardViewModel,
+            CapturedPiecesViewModel capturedPiecesViewModel,
+            MoveHistoryViewModel moveHistoryViewModel,
+            MultiplayerInfoViewModel multiplayerInfoViewModel)
         {
             _dispatcherQueue = dispatcherQueue;
             _gameService = gameService;
 
-            // Initialize child ViewModels from DI
-            ChessBoardViewModel = App.Current.Services.GetService<ChessBoardViewModel>();
-            CapturedPiecesViewModel = App.Current.Services.GetService<CapturedPiecesViewModel>();
-            MoveHistoryViewModel = App.Current.Services.GetService<MoveHistoryViewModel>();
-            MultiplayerInfoViewModel = App.Current.Services.GetService<MultiplayerInfoViewModel>();
+            ChessBoardViewModel = chessBoardViewModel;
+            CapturedPiecesViewModel = capturedPiecesViewModel;
+            MoveHistoryViewModel = moveHistoryViewModel;
+            MultiplayerInfoViewModel = multiplayerInfoViewModel;
 
             // Subscribe to ChessBoard events that require window-level handling
             ChessBoardViewModel.ShowEndGameDialog += OnShowEndGameDialog;
@@ -57,9 +64,12 @@ namespace Chess.UI.ViewModels
 
         #region Game Service Event Handlers
 
-        private async void OnGameReset()
+        private void OnGameReset()
         {
             Logger.LogInfo("Resetting all components");
+
+            lock (_pendingEndGameLock)
+                _pendingEndGame = null;
 
             MoveHistoryViewModel.OnReset();
             CapturedPiecesViewModel.ClearCaptures();
@@ -69,6 +79,9 @@ namespace Chess.UI.ViewModels
         private void OnConfigurationChanged(GameConfiguration config)
         {
             Logger.LogInfo($"Configuration changed - Mode={config.Mode}");
+
+            lock (_pendingEndGameLock)
+                _pendingEndGame = null;
 
             // Update game mode flags
             IsMultiplayerGame = config.Mode == GameModeSelection.MultiPlayer;
@@ -85,10 +98,35 @@ namespace Chess.UI.ViewModels
         {
             Logger.LogInfo($"Showing end game dialog - State={state}, Winner={winner}");
 
-            if (ShowEndGameDialog != null)
+            var handler = ShowEndGameDialog;
+
+            if (handler == null)
             {
-                await ShowEndGameDialog.Invoke(state, winner);
+                // No game page is listening (e.g. settings are open), so keep the result until it is shown again
+                lock (_pendingEndGameLock)
+                    _pendingEndGame = (state, winner);
+                return;
             }
+
+            await handler.Invoke(state, winner);
+        }
+
+
+        /// <summary>
+        /// Shows the end game dialog for a game that ended while no game page was listening.
+        /// </summary>
+        public async Task ShowPendingEndGameDialogAsync()
+        {
+            (EndGameState State, Side Winner)? pending;
+
+            lock (_pendingEndGameLock)
+            {
+                pending = _pendingEndGame;
+                _pendingEndGame = null;
+            }
+
+            if (pending.HasValue)
+                await OnShowEndGameDialog(pending.Value.State, pending.Value.Winner);
         }
 
 
@@ -126,22 +164,11 @@ namespace Chess.UI.ViewModels
         {
             Logger.LogInfo("Reset game requested");
 
-            await _gameService.ResetGameAsync();
-
-            // Restart with current configuration
+            // Restart with current configuration, the game service resets the running game first
             if (_gameService.CurrentConfiguration.HasValue)
             {
                 await _gameService.StartGameAsync(_gameService.CurrentConfiguration.Value);
             }
-        }
-
-
-        public async void EndGame()
-        {
-            Logger.LogInfo("End game requested");
-
-            await _gameService.ResetGameAsync();
-            // Navigation service will handle window closing and game ending
         }
 
 

@@ -11,9 +11,9 @@ namespace Chess.UI.Settings
     {
         void Init();
 
-        int GetSelectedNetworkAdapterID();
+        ulong GetSelectedNetworkAdapterID();
 
-        void ChangeNetworkAdapter(int adapterID);
+        void ChangeNetworkAdapter(ulong adapterID);
 
         List<NetworkAdapter> GetNetworkAdapters();
 
@@ -37,7 +37,7 @@ namespace Chess.UI.Settings
     {
         public string AdapterName { get; set; }
         public string NetworkName { get; set; }
-        public int ID { get; set; }
+        public ulong ID { get; set; }
         public AdapterVisibility Visibility { get; set; }
 
         public bool IsValid()
@@ -60,12 +60,14 @@ namespace Chess.UI.Settings
     public class MultiplayerPreferencesModel : IMultiplayerPreferencesModel
     {
         private readonly ISettingsService _settingsService;
+        private readonly INetworkService _networkService;
         private readonly List<NetworkAdapter> _adapters = [];
 
 
-        public MultiplayerPreferencesModel(ISettingsService settingsService)
+        public MultiplayerPreferencesModel(ISettingsService settingsService, INetworkService networkService)
         {
             _settingsService = settingsService;
+            _networkService = networkService;
         }
 
 
@@ -80,20 +82,9 @@ namespace Chess.UI.Settings
         private bool SetNetworkAdapters()
         {
             _adapters.Clear();
-            int adapterCount = EngineAPI.GetNetworkAdapterCount();
 
-            for (uint i = 0; i < adapterCount; ++i)
+            foreach (NetworkAdapter networkAdapter in _networkService.GetNetworkAdapters())
             {
-                EngineAPI.GetNetworkAdapterAtIndex(i, out EngineAPI.NetworkAdapterInstance adapter);
-
-                NetworkAdapter networkAdapter = new()
-                {
-                    AdapterName = adapter.AdapterName,
-                    NetworkName = adapter.NetworkName,
-                    ID = adapter.ID,
-                    Visibility = (AdapterVisibility)adapter.Priority,
-                };
-
                 if (!networkAdapter.IsValid())
                     continue;
 
@@ -111,15 +102,15 @@ namespace Chess.UI.Settings
         }
 
 
-        public int GetSelectedNetworkAdapterID()
+        public ulong GetSelectedNetworkAdapterID()
         {
-            return EngineAPI.GetCurrentNetworkAdapterID();
+            return _networkService.ActiveAdapterId;
         }
 
 
-        public void ChangeNetworkAdapter(int ID)
+        public void ChangeNetworkAdapter(ulong ID)
         {
-            EngineAPI.ChangeCurrentAdapter(ID);
+            _networkService.SetActiveAdapter(ID);
         }
 
         #endregion
@@ -129,8 +120,8 @@ namespace Chess.UI.Settings
 
         public void SetLocalPlayerName(string name)
         {
+            // Others see the new name once networking starts again
             _settingsService.PlayerName = name;
-            EngineAPI.SetLocalPlayerName(name);
             PlayerNameChanged?.Invoke(name);
         }
 

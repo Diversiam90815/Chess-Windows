@@ -1,7 +1,6 @@
 ﻿using Chess.UI.Models;
 using Chess.UI.Services;
 using Chess.UI.Wrappers;
-using Microsoft.Extensions.DependencyInjection;
 using System;
 using System.Collections.Generic;
 using System.ComponentModel;
@@ -22,24 +21,19 @@ namespace Chess.UI.ViewModels
         private readonly IMoveModel _moveModel;
 
 
-        public MultiplayerInfoViewModel(IDispatcherQueueWrapper dispatcherQueue, IChessGameService gameService, IMoveModel moveModel)
+        public MultiplayerInfoViewModel(IDispatcherQueueWrapper dispatcherQueue, IChessGameService gameService, IMoveModel moveModel, MultiplayerViewModel multiplayerViewModel)
         {
             _dispatcherQueue = dispatcherQueue;
             _gameService = gameService;
             _moveModel = moveModel;
 
-            // Get MultiplayerViewModel for player info
-            var multiplayerViewModel = App.Current.Services.GetService<MultiplayerViewModel>();
-
             // Subscribe to events
             _gameService.ConfigurationChanged += OnConfigurationChanged;
             _moveModel.PlayerChanged += OnPlayerChanged;
 
-            if (multiplayerViewModel != null)
-            {
-                multiplayerViewModel.PropertyChanged += OnMultiplayerViewModelPropertyChanged;
-                LocalPlayer = multiplayerViewModel.LocalPlayer;
-            }
+            // The multiplayer view model knows which color the local player picked
+            multiplayerViewModel.PropertyChanged += OnMultiplayerViewModelPropertyChanged;
+            LocalPlayer = multiplayerViewModel.LocalPlayer;
         }
 
 

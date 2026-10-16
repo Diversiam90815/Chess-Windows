@@ -199,31 +199,50 @@
                 BorderThickness="1"
                 CornerRadius="8"
                 Padding="12">
-                <StackPanel Orientation="Horizontal" Spacing="10">
-                    <Image
-                        Width="32"
-                        Height="32"
-                        Source="{x:Bind converter:Converter.PlayerToPawnImage(_viewModel.ChessBoardViewModel.CurrentPlayer), Mode=OneWay}"
-                        Stretch="Uniform" />
-                    <StackPanel VerticalAlignment="Center">
-                        <TextBlock
-                            FontSize="16"
-                            FontWeight="SemiBold"
-                            Text="{x:Bind _viewModel.ChessBoardViewModel.CurrentPlayerText, Mode=OneWay}" />
-                        <TextBlock
-                            FontSize="12"
-                            Foreground="{ThemeResource TextFillColorTertiaryBrush}"
-                            Text="{x:Bind _viewModel.GameModeText, Mode=OneWay}" />
+                <Grid ColumnSpacing="10">
+                    <Grid.ColumnDefinitions>
+                        <ColumnDefinition Width="*" />
+                        <ColumnDefinition Width="Auto" />
+                    </Grid.ColumnDefinitions>
+                    <StackPanel Orientation="Horizontal" Spacing="10">
+                        <Image
+                            Width="32"
+                            Height="32"
+                            Source="{x:Bind converter:Converter.PlayerToPawnImage(_viewModel.ChessBoardViewModel.CurrentPlayer), Mode=OneWay}"
+                            Stretch="Uniform" />
+                        <StackPanel VerticalAlignment="Center">
+                            <TextBlock
+                                FontSize="16"
+                                FontWeight="SemiBold"
+                                Text="{x:Bind _viewModel.ChessBoardViewModel.CurrentPlayerText, Mode=OneWay}" />
+                            <TextBlock
+                                FontSize="12"
+                                Foreground="{ThemeResource TextFillColorTertiaryBrush}"
+                                Text="{x:Bind _viewModel.GameModeText, Mode=OneWay}" />
+                        </StackPanel>
+                        <!-- Multiplayer turn dot -->
+                        <Ellipse
+                            Width="10"
+                            Height="10"
+                            Margin="8,0,0,0"
+                            VerticalAlignment="Center"
+                            Fill="{x:Bind converter:Converter.BoolToColor(_viewModel.MultiplayerInfoViewModel.IsLocalPlayersTurn), Mode=OneWay}"
+                            Visibility="{x:Bind converter:Converter.BoolToVisibility(_viewModel.IsMultiplayerGame), Mode=OneWay}" />
                     </StackPanel>
-                    <!-- Multiplayer turn dot -->
-                    <Ellipse
-                        Width="10"
-                        Height="10"
-                        Margin="8,0,0,0"
-                        VerticalAlignment="Center"
-                        Fill="{x:Bind converter:Converter.BoolToColor(_viewModel.MultiplayerInfoViewModel.IsLocalPlayersTurn), Mode=OneWay}"
-                        Visibility="{x:Bind converter:Converter.BoolToVisibility(_viewModel.IsMultiplayerGame), Mode=OneWay}" />
-                </StackPanel>
+                    <!-- Settings -->
+                    <Button
+                        Grid.Column="1"
+                        Width="40"
+                        Height="40"
+                        Padding="0"
+                        VerticalAlignment="Top"
+                        AutomationProperties.Name="Settings"
+                        Click="Settings_Click"
+                        Style="{StaticResource PreferencesButtonStyle}"
+                        ToolTipService.ToolTip="Settings">
+                        <FontIcon FontSize="16" Glyph="&#xE713;" />
+                    </Button>
+                </Grid>
             </Border>
 
             <!-- Captured Pieces -->

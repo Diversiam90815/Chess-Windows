@@ -26,6 +26,10 @@ namespace Chess.UI.Settings
 
         // Network
         int DiscoveryUDPPort { get; set; }
+        ulong NetworkAdapterId { get; set; }
+
+        // Diagnostics: the lowest level written to the log, for the app, the engine and NetLink
+        LogLevel LogLevel { get; set; }
     }
 
 
@@ -60,6 +64,14 @@ namespace Chess.UI.Settings
 
         [JsonPropertyName("Discovery_UDP_Port")]
         public int DiscoveryUDPPort { get; set; } = 5555;
+
+        // 0: none chosen, the preferred adapter is used
+        [JsonPropertyName("Network_Adapter_ID")]
+        public ulong NetworkAdapterId { get; set; } = 0;
+
+        [JsonPropertyName("Log_Level")]
+        [JsonConverter(typeof(JsonStringEnumConverter<LogLevel>))]
+        public LogLevel LogLevel { get; set; } = LogLevel.Info;
     }
 
 
@@ -75,14 +87,25 @@ namespace Chess.UI.Settings
         };
 
 
-        public SettingsService()
+        public SettingsService(string appDataDirectory)
         {
-            string settingsFolder = Path.Combine(Project.AppDataDirectory, "Settings");
+            string settingsFolder = Path.Combine(appDataDirectory, "Settings");
             _configFilePath = Path.Combine(settingsFolder, "Config.json");
 
             Directory.CreateDirectory(settingsFolder);
 
             _data = LoadOrCreateDefaults();
+
+            // Other players see this name, so there always is one
+            if (string.IsNullOrWhiteSpace(_data.PlayerName))
+                PlayerName = DefaultPlayerName();
+        }
+
+
+        private static string DefaultPlayerName()
+        {
+            string name = Environment.UserName;
+            return string.IsNullOrWhiteSpace(name) ? Environment.MachineName : name;
         }
 
 
@@ -101,12 +124,7 @@ namespace Chess.UI.Settings
         public string PlayerName
         {
             get => _data.PlayerName;
-            set
-            {
-                _data.PlayerName = value;
-                Save();
-                EngineAPI.SetLocalPlayerName(value ?? "");
-            }
+            set { _data.PlayerName = value; Save(); }
         }
 
         public bool AudioSFXEnabled
@@ -148,12 +166,19 @@ namespace Chess.UI.Settings
         public int DiscoveryUDPPort
         {
             get => _data.DiscoveryUDPPort;
-            set
-            {
-                _data.DiscoveryUDPPort = value;
-                Save();
-                EngineAPI.SetDiscoveryPort(value);
-            }
+            set { _data.DiscoveryUDPPort = value; Save(); }
+        }
+
+        public ulong NetworkAdapterId
+        {
+            get => _data.NetworkAdapterId;
+            set { _data.NetworkAdapterId = value; Save(); }
+        }
+
+        public LogLevel LogLevel
+        {
+            get => _data.LogLevel;
+            set { _data.LogLevel = value; Save(); }
         }
 
 
