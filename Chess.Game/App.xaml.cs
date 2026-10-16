@@ -46,6 +46,8 @@ namespace Chess.UI
 
             _shellWindow.Closed += (sender, args) =>
             {
+                // Tells a connected opponent that the session ends
+                Services.GetService<INetworkService>().Dispose();
                 engineCommunication.Deinit();
             };
 
@@ -96,6 +98,7 @@ namespace Chess.UI
             services.AddSingleton<ISettingsService>(_ => new SettingsService(Project.AppDataDirectory));
 
             services.AddSingleton<ICommunicationLayer, CommunicationLayer>();
+            services.AddSingleton<INetworkService, NetworkService>();
             services.AddSingleton<IStyleManager, StyleManager>();
             services.AddSingleton<IStyleLoader, StyleLoader>();
             services.AddSingleton<IImageService, ImageServices>();
